@@ -1,10 +1,9 @@
 import { create, deserialize, getHead, getRoot, serialize, validate } from '@/chain'
 import { setup } from '@/util/testing'
+import '@/util/testing/expect/toBeValid'
 
 const { alice } = setup('alice')
 const defaultUser = alice
-
-import '@/util/testing/expect/toBeValid'
 
 const __ = expect.objectContaining
 

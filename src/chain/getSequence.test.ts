@@ -1,8 +1,8 @@
-import { randomKey } from '@herbcaudill/crypto'
-import { arbitraryDeterministicSort } from './arbitraryDeterministicSort'
 import { append, baseResolver, create, getSequence, Resolver, Sequencer, SignedLink } from '@/chain'
 import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 import { setup } from '@/util/testing'
+import { randomKey } from '@herbcaudill/crypto'
+import { arbitraryDeterministicSort } from './arbitraryDeterministicSort'
 
 const { alice } = setup('alice')
 const defaultUser = alice

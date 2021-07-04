@@ -1,15 +1,10 @@
-﻿import { clone } from '@/util'
-import { hashLink } from '@/chain/hashLink'
+﻿import { hashLink } from '@/chain/hashLink'
 import { isPredecessor } from '@/chain/predecessors'
 import { Action, MergeLink, SignatureChain } from '@/chain/types'
 import { Hash } from '@/util'
-import { getLength } from './getLength'
 import { getHead } from './getHead'
 
-export const merge = <A extends Action>(
-  a: SignatureChain<A>,
-  b: SignatureChain<A>
-): SignatureChain<A> => {
+export const merge = <A extends Action>(a: SignatureChain<A>, b: SignatureChain<A>): SignatureChain<A> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
   const root = a.root

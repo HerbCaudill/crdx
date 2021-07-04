@@ -1,17 +1,8 @@
-﻿import { signatures } from '@herbcaudill/crypto'
-import { getRoot } from '@/chain/getRoot'
+﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import {
-  isMergeLink,
-  isRootLink,
-  NonRootLinkBody,
-  ROOT,
-  RootLinkBody,
-  ValidatorSet,
-} from '@/chain/types'
-import { debug, memoize, ValidationError } from '@/util'
-
-const log = debug('lf:auth:validators')
+import { isMergeLink, isRootLink, NonRootLinkBody, ROOT, RootLinkBody, ValidatorSet } from '@/chain/types'
+import { memoize, ValidationError } from '@/util'
+import { signatures } from '@herbcaudill/crypto'
 
 const _validators: ValidatorSet = {
   /** Does this link contain a hash of the previous link?  */
@@ -41,8 +32,7 @@ const _validators: ValidatorSet = {
     const hasRootType = (link.body as RootLinkBody<any>).type === ROOT
     const isDesignatedAsRoot = getRoot(chain) === link
     // all should be true, or all should be false
-    if (hasNoPreviousLink === isDesignatedAsRoot && isDesignatedAsRoot === hasRootType)
-      return { isValid: true }
+    if (hasNoPreviousLink === isDesignatedAsRoot && isDesignatedAsRoot === hasRootType) return { isValid: true }
     else {
       // TODO there are more possibilities - sort them all out?
       const message = hasNoPreviousLink

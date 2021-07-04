@@ -1,8 +1,8 @@
-﻿import { signatures } from '@herbcaudill/crypto'
-import { EMPTY_CHAIN } from '@/chain/create'
-import { Action, NonRootLinkBody, SignatureChain, SignedLink } from '@/chain/types'
+﻿import { EMPTY_CHAIN } from '@/chain/create'
 import { hashLink } from '@/chain/hashLink'
+import { Action, NonRootLinkBody, SignatureChain, SignedLink } from '@/chain/types'
 import { redactUser, UserWithSecrets } from '@/user'
+import { signatures } from '@herbcaudill/crypto'
 
 export const append = <A extends Action>(
   chain: SignatureChain<A> | typeof EMPTY_CHAIN,
