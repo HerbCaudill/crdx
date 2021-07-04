@@ -1,18 +1,32 @@
 ﻿import { append } from '@/chain/append'
-import { clone, truncateHashes } from '@/util'
 import { create } from '@/chain/create'
 import { merge } from '@/chain/merge'
-import { Link, isMergeLink, LinkBody, SignatureChain, Action, ActionLink } from '@/chain/types'
+import {
+  Action,
+  ActionLink,
+  isMergeLink,
+  Link,
+  LinkBody,
+  SignatureChain,
+} from '@/chain/types'
+import { clone } from '@/util'
 import { setup } from '@/util/testing'
 
 const { alice } = setup('alice')
 
 export const getPayloads = (sequence: Link<any>[]) =>
-  sequence.filter(n => !isMergeLink(n)).map(n => (n.body as LinkBody<Action>).payload)
+  sequence
+    .filter(n => !isMergeLink(n))
+    .map(n => (n.body as LinkBody<Action>).payload)
 
-export const findByPayload = (chain: SignatureChain<Action>, payload: Action['payload']) => {
+export const findByPayload = (
+  chain: SignatureChain<Action>,
+  payload: Action['payload']
+) => {
   const links = Object.values(chain.links)
-  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as ActionLink<Action>
+  return links.find(
+    n => !isMergeLink(n) && n.body.payload === payload
+  ) as ActionLink<Action>
 }
 
 /**
@@ -69,4 +83,5 @@ export const buildChain = () => {
   return a
 }
 
-export const getHashes = (chain: SignatureChain<any>) => Object.keys(chain.links)
+export const getHashes = (chain: SignatureChain<any>) =>
+  Object.keys(chain.links)

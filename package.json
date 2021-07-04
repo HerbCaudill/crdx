@@ -26,18 +26,21 @@
     "buffer": "6",
     "debug": "4",
     "events": "3",
-    "fast-memoize": "2"
+    "fast-memoize": "2",
+    "ramda": "^0.27.1"
   },
   "devDependencies": {
     "@herbcaudill/tscpaths": "^0.0.17",
     "@types/debug": "4",
+    "@types/ramda": "^0.27.42",
+    "cross-env": "6",
+    "ts-jest": "26",
     "tsdx": "^0.14.1",
     "tslib": "^2.3.0",
-    "cross-env": "6",
     "typescript": "^4.3.5"
   },
   "prettier": {
-    "printWidth": 80,
+    "printWidth": 120,
     "semi": false,
     "singleQuote": true,
     "trailingComma": "es5"

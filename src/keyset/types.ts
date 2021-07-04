@@ -20,8 +20,6 @@ export interface KeyScope {
 }
 
 export enum KeyType {
-  TEAM = 'TEAM',
-  ROLE = 'ROLE',
   MEMBER = 'MEMBER',
   DEVICE = 'DEVICE',
   EPHEMERAL = 'EPHEMERAL',
@@ -40,9 +38,7 @@ export interface PublicKeyset extends KeyMetadata {
 
 // type guard: PublicKeyset vs KeysetWithSecrets
 export const hasSecrets = (keys: PublicKeyset | KeysetWithSecrets): keys is KeysetWithSecrets =>
-  keys.encryption.hasOwnProperty('secretKey') &&
-  keys.signature.hasOwnProperty('secretKey') &&
-  'secretKey' in keys
+  keys.encryption.hasOwnProperty('secretKey') && keys.signature.hasOwnProperty('secretKey') && 'secretKey' in keys
 
 // type guard: KeysetWithSecrets vs. KeyScope
 export const isKeyset = (k: KeysetWithSecrets | KeyScope): k is KeysetWithSecrets =>

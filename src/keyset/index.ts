@@ -1,4 +1,3 @@
-export * from '@/keyset/constants'
 export * from '@/keyset/create'
 export * from '@/keyset/getScope'
 export * from '@/keyset/randomKey'

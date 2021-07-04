@@ -1,10 +1,9 @@
 import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
-import { ADMIN_SCOPE, EPHEMERAL_SCOPE } from '@/keyset/constants'
 import { create } from '@/keyset/create'
 import { KeyType } from '@/keyset/types'
-import { ADMIN } from '@/role'
 
-const { MEMBER, ROLE } = KeyType
+const { MEMBER, EPHEMERAL } = KeyType
+const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('create', () => {
   it('returns keys with the expected lengths', () => {
@@ -22,10 +21,10 @@ describe('create', () => {
   })
 
   it('returns keys with the expected metadata', () => {
-    const keys = create(ADMIN_SCOPE)
+    const keys = create({ type: MEMBER, name: 'alice' })
 
-    expect(keys.type).toEqual(ROLE)
-    expect(keys.name).toEqual(ADMIN)
+    expect(keys.type).toEqual(MEMBER)
+    expect(keys.name).toEqual('alice')
     expect(keys.generation).toBe(0) // freshly created keys are at generation 0
   })
 

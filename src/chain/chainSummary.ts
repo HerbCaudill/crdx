@@ -1,12 +1,10 @@
 ﻿import { actionFingerprint } from '@/chain/actionFingerprint'
 import { getSequence } from '@/chain/getSequence'
-import { TeamAction, TeamSignatureChain } from '@/chain/types'
-import { membershipResolver as resolver } from '@/chain/membershipResolver'
-import { membershipSequencer as sequencer } from '@/chain/membershipSequencer'
+import { Action, SignatureChain } from '@/chain/types'
 
-export const chainSummary = (chain: TeamSignatureChain) => {
-  const links = getSequence<TeamAction>({ chain, sequencer, resolver })
+export const chainSummary = <A extends Action>(chain: SignatureChain<A>) => {
+  const links = getSequence<Action>({ chain })
     .map(l => actionFingerprint(l))
     .join(', ')
-  return links //`${chain.head.slice(0, 5)}:${links}`
+  return links
 }
