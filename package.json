@@ -1,0 +1,45 @@
+{
+  "name": "crdx",
+  "author": "HerbCaudill",
+  "version": "0.1.0",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "module": "dist/crdx.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "postbuild": "tscpaths -p tsconfig.json -s ./src -o ./dist --silent",
+    "test": "tsdx test",
+    "test:log": "cross-env DEBUG='lf*' DEBUG_COLORS=1 yarn test",
+    "prepublish": "yarn build"
+  },
+  "dependencies": {
+    "@herbcaudill/crypto": "^0.1.14",
+    "buffer": "6",
+    "debug": "4",
+    "events": "3",
+    "fast-memoize": "2"
+  },
+  "devDependencies": {
+    "@herbcaudill/tscpaths": "^0.0.17",
+    "@types/debug": "4",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.3.0",
+    "cross-env": "6",
+    "typescript": "^4.3.5"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}
