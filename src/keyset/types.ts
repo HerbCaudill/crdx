@@ -19,15 +19,15 @@ export interface KeyMetadata extends KeyScope {
   generation: number
 }
 
+export interface Keyset extends KeyMetadata {
+  encryption: Base64 // = encryption.publicKey
+  signature: Base64 // = signature.publicKey
+}
+
 export interface KeysetWithSecrets extends KeyMetadata {
   secretKey: Base64 // for symmetric encryption
   encryption: Base64Keypair // for asymmetric encryption
   signature: Base64Keypair
-}
-
-export interface Keyset extends KeyMetadata {
-  encryption: Base64 // = encryption.publicKey
-  signature: Base64 // = signature.publicKey
 }
 
 // type guard: PublicKeyset vs KeysetWithSecrets
