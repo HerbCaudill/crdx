@@ -4,14 +4,14 @@ import { setup } from '@/util/testing'
 import '@/util/testing/expect/toBeValid'
 
 const { alice, bob } = setup('alice', 'bob')
-const defaultContext = alice
+const defaultUser = alice
 const __ = expect.objectContaining
 
 describe('chains', () => {
   describe('merge', () => {
     test('no changes', () => {
       // 👩🏾 Alice creates a chain and shares it with Bob
-      const aliceChain = create('a', defaultContext)
+      const aliceChain = create('a', defaultUser)
       const bobChain = clone(aliceChain)
 
       // 👩🏾👨🏻‍🦲 after a while they sync back up
@@ -26,7 +26,7 @@ describe('chains', () => {
 
     test('edits on one side', () => {
       // 👩🏾 Alice creates a chain and shares it with Bob
-      const chain = create('a', defaultContext)
+      const chain = create('a', defaultUser)
       const bobChain = clone(chain)
 
       // 👩🏾 Alice makes edits

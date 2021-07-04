@@ -1,6 +1,6 @@
 ﻿import { append } from '@/chain/append'
 import { Action, ROOT, SignatureChain } from '@/chain/types'
-import { LocalUserContext } from '@/context'
+import { User } from '@/user'
 
 export const EMPTY_CHAIN = {
   root: null,
@@ -8,7 +8,7 @@ export const EMPTY_CHAIN = {
   links: {},
 }
 
-export const create = <A extends Action>(payload: any = {}, context: LocalUserContext) => {
+export const create = <A extends Action>(payload: any = {}, user: User) => {
   const link = { type: ROOT, payload }
-  return append(EMPTY_CHAIN, link, context) as SignatureChain<A>
+  return append(EMPTY_CHAIN, link, user) as SignatureChain<A>
 }

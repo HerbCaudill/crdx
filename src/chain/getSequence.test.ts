@@ -5,7 +5,7 @@ import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 import { setup } from '@/util/testing'
 
 const { alice } = setup('alice')
-const defaultContext = alice
+const defaultUser = alice
 
 const randomSequencer: Sequencer = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
@@ -19,15 +19,15 @@ const sequencer = randomSequencer
 describe('chains', () => {
   describe('getSequence', () => {
     test('upon creation', () => {
-      var chain = create('a', defaultContext)
+      var chain = create('a', defaultUser)
       const sequence = getSequence({ chain, sequencer })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
     test('no branches', () => {
-      var chain = create('a', defaultContext)
-      chain = append(chain, { type: 'FOO', payload: 'b' }, defaultContext)
-      chain = append(chain, { type: 'FOO', payload: 'c' }, defaultContext)
+      var chain = create('a', defaultUser)
+      chain = append(chain, { type: 'FOO', payload: 'b' }, defaultUser)
+      chain = append(chain, { type: 'FOO', payload: 'c' }, defaultUser)
       const sequence = getSequence({ chain, sequencer })
 
       const expected = 'a b c'

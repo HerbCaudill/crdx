@@ -16,7 +16,7 @@ export type NonRootLinkBody<A extends Action> = A & {
   /** Hash of the previous link*/
   prev: Hash
 
-  /** Context in which this link was authored (user, device, client) */
+  /** User who authored this link */
   user: Member
 
   /** Unix timestamp on device that created this link */
