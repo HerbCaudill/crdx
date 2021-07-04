@@ -1,6 +1,6 @@
 ﻿import { randomKey } from '@herbcaudill/crypto'
 import * as keyset from '@/keyset'
-import { User } from '@/user/types'
+import { UserWithSecrets } from '@/user/types'
 
 const { USER } = keyset.KeyType
 
@@ -11,7 +11,7 @@ const { USER } = keyset.KeyType
  * @param seed (optional) A seed for generating keys. This is typically only used for testing
  * purposes, to ensure predictable data.
  */
-export const create = (userName: string, seed: string = randomKey()): User => ({
+export const create = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
   userName,
   keys: keyset.create({ type: USER, name: userName }, seed),
 })

@@ -1,4 +1,4 @@
-﻿import { Member } from '@/member'
+﻿import { User } from '@/user'
 import { Base64, Hash, UnixTimestamp, ValidationResult } from '@/util/types'
 
 export const ROOT = 'ROOT'
@@ -17,7 +17,7 @@ export type NonRootLinkBody<A extends Action> = A & {
   prev: Hash
 
   /** User who authored this link */
-  user: Member
+  user: User
 
   /** Unix timestamp on device that created this link */
   timestamp: UnixTimestamp
@@ -116,7 +116,7 @@ export interface RootAction extends Action {
   type: typeof ROOT
   payload: {
     teamName: string
-    rootUser: Member
+    rootUser: User
   }
 }
 

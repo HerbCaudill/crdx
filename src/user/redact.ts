@@ -1,12 +1,11 @@
-﻿import { User } from './types'
+﻿import { UserWithSecrets } from './types'
 import { redactKeys } from '@/keyset'
-import { Member } from '@/member'
+import { User } from '@/user'
 
-export const redactUser = (user: User): Member => {
+export const redactUser = (user: UserWithSecrets): User => {
   const { userName } = user
   return {
     userName,
     keys: redactKeys(user.keys),
-    roles: [],
-  } as Member
+  } as User
 }

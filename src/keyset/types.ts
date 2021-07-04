@@ -30,7 +30,7 @@ export interface KeysetWithSecrets extends KeyMetadata {
   signature: Base64Keypair
 }
 
-// type guard: PublicKeyset vs KeysetWithSecrets
+// type guard: Keyset vs KeysetWithSecrets
 export const hasSecrets = (keys: Keyset | KeysetWithSecrets): keys is KeysetWithSecrets =>
   keys.encryption.hasOwnProperty('secretKey') && keys.signature.hasOwnProperty('secretKey') && 'secretKey' in keys
 

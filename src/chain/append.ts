@@ -2,12 +2,12 @@
 import { EMPTY_CHAIN } from '@/chain/create'
 import { Action, NonRootLinkBody, SignatureChain, SignedLink } from '@/chain/types'
 import { hashLink } from '@/chain/hashLink'
-import { redactUser, User } from '@/user'
+import { redactUser, UserWithSecrets } from '@/user'
 
 export const append = <A extends Action>(
   chain: SignatureChain<A> | typeof EMPTY_CHAIN,
   action: A,
-  user: User
+  user: UserWithSecrets
 ): SignatureChain<A> => {
   // chain to previous head
   const body = {
