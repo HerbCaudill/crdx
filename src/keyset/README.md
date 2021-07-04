@@ -15,7 +15,7 @@ Each keyset is associated with a **scope**, indicating what or who the keys belo
 
 - an entire **team**: `{ type: TEAM }`
 - a specific **role**: `{ type: ROLE, name: 'admin' }`
-- a specific **member**: `{ type: MEMBER, name: 'alice' }`
+- a specific **member**: `{ type: USER, name: 'alice' }`
 - a specific **device**: `{ type: DEVICE, name: 'alice laptop' }`
 - **ephemeral** (a throwaway or single-use keyset): `{ type: EPHEMERAL }`
 

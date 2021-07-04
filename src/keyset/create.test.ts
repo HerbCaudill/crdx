@@ -2,7 +2,7 @@ import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
 import { create } from '@/keyset/create'
 import { KeyType } from '@/keyset/types'
 
-const { MEMBER, EPHEMERAL } = KeyType
+const { USER, EPHEMERAL } = KeyType
 const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('create', () => {
@@ -21,11 +21,10 @@ describe('create', () => {
   })
 
   it('returns keys with the expected metadata', () => {
-    const keys = create({ type: MEMBER, name: 'alice' })
+    const keys = create({ type: USER, name: 'alice' })
 
-    expect(keys.type).toEqual(MEMBER)
+    expect(keys.type).toEqual(USER)
     expect(keys.name).toEqual('alice')
-    expect(keys.generation).toBe(0) // freshly created keys are at generation 0
   })
 
   it('produces working signature keys', () => {
@@ -44,8 +43,8 @@ describe('create', () => {
   it('produces working keys for asymmetric encryption', () => {
     const message = 'The dolphin leaps at twilight'
 
-    const alice = create({ type: MEMBER, name: 'alice' }).encryption
-    const bob = create({ type: MEMBER, name: 'bob' }).encryption
+    const alice = create({ type: USER, name: 'alice' }).encryption
+    const bob = create({ type: USER, name: 'bob' }).encryption
 
     // Alice encrypts a message for Bob
     const encrypted = asymmetric.encrypt({

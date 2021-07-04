@@ -2,7 +2,7 @@ import { create, deserialize, getHead, getRoot, serialize, validate } from '@/ch
 import { setup } from '@/util/testing'
 
 const { alice } = setup('alice')
-const defaultContext = alice.localContext
+const defaultContext = alice
 
 import '@/util/testing/expect/toBeValid'
 

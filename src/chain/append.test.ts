@@ -5,7 +5,7 @@ import { setup } from '@/util/testing'
 import '@/util/testing/expect/toBeValid'
 
 const { alice } = setup('alice')
-const defaultContext = alice.localContext
+const defaultContext = alice
 
 const __ = expect.objectContaining
 

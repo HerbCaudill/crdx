@@ -1,4 +1,4 @@
-﻿import { KeysetWithSecrets, PublicKeyset, hasSecrets } from '@/keyset/types'
+﻿import { KeysetWithSecrets, Keyset, hasSecrets } from '@/keyset/types'
 
 /**
  * There are two kinds of keysets:
@@ -26,7 +26,7 @@
  *
  * You can also pass in a `PublicKeyset`, in which case it will be returned as-is.
  */
-export const redactKeys = (keys: KeysetWithSecrets | PublicKeyset): PublicKeyset =>
+export const redactKeys = (keys: KeysetWithSecrets | Keyset): Keyset =>
   (!hasSecrets(keys)
     ? keys
     : {
@@ -35,4 +35,4 @@ export const redactKeys = (keys: KeysetWithSecrets | PublicKeyset): PublicKeyset
         generation: keys.generation,
         encryption: keys.encryption.publicKey,
         signature: keys.signature.publicKey,
-      }) as PublicKeyset
+      }) as Keyset

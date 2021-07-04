@@ -1,6 +1,4 @@
-﻿import { MemberContext } from '@/context'
-import { PublicDevice } from '@/device'
-import { Member } from '@/member'
+﻿import { Member } from '@/member'
 import { Base64, Hash, UnixTimestamp, ValidationResult } from '@/util/types'
 
 export const ROOT = 'ROOT'
@@ -19,16 +17,13 @@ export type NonRootLinkBody<A extends Action> = A & {
   prev: Hash
 
   /** Context in which this link was authored (user, device, client) */
-  context: MemberContext
+  user: Member
 
   /** Unix timestamp on device that created this link */
   timestamp: UnixTimestamp
 }
 
-export type RootLinkBody<A extends Action> = Omit<
-  NonRootLinkBody<A>,
-  'prev'
-> & {
+export type RootLinkBody<A extends Action> = Omit<NonRootLinkBody<A>, 'prev'> & {
   type: typeof ROOT
 
   /** The root link is not linked to a previous link */
@@ -53,9 +48,6 @@ export type SignedLink<B extends LinkBody<A>, A extends Action> = {
 
     /** The username (or ID or email) of the person signing the link */
     userName: string
-
-    /** The name of the device in use when signing the link */
-    deviceName: string
 
     /** The public half of the key used to sign the link, in base64 encoding */
     key: Base64
@@ -112,15 +104,9 @@ export type Resolver<A extends Action = Action> = (
  * A sequencer takes two sequences, and returns a single sequence combining the two
  * while applying any logic regarding which links take precedence.
  */
-export type Sequencer<A extends Action = Action> = (
-  a: Sequence<A>,
-  b: Sequence<A>
-) => Sequence<A>
+export type Sequencer<A extends Action = Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
 
-export type Validator = <A extends Action>(
-  currentLink: Link<A>,
-  chain: SignatureChain<A>
-) => ValidationResult
+export type Validator = <A extends Action>(currentLink: Link<A>, chain: SignatureChain<A>) => ValidationResult
 
 export type ValidatorSet = {
   [key: string]: Validator
@@ -130,15 +116,11 @@ export interface RootAction extends Action {
   type: typeof ROOT
   payload: {
     teamName: string
-    rootMember: Member
-    rootDevice: PublicDevice
+    rootUser: Member
   }
 }
 
 export type Branch = Sequence<Action>
 export type TwoBranches = [Branch, Branch]
 export type ActionFilter = (link: ActionLink<Action>) => boolean
-export type ActionFilterFactory = (
-  branches: TwoBranches,
-  chain: SignatureChain<Action>
-) => ActionFilter
+export type ActionFilterFactory = (branches: TwoBranches, chain: SignatureChain<Action>) => ActionFilter

@@ -2,23 +2,22 @@
 import { EMPTY_CHAIN } from '@/chain/create'
 import { Action, NonRootLinkBody, SignatureChain, SignedLink } from '@/chain/types'
 import { hashLink } from '@/chain/hashLink'
-import { LocalUserContext, redactContext } from '@/context'
+import { redactUser, User } from '@/user'
 
 export const append = <A extends Action>(
   chain: SignatureChain<A> | typeof EMPTY_CHAIN,
   action: A,
-  context: LocalUserContext
+  user: User
 ): SignatureChain<A> => {
   // chain to previous head
   const body = {
     ...action,
-    context: redactContext(context),
+    user: redactUser(user),
     timestamp: new Date().getTime(),
     prev: chain.head,
   } as NonRootLinkBody<A>
 
-  const { userName, deviceName } = context.device
-  const keys = context.user.keys
+  const { userName, keys } = user
   const hash = hashLink(body)
 
   // attach signature
@@ -27,7 +26,6 @@ export const append = <A extends Action>(
     hash,
     signed: {
       userName,
-      deviceName,
       signature: signatures.sign(body, keys.signature.secretKey),
       key: keys.signature.publicKey,
     },

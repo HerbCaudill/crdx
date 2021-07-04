@@ -13,7 +13,7 @@ describe('chains', () => {
   describe('validation', () => {
     test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
-      const chain = create({ team: 'Spies Я Us' }, alice.localContext)
+      const chain = create({ team: 'Spies Я Us' }, alice)
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).toBeValid()
@@ -21,9 +21,9 @@ describe('chains', () => {
 
     test(`Bob validates Alice's chain with a couple of links`, () => {
       // 👩🏾 Alice
-      const chain = create({ team: 'Spies Я Us' }, alice.localContext)
+      const chain = create({ team: 'Spies Я Us' }, alice)
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
-      const newChain = append(chain, newLink, alice.localContext)
+      const newChain = append(chain, newLink, alice)
 
       // 👨🏻‍🦲 Bob
       expect(validate(newChain)).toBeValid()
@@ -31,7 +31,7 @@ describe('chains', () => {
 
     test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
-      const chain = create({ team: 'Spies Я Us' }, alice.localContext)
+      const chain = create({ team: 'Spies Я Us' }, alice)
 
       // 🦹‍♂️ Mallory
       const payload = getRoot(chain).body.payload as any
@@ -43,21 +43,20 @@ describe('chains', () => {
 
     test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
-      const chain = create({ team: 'Spies Я Us' }, alice.localContext)
+      const chain = create({ team: 'Spies Я Us' }, alice)
 
       const root = getRoot(chain)
       // @ts-ignore
       root.body.type = 'IS_IT_SPELLED_ROOT_OR_ROUTE_OR_REWT'
 
       // she re-signs the messed-up link because she wants to see the world burn
-      const { secretKey, publicKey } = alice.user.keys.signature
+      const { secretKey, publicKey } = alice.keys.signature
       const signature = signatures.sign(root.body, secretKey)
 
       chain.links[chain.root] = {
         ...root,
         signed: {
           userName: alice.userName,
-          deviceName: 'alicez phone',
           signature,
           key: publicKey,
         },
@@ -69,7 +68,7 @@ describe('chains', () => {
 
     test('Alice gets high and tries to add another ROOT link', () => {
       // 👩🏾 Alice
-      const chain = create({ team: 'Spies Я Us' }, alice.localContext)
+      const chain = create({ team: 'Spies Я Us' }, alice)
 
       const link = {
         type: ROOT,
@@ -77,7 +76,7 @@ describe('chains', () => {
       }
 
       // add it to an empty chain
-      const newChain = append(chain, link, alice.localContext)
+      const newChain = append(chain, link, alice)
 
       // nope
       expect(validate(newChain)).not.toBeValid()

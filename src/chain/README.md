@@ -15,7 +15,7 @@ A signature chain is just data and can be stored as JSON. It consists of a hash 
 
 By itself, the `chain` module doesn't know anything about teams or access rules. It just creates chains, appends to them, and checks them for internal validity.
 
-The `team` module contributes the semantics of different types of links and their corresponding payloads: For example, a link with the `ADD_MEMBER` type has a payload containing information about the member to be added, as well as a list of roles to add them to.
+The `team` module contributes the semantics of different types of links and their corresponding payloads: For example, a link with the `ADD_USER` type has a payload containing information about the member to be added, as well as a list of roles to add them to.
 
 A team’s latest membership state is calculated by running a chain’s collection of links through a reducer, much the same way Redux uses a reducer to calculate state as the accumulated effect of a sequence of actions. The reducer will throw an error if there are any violations of group rules—for example, a non-admin inviting or removing members, or a member doing anything after they’ve been removed.
 
@@ -79,7 +79,7 @@ A link is an object that looks like this:
 
 #### User-provided fields
 
-- `type` is a label for the type of action that this link represents - for example, `ADD_MEMBER` or `REMOVE`. (This is conceptually similar to a Redux action type.) The `team` module defines the valid types.
+- `type` is a label for the type of action that this link represents - for example, `ADD_USER` or `REMOVE`. (This is conceptually similar to a Redux action type.) The `team` module defines the valid types.
 
 - `payload` is the content of the action - for example, it might contain the name and public keys of a member being added. (Likewise, this is analogous to the payload of a Redux action.)
 

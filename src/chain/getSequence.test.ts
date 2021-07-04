@@ -5,7 +5,7 @@ import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 import { setup } from '@/util/testing'
 
 const { alice } = setup('alice')
-const defaultContext = alice.localContext
+const defaultContext = alice
 
 const randomSequencer: Sequencer = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
