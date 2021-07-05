@@ -26,6 +26,7 @@ export interface SignatureChain<A extends Action> {
   links: LinkMap<A>
 }
 
+/** Hash table of links */
 export type LinkMap<A extends Action> = Record<Hash, Link<A>>
 
 /**
@@ -117,28 +118,31 @@ export type SignedLink<A extends Action> = {
 }
 
 /**
-Root link
-
-```ts
-const example_root: RootLink = {
-  hash: 'DcKrkYgFtKIv13VmkKyEv2S4',
-  signed: {
-    userName: 'alice',
-    signature: '3eDKQ5J22zpSR4HFmAQa9r0N',
-    key: 'w5Cu6PUO6YqptRfNrO9utQO6',
-  },
-  body: {
-    type: ROOT,
-    payload: {
-      name: 'Spies R Us',
-      id: 'TJEJ5w83vy4meH0blRWbGcBN',
-    },
-    user: alice,
-    timestamp: 1625483593289,
-  },
-}
-```
-*/
+ * A root link is a special instance of an `ActionLink` that has no `prev` element in the body
+ * (since it has no predecessor) and has type 'ROOT'.
+ *
+ * @example
+ * ```ts
+ * const example_root: RootLink = {
+ *   hash: 'DcKrkYgFtKIv13VmkKyEv2S4',
+ *   signed: {
+ *     userName: 'alice',
+ *     signature: '3eDKQ5J22zpSR4HFmAQa9r0N',
+ *     key: 'w5Cu6PUO6YqptRfNrO9utQO6',
+ *   },
+ *   body: {
+ *     type: ROOT,
+ *     payload: {
+ *       name: 'Spies R Us',
+ *       id: 'TJEJ5w83vy4meH0blRWbGcBN',
+ *     },
+ *     user: alice,
+ *     timestamp: 1625483593289,
+ *   },
+ * }
+ * ```
+ */
+export type RootLink = SignedLink<RootAction>
 
 export interface RootAction extends Action {
   type: typeof ROOT
@@ -159,17 +163,18 @@ export type RootLinkBody = RootAction & {
   timestamp: UnixTimestamp
 }
 
-export type RootLink = SignedLink<RootAction>
-
 /**
- *  Merge links
+ *  Merge links are analogous to a git merge commit; they have no content of their own. The body is
+ *  just an array of the two heads being merged
  *
+ * @example
+ * ```ts
  * const example_merge: MergeLink = {
  *   type: 'MERGE',
  *   hash: 'W83AYab2n2NhWo4dEVDr4O4z',
- *   body: ['NuBx3niq9aQKM1AyB7f3Mlt7', 'DdPwc9xhLgU6l5DZhunqxTXK'],
+ *   body: ['DdPwc9xhLgU6l5DZhunqxTXK', 'NuBx3niq9aQKM1AyB7f3Mlt7'],
  * }
-
+ * ```
  */
 export type MergeLink = {
   type: typeof MERGE
@@ -181,9 +186,12 @@ export type MergeLink = {
   body: Hash[]
 }
 
-/** A NonMergeLink is anything but a MergeLink (could be a RootLink or an ActionLink) */
+/** A `NonMergeLink` is either a RootLink or an ActionLink. */
 export type NonMergeLink<A extends Action> = RootLink | ActionLink<A> // excludes MergeLink
 
+// sequences
+
+/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). It has no merge links because all merges have been resolved. */
 export type Sequence<A extends Action> = NonMergeLink<A>[]
 
 /**
@@ -199,18 +207,21 @@ export type Resolver<A extends Action = Action> = (
  * A sequencer takes two sequences, and returns a single sequence combining the two
  * while applying any logic regarding which links take precedence.
  */
-export type Sequencer<A extends Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
+export type Sequencer = <A extends Action>(a: Sequence<A>, b: Sequence<A>) => Sequence<A>
+
+export type ActionFilter = <A extends Action>(link: NonMergeLink<A>) => boolean
+export type ActionFilterFactory = <A extends Action>(
+  branches: [Sequence<A>, Sequence<A>],
+  chain: SignatureChain<Action>
+) => ActionFilter
+
+// validators
 
 export type Validator = <A extends Action>(currentLink: Link<A>, chain: SignatureChain<A>) => ValidationResult
 
 export type ValidatorSet = {
   [key: string]: Validator
 }
-
-export type Branch = Sequence<Action>
-export type TwoBranches = [Branch, Branch]
-export type ActionFilter = (link: NonMergeLink<Action>) => boolean
-export type ActionFilterFactory = (branches: TwoBranches, chain: SignatureChain<Action>) => ActionFilter
 
 // type guards
 
