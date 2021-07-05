@@ -1,14 +1,14 @@
-import { Action, append, baseResolver, create, getSequence, Resolver, Sequencer, SignedLink } from '@/chain'
+import { Action, append, baseResolver, create, getSequence, Resolver, Sequencer } from '@/chain'
 import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 import { setup } from '@/util/testing'
 import { randomKey } from '@herbcaudill/crypto'
 import { arbitraryDeterministicSort } from './arbitraryDeterministicSort'
-import { ActionLink } from './types'
+import { ActionLink, isMergeLink, Link, NonMergeLink, Sequence } from './types'
 
 const { alice } = setup('alice')
 const defaultUser = alice
 
-const randomSequencer: Sequencer = (a, b) => {
+const randomSequencer: Sequencer<FooAction> = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
@@ -131,11 +131,11 @@ describe('chains', () => {
 
       test('custom sequencer', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
-        const sequencer: Sequencer = (a, b) => {
-          const alpha = (a: AnyLink, b: AnyLink) => (a.body.payload > b.body.payload ? 1 : -1)
-          const merged = a.concat(b).sort(alpha) as AnyLink[]
+        const sequencer: Sequencer<FooAction> = (a, b) => {
+          const alpha = (a: FooLink, b: FooLink) => (a.body.payload > b.body.payload ? 1 : -1)
+          const merged = a.concat(b).sort(alpha) as Sequence<FooAction>
 
-          const isI = (n: AnyLink) => n.body.payload === 'i'
+          const isI = (n: FooLink) => n.body.payload === 'i'
           const Is = merged.filter(n => isI(n))
           const notIs = merged.filter(n => !isI(n))
 
@@ -146,7 +146,7 @@ describe('chains', () => {
         const resolver: Resolver = ([a, b], chain) => {
           const [_a, _b] = baseResolver([a, b], chain)
 
-          const eFilter = (n: AnyLink) => n.body.payload !== 'e'
+          const eFilter = (n: FooLink) => n.body.payload !== 'e'
           return [_a.filter(eFilter), _b.filter(eFilter)]
         }
 
@@ -164,4 +164,8 @@ describe('chains', () => {
 // split on whitespace
 const split = (s: string) => s.split(/\s*/)
 
-type AnyLink = ActionLink<Action>
+interface FooAction extends Action {
+  type: 'FOO'
+  payload: string
+}
+type FooLink = NonMergeLink<FooAction>

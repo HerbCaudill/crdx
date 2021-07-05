@@ -8,7 +8,7 @@ import {
   isMergeLink,
   Link,
   NonMergeLink,
-  NonRootLinkBody,
+  ActionLinkBody,
   Resolver,
   Sequence,
   Sequencer,
@@ -65,7 +65,7 @@ export const getSequence = <A extends Action>(options: SequenceOptions<A>): NonM
   // 1 parent (normal action link)
   else if (!isMergeLink(head)) {
     // recurse our way backwards
-    const parent = chain.links[((head as ActionLink<A>).body as NonRootLinkBody<A>).prev] as Link<A>
+    const parent = chain.links[((head as ActionLink<A>).body as ActionLinkBody<A>).prev] as Link<A>
     const predecessors = getSequence({
       ...options,
       head: parent,

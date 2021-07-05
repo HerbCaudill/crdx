@@ -5,10 +5,8 @@ export const ROOT = 'ROOT'
 export const MERGE = 'MERGE'
 
 /**
- *  A signature chain is an acyclic directed graph of links. Each link
- *
- * - is **cryptographically signed** by the author; and
- * - includes a **hash of the parent link**.
+ *  A signature chain is an acyclic directed graph of links. Each link is **cryptographically
+ * signed** by the author, and includes a **hash of the parent link**.
  *
  * This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or
  * removed without causing the hash and signature checks to fail.
@@ -31,24 +29,37 @@ export interface SignatureChain<A extends Action> {
 export type LinkMap<A extends Action> = Record<Hash, Link<A>>
 
 /**
+ * An `Action` is analogous to a Redux action: it has a string label (e.g. 'ADD_USER' or 'INCREMENT')
+ * and a payload that can contain anything.
+ */
+export interface Action {
+  /** Label identifying the type of action this link represents */
+  type: any
+
+  /** Payload of the action */
+  payload: any
+}
+
+/**
  * There are three types of links:
- * -
- * - a root link
+ * - an `ActionLink` is a normal link
+ * - a `RootLink` is a special type of action link that has type 'ROOT' and no `prev` element
+ * - a `MergeLink` is a special marker that has no content of its own and just points back to two parent links
+ *
+ * A `Link` could be any of these three.
  */
 export type Link<A extends Action> = RootLink | ActionLink<A> | MergeLink
 
 /**
- * Non-root link
+ * An action link has three parts:
+ * - `body`: the action's `type` and `payload`, the local user's name and keys, a timestamp, and the
+ *   hash of the preceding link.
+ * - `hash`: a cryptographic hash of the body
+ * - `signed`: a cryptographic signature of the body
  *
  * @example
  * ```ts
- * const example_nonroot: NonRootLink<Action> = {
- *   hash: 'F0tTf04UOCexC6yMsBJTsUYr',
- *   signed: {
- *     userName: 'alice',
- *     signature: 'Wev5XI1Kr5VC0nYhUOamRdpp',
- *     key: 'w5Cu6PUO6YqptRfNrO9utQO6',
- *   },
+ * const example_action: ActionLink<SomeAction> = {
  *   body: {
  *     type: 'SOME_ACTION',
  *     payload: {
@@ -59,32 +70,19 @@ export type Link<A extends Action> = RootLink | ActionLink<A> | MergeLink
  *     timestamp: 1625483593289,
  *     prev: 'DcKrkYgFtKIv13VmkKyEv2S4',
  *   },
+ *   hash: 'F0tTf04UOCexC6yMsBJTsUYr',
+ *   signed: {
+ *     userName: 'alice',
+ *     signature: 'Wev5XI1Kr5VC0nYhUOamRdpp',
+ *     key: 'w5Cu6PUO6YqptRfNrO9utQO6',
+ *   },
  * }
  * ```
  */
 export type ActionLink<A extends Action> = A extends RootAction ? never : SignedLink<A> // excludes RootLink
 
-/** A NonMergeLink is anything but a MergeLink (could be a RootLink or an ActionLink) */
-export type NonMergeLink<A extends Action> = RootLink | ActionLink<A> // excludes MergeLink
-
-export interface Action {
-  /** Label identifying the type of action this link represents */
-  type: any
-
-  /** Payload of the action */
-  payload: any
-}
-
-export type RootLinkBody = RootAction & {
-  /** User who authored this link */
-  user: User
-
-  /** Unix timestamp on device that created this link */
-  timestamp: UnixTimestamp
-}
-
 /** The part of the link that is signed */
-export type NonRootLinkBody<A extends Action> = A & {
+export type ActionLinkBody<A extends Action> = A & {
   /** User who authored this link */
   user: User
 
@@ -95,7 +93,7 @@ export type NonRootLinkBody<A extends Action> = A & {
   prev: Hash
 }
 
-export type LinkBody<A extends Action> = A extends RootAction ? RootLinkBody : NonRootLinkBody<A>
+export type LinkBody<A extends Action> = A extends RootAction ? RootLinkBody : ActionLinkBody<A>
 
 /** The full link, consisting of a body and a signature link */
 export type SignedLink<A extends Action> = {
@@ -103,7 +101,7 @@ export type SignedLink<A extends Action> = {
   hash: Hash
 
   /** The part of the link that is signed & hashed */
-  body: A extends RootAction ? RootLinkBody : NonRootLinkBody<A>
+  body: A extends RootAction ? RootLinkBody : ActionLinkBody<A>
 
   /** The signature block (signature, name, and key) */
   signed: {
@@ -153,8 +151,15 @@ export interface RootAction extends Action {
   }
 }
 
+export type RootLinkBody = RootAction & {
+  /** User who authored this link */
+  user: User
+
+  /** Unix timestamp on device that created this link */
+  timestamp: UnixTimestamp
+}
+
 export type RootLink = SignedLink<RootAction>
-export type NonRootLink<A extends Action> = A extends RootAction ? never : Link<A>
 
 /**
  *  Merge links
@@ -176,6 +181,9 @@ export type MergeLink = {
   body: Hash[]
 }
 
+/** A NonMergeLink is anything but a MergeLink (could be a RootLink or an ActionLink) */
+export type NonMergeLink<A extends Action> = RootLink | ActionLink<A> // excludes MergeLink
+
 export type Sequence<A extends Action> = NonMergeLink<A>[]
 
 /**
@@ -191,7 +199,7 @@ export type Resolver<A extends Action = Action> = (
  * A sequencer takes two sequences, and returns a single sequence combining the two
  * while applying any logic regarding which links take precedence.
  */
-export type Sequencer<A extends Action = Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
+export type Sequencer<A extends Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
 
 export type Validator = <A extends Action>(currentLink: Link<A>, chain: SignatureChain<A>) => ValidationResult
 

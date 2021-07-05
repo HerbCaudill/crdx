@@ -1,6 +1,6 @@
 ﻿import { EMPTY_CHAIN } from '@/chain/create'
 import { hashLink } from '@/chain/hashLink'
-import { Action, LinkBody, SignatureChain, SignedLink } from '@/chain/types'
+import { Action, Link, LinkBody, SignatureChain } from '@/chain/types'
 import { redactUser, UserWithSecrets } from '@/user'
 import { signatures } from '@herbcaudill/crypto'
 
@@ -23,7 +23,7 @@ export const append = <A extends Action>(
   const hash = hashLink(body)
 
   // attach signature
-  const signedLink: SignedLink<A> = {
+  const signedLink: Link<A> = {
     body,
     hash,
     signed: {
