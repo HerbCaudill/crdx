@@ -4,18 +4,78 @@ import { Base64, Hash, UnixTimestamp, ValidationResult } from '@/util/types'
 export const ROOT = 'ROOT'
 export const MERGE = 'MERGE'
 
-export interface Action {
-  /** Label identifying the type of action this link represents */
-  type: unknown
+/**
+ *  A signature chain is an acyclic directed graph of links. Each link
+ *
+ * - is **cryptographically signed** by the author; and
+ * - includes a **hash of the parent link**.
+ *
+ * This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or
+ * removed without causing the hash and signature checks to fail.
+ *
+ * A signature chain is just data and can be stored as JSON. It consists of a hash table of the
+ * links themselves, plus a pointer to the **root** (the “founding” link added when the chain was
+ * created) and the **head** (the most recent link we know about).
+ */
+export interface SignatureChain<A extends Action> {
+  /** Hash of the root link (the "founding" link added when the chain was created) */
+  root: Hash
 
-  /** Payload of the action */
-  payload: unknown
+  /** Hash of the head link (the most recent link we know about) */
+  head: Hash
+
+  /** Hash table of all the links we know about */
+  links: LinkMap<A>
 }
 
-export type NonRootLinkBody<A extends Action> = A & {
-  /** Hash of the previous link*/
-  prev: Hash
+export type LinkMap<A extends Action> = Record<Hash, Link<A>>
 
+/**
+ * There are three types of links:
+ * -
+ * - a root link
+ */
+export type Link<A extends Action> = RootLink | ActionLink<A> | MergeLink
+
+/**
+ * Non-root link
+ *
+ * @example
+ * ```ts
+ * const example_nonroot: NonRootLink<Action> = {
+ *   hash: 'F0tTf04UOCexC6yMsBJTsUYr',
+ *   signed: {
+ *     userName: 'alice',
+ *     signature: 'Wev5XI1Kr5VC0nYhUOamRdpp',
+ *     key: 'w5Cu6PUO6YqptRfNrO9utQO6',
+ *   },
+ *   body: {
+ *     type: 'SOME_ACTION',
+ *     payload: {
+ *       something: {},
+ *       somethingElse: {},
+ *     },
+ *     user: alice,
+ *     timestamp: 1625483593289,
+ *     prev: 'DcKrkYgFtKIv13VmkKyEv2S4',
+ *   },
+ * }
+ * ```
+ */
+export type ActionLink<A extends Action> = A extends RootAction ? never : SignedLink<A> // excludes RootLink
+
+/** A NonMergeLink is anything but a MergeLink (could be a RootLink or an ActionLink) */
+export type NonMergeLink<A extends Action> = RootLink | ActionLink<A> // excludes MergeLink
+
+export interface Action {
+  /** Label identifying the type of action this link represents */
+  type: any
+
+  /** Payload of the action */
+  payload: any
+}
+
+export type RootLinkBody = RootAction & {
   /** User who authored this link */
   user: User
 
@@ -23,23 +83,27 @@ export type NonRootLinkBody<A extends Action> = A & {
   timestamp: UnixTimestamp
 }
 
-export type RootLinkBody<A extends Action> = Omit<NonRootLinkBody<A>, 'prev'> & {
-  type: typeof ROOT
+/** The part of the link that is signed */
+export type NonRootLinkBody<A extends Action> = A & {
+  /** User who authored this link */
+  user: User
 
-  /** The root link is not linked to a previous link */
-  prev: null
+  /** Unix timestamp on device that created this link */
+  timestamp: UnixTimestamp
+
+  /** Hash of the previous link */
+  prev: Hash
 }
 
-/** The part of the link that is signed */
-export type LinkBody<A extends Action> = RootLinkBody<A> | NonRootLinkBody<A>
+export type LinkBody<A extends Action> = A extends RootAction ? RootLinkBody : NonRootLinkBody<A>
 
 /** The full link, consisting of a body and a signature link */
-export type SignedLink<B extends LinkBody<A>, A extends Action> = {
+export type SignedLink<A extends Action> = {
   /** Hash of this link */
   hash: Hash
 
   /** The part of the link that is signed & hashed */
-  body: B
+  body: A extends RootAction ? RootLinkBody : NonRootLinkBody<A>
 
   /** The signature block (signature, name, and key) */
   signed: {
@@ -54,42 +118,65 @@ export type SignedLink<B extends LinkBody<A>, A extends Action> = {
   }
 }
 
+/**
+Root link
+
+```ts
+const example_root: RootLink = {
+  hash: 'DcKrkYgFtKIv13VmkKyEv2S4',
+  signed: {
+    userName: 'alice',
+    signature: '3eDKQ5J22zpSR4HFmAQa9r0N',
+    key: 'w5Cu6PUO6YqptRfNrO9utQO6',
+  },
+  body: {
+    type: ROOT,
+    payload: {
+      name: 'Spies R Us',
+      id: 'TJEJ5w83vy4meH0blRWbGcBN',
+    },
+    user: alice,
+    timestamp: 1625483593289,
+  },
+}
+```
+*/
+
+export interface RootAction extends Action {
+  type: typeof ROOT
+  payload: {
+    /** Human-facing name of the document */
+    name: string
+
+    /** Unique ID of the document, typically a UUID */
+    id: string
+  }
+}
+
+export type RootLink = SignedLink<RootAction>
+export type NonRootLink<A extends Action> = A extends RootAction ? never : Link<A>
+
+/**
+ *  Merge links
+ *
+ * const example_merge: MergeLink = {
+ *   type: 'MERGE',
+ *   hash: 'W83AYab2n2NhWo4dEVDr4O4z',
+ *   body: ['NuBx3niq9aQKM1AyB7f3Mlt7', 'DdPwc9xhLgU6l5DZhunqxTXK'],
+ * }
+
+ */
 export type MergeLink = {
   type: typeof MERGE
 
-  /** Hash of this link */
+  /** Hash of this link's body */
   hash: Hash
 
   /** Hashes of the two concurrent heads being merged */
   body: Hash[]
 }
 
-export type RootLink<A extends Action> = SignedLink<RootLinkBody<A>, A>
-export type NonRootLink<A extends Action> = SignedLink<NonRootLinkBody<A>, A>
-
-export type ActionLink<A extends Action> = NonRootLink<A> | RootLink<A> // excludes MergeLink
-
-export type Link<A extends Action> = ActionLink<A> | MergeLink
-
-export type LinkMap<A extends Action> = Record<Hash, Link<A>>
-
-export interface SignatureChain<A extends Action> {
-  root: Hash
-  head: Hash
-  links: LinkMap<A>
-}
-
-// type guards
-
-export const isMergeLink = (o: Link<any>): o is MergeLink => {
-  return o && 'type' in o && o.type === MERGE
-}
-
-export const isRootLink = <A extends Action>(o: Link<A>): o is RootLink<A> => {
-  return !isMergeLink(o) && o.body.prev === null
-}
-
-export type Sequence<A extends Action> = ActionLink<A>[]
+export type Sequence<A extends Action> = NonMergeLink<A>[]
 
 /**
  * A resolver takes two heads and the chain they're in, and returns a single sequence combining the
@@ -112,15 +199,17 @@ export type ValidatorSet = {
   [key: string]: Validator
 }
 
-export interface RootAction extends Action {
-  type: typeof ROOT
-  payload: {
-    teamName: string
-    rootUser: User
-  }
-}
-
 export type Branch = Sequence<Action>
 export type TwoBranches = [Branch, Branch]
-export type ActionFilter = (link: ActionLink<Action>) => boolean
+export type ActionFilter = (link: NonMergeLink<Action>) => boolean
 export type ActionFilterFactory = (branches: TwoBranches, chain: SignatureChain<Action>) => ActionFilter
+
+// type guards
+
+export const isMergeLink = <A extends Action>(link: Link<A>): link is MergeLink => {
+  return link && 'type' in link && link.type === MERGE
+}
+
+export const isRootLink = <A extends Action>(link: Link<A>): link is RootLink => {
+  return !isMergeLink(link) && link.body.type === ROOT
+}

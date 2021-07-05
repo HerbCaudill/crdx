@@ -1,7 +1,7 @@
 ﻿import { append } from '@/chain/append'
 import { create } from '@/chain/create'
 import { merge } from '@/chain/merge'
-import { Action, ActionLink, isMergeLink, Link, LinkBody, SignatureChain } from '@/chain/types'
+import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain } from '@/chain/types'
 import { clone } from '@/util'
 import { setup } from '@/util/testing'
 
@@ -12,7 +12,7 @@ export const getPayloads = (sequence: Link<any>[]) =>
 
 export const findByPayload = (chain: SignatureChain<Action>, payload: Action['payload']) => {
   const links = Object.values(chain.links)
-  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as ActionLink<Action>
+  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<Action>
 }
 
 /**

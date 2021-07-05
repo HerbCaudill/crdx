@@ -40,5 +40,5 @@ export const merge = <A extends Action>(a: SignatureChain<A>, b: SignatureChain<
 export const createMergeLink = (a: Hash, b: Hash) => {
   const body = [a, b].sort() // ensure deterministic order
   const hash = hashLink(body)
-  return { type: 'MERGE', hash, body } as MergeLink
+  return { type: 'MERGE', hash, body: body } as MergeLink
 }

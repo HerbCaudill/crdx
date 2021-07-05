@@ -1,6 +1,6 @@
 import { create, KeysetWithSecrets, KeyType, redactKeys } from '@/keyset'
 
-const { USER, EPHEMERAL } = KeyType
+const { EPHEMERAL } = KeyType
 const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('redact', () => {

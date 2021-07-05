@@ -1,16 +1,20 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import { isMergeLink, isRootLink, NonRootLinkBody, ROOT, RootLinkBody, ValidatorSet } from '@/chain/types'
-import { memoize, ValidationError } from '@/util'
+import { Action, isMergeLink, isRootLink, LinkBody, ROOT, ValidatorSet } from '@/chain/types'
+import { memoize, VALID, ValidationError } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
 
 const _validators: ValidatorSet = {
   /** Does this link contain a hash of the previous link?  */
   validateHash: (link, chain) => {
-    if (isRootLink(link)) return { isValid: true } // nothing to validate on first link
-    const prevHashes = isMergeLink(link) ? link.body : [(link.body as NonRootLinkBody<any>).prev]
+    if (isRootLink(link)) return VALID // nothing to validate on first link
+    const prevHashes = isMergeLink(link) ? link.body : [link.body.prev]
     for (const hash of prevHashes) {
-      const prevLink = chain.links[hash]!
+      const prevLink = chain.links[hash]
+
+      if (prevLink === undefined) {
+        throw new Error(`prevLink is undefined; hash='${hash}'`)
+      }
       const expected = hashLink(prevLink.body)
       if (hash !== expected) {
         return {
@@ -23,17 +27,18 @@ const _validators: ValidatorSet = {
         }
       }
     }
-    return { isValid: true }
+    return VALID
   },
 
   /** If this is a root link, is it the first link in the chain? */
   validateRoot: (link, chain) => {
-    const hasNoPreviousLink = isRootLink(link)
-    const hasRootType = (link.body as RootLinkBody<any>).type === ROOT
+    const hasNoPreviousLink = !('prev' in link.body) || link.body.prev === undefined
+    const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isDesignatedAsRoot = getRoot(chain) === link
     // all should be true, or all should be false
-    if (hasNoPreviousLink === isDesignatedAsRoot && isDesignatedAsRoot === hasRootType) return { isValid: true }
-    else {
+    if (hasNoPreviousLink === isDesignatedAsRoot && isDesignatedAsRoot === hasRootType) {
+      return VALID
+    } else {
       // TODO there are more possibilities - sort them all out?
       const message = hasNoPreviousLink
         ? // has type ROOT but isn't first
@@ -43,13 +48,14 @@ const _validators: ValidatorSet = {
       return {
         isValid: false,
         error: new ValidationError(message),
+        details: { link, chain },
       }
     }
   },
 
   /** Does this link's signature check out? */
   validateSignatures: link => {
-    if (isMergeLink(link)) return { isValid: true } // merge links aren't signed
+    if (isMergeLink(link)) return VALID // merge links aren't signed
 
     const signedMessage = {
       payload: link.body,
@@ -57,7 +63,7 @@ const _validators: ValidatorSet = {
       publicKey: link.signed.key,
     }
     return signatures.verify(signedMessage)
-      ? { isValid: true }
+      ? VALID
       : {
           isValid: false,
           error: new ValidationError('Signature is not valid', signedMessage),
@@ -70,4 +76,5 @@ const memoizeFunctionMap = (source: ValidatorSet) => {
   return result
 }
 
-export const validators = memoizeFunctionMap(_validators)
+export const validators = _validators
+// export const validators = memoizeFunctionMap(_validators)

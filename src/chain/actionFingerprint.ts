@@ -1,9 +1,9 @@
-import { Action, ActionLink, isRootLink } from '@/chain/types'
+import { Action, NonMergeLink, isRootLink } from '@/chain/types'
 
 /** Identifies a unique action for the purpose of detecting duplicates;
  * e.g. ADD_USER:bob
  */
-export const actionFingerprint = <A extends Action>(link: ActionLink<A>) => {
+export const actionFingerprint = <A extends Action>(link: NonMergeLink<A>) => {
   const fingerprintPayload = (action: A) => {
     switch (action.type) {
       default:
@@ -13,5 +13,5 @@ export const actionFingerprint = <A extends Action>(link: ActionLink<A>) => {
   }
 
   if (isRootLink(link)) return 'ROOT'
-  return `${link.body.type}:${fingerprintPayload(link.body)}`
+  return `${link.body.type}:${fingerprintPayload((link.body as unknown) as A)}`
 }

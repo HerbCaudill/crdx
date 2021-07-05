@@ -6,14 +6,14 @@ import {
   Action,
   ActionLink,
   isMergeLink,
-  isRootLink,
   Link,
+  NonMergeLink,
+  NonRootLinkBody,
   Resolver,
   Sequence,
   Sequencer,
   SignatureChain,
 } from '@/chain/types'
-import { assert } from '@/util'
 
 /**
  * Takes a `SignatureChain` and returns an array of links by recursively performing a topographical
@@ -45,16 +45,8 @@ import { assert } from '@/util'
  *
  * You can also get the sequence of a fragment of a chain, by passing a `root` and/or a `head`; this
  * will resolve the subchain starting at `root` and ending at `head`.
- *
- * @param chain The SignatureChain containing the links to be sequenced
- * @param options.root The link to use as the chain's root (used to process a subchain)
- * @param options.head The link to use as the chain's head (used to process a subchain)
- * @param options.resolver A function that takes two sequences and returns a single sequence,
- * applying any logic regarding which links are omitted
- * @param options.sequencer A function that takes two sequences and returns a single sequence,
- * applying any logic regarding which links are omitted
  */
-export const getSequence = <A extends Action>(options: SequenceOptions<A>): ActionLink<A>[] => {
+export const getSequence = <A extends Action>(options: SequenceOptions<A>): NonMergeLink<A>[] => {
   const {
     chain,
     root = getRoot(chain),
@@ -72,19 +64,16 @@ export const getSequence = <A extends Action>(options: SequenceOptions<A>): Acti
 
   // 1 parent (normal action link)
   else if (!isMergeLink(head)) {
-    assert(!isRootLink(head))
-
     // recurse our way backwards
-    const parent = chain.links[head.body.prev]
+    const parent = chain.links[((head as ActionLink<A>).body as NonRootLinkBody<A>).prev] as Link<A>
     const predecessors = getSequence({
       ...options,
       head: parent,
     })
     result = [...predecessors, head]
-  }
 
-  // 2 parents (merge link)
-  else {
+    // 2 parents (merge link)
+  } else {
     // need to resolve the two branches it merges, going back to the first common predecessor,
     // then continue from there
 
@@ -139,18 +128,27 @@ export const getSequence = <A extends Action>(options: SequenceOptions<A>): Acti
   }
 
   // omit merge links before returning result
-  return result.filter(n => !isMergeLink(n)) as ActionLink<A>[]
+  return result.filter(n => !isMergeLink(n)) as NonMergeLink<A>[]
 }
 
 type SequenceOptions<A extends Action> = {
+  /** The SignatureChain containing the links to be sequenced */
   chain: SignatureChain<A>
+
+  /** The link to use as the chain's root (used to process a subchain) */
   root?: Link<A>
+
+  /** The link to use as the chain's head (used to process a subchain) */
   head?: Link<A>
+
+  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
   resolver?: Resolver<A>
-  sequencer?: Sequencer<any>
+
+  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
+  sequencer?: Sequencer<A>
 }
 
-// This resolver just collapses each branch to a single sequence of actions
+/** This resolver just collapses each branch to a single sequence of actions */
 export const baseResolver: Resolver = ([a, b], chain) => {
   const root = getCommonPredecessor(chain, a, b)
   const [branchA, branchB] = [a, b]

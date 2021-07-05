@@ -1,14 +1,14 @@
-﻿import { KeysetWithSecrets, Keyset, hasSecrets } from '@/keyset/types'
+﻿import { hasSecrets, Keyset, KeysetWithSecrets } from '@/keyset/types'
 
 /**
  * There are two kinds of keysets:
  *
  * - **`KeysetWithSecrets`** includes the secret keys (for example, our user or device keys, or keys
  *   for roles we belong to)
- * - **`PublicKeyset`** only includes the public keys (for example, other users' keys, or keys for
+ * - **`Keyset`** only includes the public keys (for example, other users' keys, or keys for
  *   roles we don't belong to)
  *
- * The `redact` function takes a `KeysetWithSecrets`, and returns a `PublicKeyset`.
+ * The `redact` function takes a `KeysetWithSecrets`, and returns a `Keyset`.
  *
  * ```js
  * const adminPublicKeys = keyset.redactKeys(adminKeys)
@@ -24,7 +24,7 @@
  * }
  * ```
  *
- * You can also pass in a `PublicKeyset`, in which case it will be returned as-is.
+ * You can also pass in a `Keyset`, in which case it will be returned as-is.
  */
 export const redactKeys = (keys: KeysetWithSecrets | Keyset): Keyset =>
   (!hasSecrets(keys)

@@ -1,6 +1,6 @@
 ﻿import { EMPTY_CHAIN } from '@/chain/create'
 import { hashLink } from '@/chain/hashLink'
-import { Action, NonRootLinkBody, SignatureChain, SignedLink } from '@/chain/types'
+import { Action, LinkBody, SignatureChain, SignedLink } from '@/chain/types'
 import { redactUser, UserWithSecrets } from '@/user'
 import { signatures } from '@herbcaudill/crypto'
 
@@ -14,14 +14,16 @@ export const append = <A extends Action>(
     ...action,
     user: redactUser(user),
     timestamp: new Date().getTime(),
-    prev: chain.head,
-  } as NonRootLinkBody<A>
+    ...(chain.head ? { prev: chain.head } : {}),
+  } as LinkBody<A>
+
+  // if ('head' in chain) body.prev = chain.head
 
   const { userName, keys } = user
   const hash = hashLink(body)
 
   // attach signature
-  const signedLink: SignedLink<NonRootLinkBody<A>, A> = {
+  const signedLink: SignedLink<A> = {
     body,
     hash,
     signed: {
@@ -35,7 +37,7 @@ export const append = <A extends Action>(
   const links = { ...chain.links, [hash]: signedLink }
 
   // return new chain
-  const root = chain.root ?? hash // if the root is null, this was the first link
+  const root = chain.root ?? hash // if no root was given, this was the first link
   const head = hash
   return { root, head, links } as SignatureChain<A>
 }

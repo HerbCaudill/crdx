@@ -1,8 +1,9 @@
-﻿import { signatures } from '@herbcaudill/crypto'
-import { append, create, ROOT } from '@/chain'
+﻿import { append, create, ROOT } from '@/chain'
 import { getRoot } from '@/chain/getRoot'
 import { validate } from '@/chain/validate'
 import { setup } from '@/util/testing'
+import { signatures } from '@herbcaudill/crypto'
+
 import '@/util/testing/expect/toBeValid'
 
 const __ = expect.objectContaining
@@ -26,7 +27,8 @@ describe('chains', () => {
       const newChain = append(chain, newLink, alice)
 
       // 👨🏻‍🦲 Bob
-      expect(validate(newChain)).toBeValid()
+      const isValid = validate(newChain)
+      expect(isValid).toBeValid()
     })
 
     test('Mallory tampers with the payload; Bob is not fooled', () => {

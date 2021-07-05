@@ -18,10 +18,7 @@ export const validate = <A extends Action>(
    * Returns a single reducer function that runs all validators.
    * @param validators A map of validators
    */
-  const composeValidators = (...validators: ValidatorSet[]) => (
-    result: ValidationResult,
-    currentLink: Link<A>
-  ) => {
+  const composeValidators = (...validators: ValidatorSet[]) => (result: ValidationResult, currentLink: Link<A>) => {
     const mergedValidators = merge(validators)
     // short-circuit validation if any previous validation has failed
     if (result.isValid === false) return result as InvalidResult
@@ -44,8 +41,7 @@ export const validate = <A extends Action>(
   }
 
   // merges multiple validator sets into one object
-  const merge = (validatorSets: ValidatorSet[]) =>
-    validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
+  const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
 
   const initialValue = VALID
   const v = composeValidators(validators, customValidators)

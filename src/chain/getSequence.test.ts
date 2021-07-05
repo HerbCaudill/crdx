@@ -1,8 +1,9 @@
-import { append, baseResolver, create, getSequence, Resolver, Sequencer, SignedLink } from '@/chain'
+import { Action, append, baseResolver, create, getSequence, Resolver, Sequencer, SignedLink } from '@/chain'
 import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 import { setup } from '@/util/testing'
 import { randomKey } from '@herbcaudill/crypto'
 import { arbitraryDeterministicSort } from './arbitraryDeterministicSort'
+import { ActionLink } from './types'
 
 const { alice } = setup('alice')
 const defaultUser = alice
@@ -163,4 +164,4 @@ describe('chains', () => {
 // split on whitespace
 const split = (s: string) => s.split(/\s*/)
 
-type AnyLink = SignedLink<any, any>
+type AnyLink = ActionLink<Action>

@@ -3,8 +3,8 @@ import { Action, ROOT, SignatureChain } from '@/chain/types'
 import { UserWithSecrets } from '@/user'
 
 export const EMPTY_CHAIN = {
-  root: null,
-  head: null,
+  root: undefined,
+  head: undefined,
   links: {},
 }
 

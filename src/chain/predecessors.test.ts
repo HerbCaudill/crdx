@@ -1,4 +1,4 @@
-import { getCommonPredecessor, getHead, getPredecessors, isMergeLink, isPredecessor, SignedLink } from '@/chain'
+import { Action, getCommonPredecessor, getHead, getPredecessors, isMergeLink, isPredecessor, SignedLink } from '@/chain'
 import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
 
 /*
@@ -89,7 +89,7 @@ describe('chains', () => {
         const chain = buildChain()
         const aLink = findByPayload(chain, a)
         const bLink = findByPayload(chain, b)
-        const result = getCommonPredecessor(chain, aLink, bLink) as SignedLink<any, any>
+        const result = getCommonPredecessor(chain, aLink, bLink) as SignedLink<Action>
         return result.body.payload
       }
 
