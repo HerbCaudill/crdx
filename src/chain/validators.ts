@@ -1,16 +1,6 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import {
-  Action,
-  ActionLink,
-  isActionLink,
-  isMergeLink,
-  isRootLink,
-  LinkBody,
-  MergeLink,
-  ROOT,
-  ValidatorSet,
-} from '@/chain/types'
+import { ActionLink, isActionLink, isMergeLink, isRootLink, ROOT, ValidatorSet } from '@/chain/types'
 import { memoize, VALID, ValidationError } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
 
@@ -40,21 +30,21 @@ const _validators: ValidatorSet = {
     return VALID
   },
 
-  /** If this is a root link, is it the first link in the chain? */
+  /** If this is a root link, it should not have any predecessors, and should be the chain's root */
   validateRoot: (link, chain) => {
-    const hasNoPreviousLink = !('prev' in link.body) || (link as ActionLink<any>).body.prev === undefined
+    const hasNoPrevLink = !('prev' in link.body) || (link.body as any).prev === undefined
     const hasRootType = 'type' in link.body && link.body.type === ROOT
-    const isDesignatedAsRoot = getRoot(chain) === link
+    const isTheChainRoot = getRoot(chain) === link
     // all should be true, or all should be false
-    if (hasNoPreviousLink === isDesignatedAsRoot && isDesignatedAsRoot === hasRootType) {
+    if (hasNoPrevLink === isTheChainRoot && isTheChainRoot === hasRootType) {
       return VALID
     } else {
-      // TODO there are more possibilities - sort them all out?
-      const message = hasNoPreviousLink
-        ? // has type ROOT but isn't first
-          'The root link must be the first link in the signature chain.'
-        : // is first but doesn't have type ROOT
-          'The first link in the signature chain must be the root link. '
+      const message =
+        hasNoPrevLink === false
+          ? // has type ROOT but isn't first
+            'The root link must be the first link in the signature chain.'
+          : // is first but doesn't have type ROOT
+            'The first link in the signature chain must be the root link. '
       return {
         isValid: false,
         error: new ValidationError(message),
