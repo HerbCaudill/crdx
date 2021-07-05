@@ -1,6 +1,16 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import { Action, isMergeLink, isRootLink, LinkBody, ROOT, ValidatorSet } from '@/chain/types'
+import {
+  Action,
+  ActionLink,
+  isActionLink,
+  isMergeLink,
+  isRootLink,
+  LinkBody,
+  MergeLink,
+  ROOT,
+  ValidatorSet,
+} from '@/chain/types'
 import { memoize, VALID, ValidationError } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
 
@@ -8,7 +18,7 @@ const _validators: ValidatorSet = {
   /** Does this link contain a hash of the previous link?  */
   validateHash: (link, chain) => {
     if (isRootLink(link)) return VALID // nothing to validate on first link
-    const prevHashes = isMergeLink(link) ? link.body : [link.body.prev]
+    const prevHashes = isActionLink(link) ? [link.body.prev] : link.body
     for (const hash of prevHashes) {
       const prevLink = chain.links[hash]
 
@@ -32,7 +42,7 @@ const _validators: ValidatorSet = {
 
   /** If this is a root link, is it the first link in the chain? */
   validateRoot: (link, chain) => {
-    const hasNoPreviousLink = !('prev' in link.body) || link.body.prev === undefined
+    const hasNoPreviousLink = !('prev' in link.body) || (link as ActionLink<any>).body.prev === undefined
     const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isDesignatedAsRoot = getRoot(chain) === link
     // all should be true, or all should be false
@@ -70,11 +80,11 @@ const _validators: ValidatorSet = {
         }
   },
 }
+
 const memoizeFunctionMap = (source: ValidatorSet) => {
   const result = {} as ValidatorSet
   for (const key in source) result[key] = memoize(source[key])
   return result
 }
 
-export const validators = _validators
-// export const validators = memoizeFunctionMap(_validators)
+export const validators = memoizeFunctionMap(_validators)

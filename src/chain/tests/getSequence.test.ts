@@ -1,14 +1,14 @@
 import { Action, append, baseResolver, create, getSequence, Resolver, Sequencer } from '@/chain'
-import { buildChain, findByPayload, getPayloads } from '@/chain/testUtils'
+import { buildChain, findByPayload, getPayloads } from '@/chain/tests/utils'
 import { setup } from '@/util/testing'
 import { randomKey } from '@herbcaudill/crypto'
-import { arbitraryDeterministicSort } from './arbitraryDeterministicSort'
-import { ActionLink, isMergeLink, Link, NonMergeLink, Sequence } from './types'
+import { arbitraryDeterministicSort } from '../arbitraryDeterministicSort'
+import { NonMergeLink, Sequence } from '../types'
 
 const { alice } = setup('alice')
 const defaultUser = alice
 
-const randomSequencer: Sequencer<FooAction> = (a, b) => {
+const randomSequencer: Sequencer<any> = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
@@ -133,7 +133,7 @@ describe('chains', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
         const sequencer: Sequencer<FooAction> = (a, b) => {
           const alpha = (a: FooLink, b: FooLink) => (a.body.payload > b.body.payload ? 1 : -1)
-          const merged = a.concat(b).sort(alpha) as Sequence<FooAction>
+          const merged: Sequence<FooAction> = a.concat(b).sort(alpha)
 
           const isI = (n: FooLink) => n.body.payload === 'i'
           const Is = merged.filter(n => isI(n))
