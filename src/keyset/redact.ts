@@ -27,12 +27,12 @@
  * You can also pass in a `Keyset`, in which case it will be returned as-is.
  */
 export const redactKeys = (keys: KeysetWithSecrets | Keyset): Keyset =>
-  (hasSecrets(keys)
-    ? {
+  hasSecrets(keys)
+    ? ({
         type: keys.type,
         name: keys.name,
         generation: keys.generation,
         encryption: keys.encryption.publicKey,
         signature: keys.signature.publicKey,
-      }
-    : keys) as Keyset
+      } as Keyset)
+    : keys
