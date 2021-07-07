@@ -17,6 +17,7 @@
     "noUnusedParameters": false,
     "outDir": "./dist",
     "paths": {
+      "@/test/*": ["./test/*"],
       "@/*": ["./src/*"]
     },
     "skipLibCheck": true,
@@ -25,5 +26,5 @@
     "strictPropertyInitialization": false,
     "target": "ES6"
   },
-  "include": ["src", "@types"]
+  "include": ["src", "@types", "test"]
 }

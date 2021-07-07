@@ -3,7 +3,7 @@ import { create } from '@/chain/create'
 import { merge } from '@/chain/merge'
 import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '@/chain/types'
 import { clone } from '@/util'
-import { setup } from '@/util/testing'
+import { setup } from '@/test/util'
 
 const { alice } = setup('alice')
 

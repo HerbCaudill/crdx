@@ -1,9 +1,18 @@
-import { Action, append, baseResolver, create, getSequence, Resolver, Sequencer } from '@/chain'
-import { buildChain, findByPayload, getPayloads } from '@/chain/tests/utils'
-import { setup } from '@/util/testing'
+import {
+  Action,
+  append,
+  arbitraryDeterministicSort,
+  baseResolver,
+  create,
+  getSequence,
+  NonMergeLink,
+  Resolver,
+  Sequence,
+  Sequencer,
+} from '@/chain'
+import { buildChain, findByPayload, getPayloads } from '@/test/chain/utils'
+import { setup } from '@/test/util'
 import { randomKey } from '@herbcaudill/crypto'
-import { arbitraryDeterministicSort } from '../arbitraryDeterministicSort'
-import { NonMergeLink, Sequence } from '../types'
 
 const { alice } = setup('alice')
 

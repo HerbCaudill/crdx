@@ -1,5 +1,5 @@
 import { getCommonPredecessor, getHead, getPredecessors, isMergeLink, isPredecessor } from '@/chain'
-import { buildChain, findByPayload, getPayloads } from '@/chain/tests/utils'
+import { buildChain, findByPayload, getPayloads } from '@/test/chain/utils'
 
 /*
                      ┌─→ e ─→ g ─┐

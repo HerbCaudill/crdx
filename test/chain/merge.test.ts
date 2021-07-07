@@ -1,7 +1,7 @@
 import { append, create, merge } from '@/chain'
 import { clone } from '@/util'
-import { setup } from '@/util/testing'
-import '@/util/testing/expect/toBeValid'
+import { setup } from '@/test/util'
+import '@/test/util/expect/toBeValid'
 
 const { alice, bob } = setup('alice', 'bob')
 const defaultUser = alice

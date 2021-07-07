@@ -1,8 +1,8 @@
 import { append, create } from '@/chain'
 import { getHead } from '@/chain/getHead'
 import { getRoot } from '@/chain/getRoot'
-import { setup } from '@/util/testing'
-import '@/util/testing/expect/toBeValid'
+import { setup } from '@/test/util'
+import '@/test/util/expect/toBeValid'
 
 const { alice } = setup('alice')
 const defaultUser = alice

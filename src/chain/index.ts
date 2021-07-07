@@ -1,4 +1,5 @@
 ﻿export * from '@/chain/actionFingerprint'
+export * from '@/chain/arbitraryDeterministicSort'
 export * from '@/chain/append'
 export * from '@/chain/create'
 export * from '@/chain/chainSummary'
