@@ -9,14 +9,15 @@ const __ = expect.objectContaining
 
 describe('chains', () => {
   test('create', () => {
-    const chain = create('a', defaultUser)
-    expect(getRoot(chain)).toEqual(__({ body: __({ payload: 'a' }) }))
-    expect(getHead(chain)).toEqual(__({ body: __({ payload: 'a' }) }))
+    const chain = create({ name: 'a' }, defaultUser)
+    const expected = __({ body: __({ payload: __({ name: 'a' }) }) })
+    expect(getRoot(chain)).toEqual(expected)
+    expect(getHead(chain)).toEqual(expected)
   })
 
-  test('persistence', () => {
+  test('serialize/deserialize', () => {
     // 👨🏻‍🦲 Bob saves a chain to a file and loads it later
-    const chain = create({ team: 'Spies Я Us' }, defaultUser)
+    const chain = create({ name: 'Spies Я Us' }, defaultUser)
 
     // serialize
     const chainJson = serialize(chain)

@@ -1,14 +1,16 @@
 ﻿import { append } from '@/chain/append'
 import { create } from '@/chain/create'
 import { merge } from '@/chain/merge'
-import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain } from '@/chain/types'
+import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '@/chain/types'
 import { clone } from '@/util'
 import { setup } from '@/util/testing'
 
 const { alice } = setup('alice')
 
 export const getPayloads = (sequence: Link<any>[]) =>
-  sequence.filter(n => !isMergeLink(n)).map(n => (n.body as LinkBody<Action>).payload)
+  sequence //
+    .filter(link => !isRootLink(link) && !isMergeLink(link))
+    .map(link => (link.body as LinkBody<Action>).payload)
 
 export const findByPayload = (chain: SignatureChain<Action>, payload: Action['payload']) => {
   const links = Object.values(chain.links)
@@ -28,13 +30,14 @@ export const findByPayload = (chain: SignatureChain<Action>, payload: Action['pa
 export const buildChain = () => {
   const appendLink = (chain: SignatureChain<Action>, payload: string) => append(chain, { type: 'X', payload }, alice)
 
-  let a = create('a', alice)
-  a = appendLink(a, 'b')
+  let root = create({ name: 'root' }, alice)
+  let a = appendLink(root, 'a')
+  let b = appendLink(a, 'b')
 
   // 3 branches from b:
-  let b1 = clone(a)
-  let b2 = clone(a)
-  let b3 = clone(a)
+  let b1 = clone(b)
+  let b2 = clone(b)
+  let b3 = clone(b)
 
   b1 = appendLink(b1, 'c')
   b1 = appendLink(b1, 'd')

@@ -11,7 +11,7 @@ describe('chains', () => {
   describe('merge', () => {
     test('no changes', () => {
       // 👩🏾 Alice creates a chain and shares it with Bob
-      const aliceChain = create('a', defaultUser)
+      const aliceChain = create({ name: 'a' }, defaultUser)
       const bobChain = clone(aliceChain)
 
       // 👩🏾👨🏻‍🦲 after a while they sync back up
@@ -26,7 +26,7 @@ describe('chains', () => {
 
     test('edits on one side', () => {
       // 👩🏾 Alice creates a chain and shares it with Bob
-      const chain = create('a', defaultUser)
+      const chain = create({ name: 'a' }, defaultUser)
       const bobChain = clone(chain)
 
       // 👩🏾 Alice makes edits
@@ -50,7 +50,7 @@ describe('chains', () => {
 
     test('concurrent edits', () => {
       // 👩🏾 Alice creates a chain and shares it with Bob
-      const aliceChain = create('a', alice)
+      const aliceChain = create({ name: 'a' }, alice)
       const bobChain = { ...aliceChain }
 
       // 👩🏾 Alice makes changes while disconnected
@@ -76,8 +76,8 @@ describe('chains', () => {
     })
 
     test(`can't merge chains with different roots`, () => {
-      const aliceChain = create('a', alice)
-      const bobChain = create('b', bob)
+      const aliceChain = create({ name: 'a' }, alice)
+      const bobChain = create({ name: 'b' }, bob)
 
       // nope
       const tryToMerge = () => merge(aliceChain, bobChain)

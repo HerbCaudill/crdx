@@ -6,7 +6,6 @@ import { arbitraryDeterministicSort } from '../arbitraryDeterministicSort'
 import { NonMergeLink, Sequence } from '../types'
 
 const { alice } = setup('alice')
-const defaultUser = alice
 
 const randomSequencer: Sequencer<any> = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
@@ -20,15 +19,17 @@ const sequencer = randomSequencer
 describe('chains', () => {
   describe('getSequence', () => {
     test('upon creation', () => {
-      var chain = create('a', defaultUser)
+      var chain = create({ name: 'root' }, alice)
+      chain = append(chain, { type: 'X', payload: 'a' }, alice)
       const sequence = getSequence({ chain, sequencer })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
     test('no branches', () => {
-      var chain = create('a', defaultUser)
-      chain = append(chain, { type: 'FOO', payload: 'b' }, defaultUser)
-      chain = append(chain, { type: 'FOO', payload: 'c' }, defaultUser)
+      var chain = create({ name: 'root' }, alice)
+      chain = append(chain, { type: 'X', payload: 'a' }, alice)
+      chain = append(chain, { type: 'X', payload: 'b' }, alice)
+      chain = append(chain, { type: 'X', payload: 'c' }, alice)
       const sequence = getSequence({ chain, sequencer })
 
       const expected = 'a b c'
@@ -131,11 +132,11 @@ describe('chains', () => {
 
       test('custom sequencer', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
-        const sequencer: Sequencer<FooAction> = (a, b) => {
-          const alpha = (a: FooLink, b: FooLink) => (a.body.payload > b.body.payload ? 1 : -1)
-          const merged: Sequence<FooAction> = a.concat(b).sort(alpha)
+        const sequencer: Sequencer<XAction> = (a, b) => {
+          const alpha = (a: XLink, b: XLink) => (a.body.payload > b.body.payload ? 1 : -1)
+          const merged: Sequence<XAction> = a.concat(b).sort(alpha)
 
-          const isI = (n: FooLink) => n.body.payload === 'i'
+          const isI = (n: XLink) => n.body.payload === 'i'
           const Is = merged.filter(n => isI(n))
           const notIs = merged.filter(n => !isI(n))
 
@@ -146,7 +147,7 @@ describe('chains', () => {
         const resolver: Resolver = ([a, b], chain) => {
           const [_a, _b] = baseResolver([a, b], chain)
 
-          const eFilter = (n: FooLink) => n.body.payload !== 'e'
+          const eFilter = (n: XLink) => n.body.payload !== 'e'
           return [_a.filter(eFilter), _b.filter(eFilter)]
         }
 
@@ -164,8 +165,8 @@ describe('chains', () => {
 // split on whitespace
 const split = (s: string) => s.split(/\s*/)
 
-interface FooAction extends Action {
-  type: 'FOO'
+interface XAction extends Action {
+  type: 'X'
   payload: string
 }
-type FooLink = NonMergeLink<FooAction>
+type XLink = NonMergeLink<XAction>

@@ -12,9 +12,9 @@ describe('chains', () => {
   describe('successors', () => {
     describe('getSuccessors', () => {
       test('root', () => {
-        const a = getRoot(chain)
-        const successors = getPayloads(getSuccessors(chain, a)).sort()
-        const expected = 'b c d e f g h i j k l n o'.split(' ')
+        const root = getRoot(chain)
+        const successors = getPayloads(getSuccessors(chain, root)).sort()
+        const expected = 'a b c d e f g h i j k l n o'.split(' ')
         expect(successors).toEqual(expected)
       })
 
