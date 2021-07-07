@@ -24,6 +24,7 @@
   "dependencies": {
     "@herbcaudill/crypto": "^0.1.14",
     "buffer": "6",
+    "cuid": "^2.1.8",
     "debug": "4",
     "events": "3",
     "fast-memoize": "2",
