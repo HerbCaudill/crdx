@@ -1,1 +1,21 @@
-{"testUsers":{"alice":{"userName":"alice","keys":{"type":"USER","name":"alice","generation":0,"signature":{"publicKey":"2TDdn42Ne91GGCGSvUBcEFYncn91dDxY1yC7NoEx1zU8","secretKey":"51f96PeuvE1nYjjdm7seKUK8mdRCvvZThTv1J9H4uqhFPSACdghYwdXKUgysqrh6P7srXo7DuU22EoQHW1ZbKTag"},"encryption":{"publicKey":"H6v4v9cgzeBCSoVWiFzVeCY2QaZcDA9k71RwzjDw6unr","secretKey":"DqRjhYXnc5RXncFbRiAixkvJZv8FViXxRvn2whJ9Xs7V"},"secretKey":"5vojhKQ24HFvZ4BXEJKi7pyMVqTVAcm2aUqxc6Rs3vxutmy4Y5p7miugfPKVHe4SFQbLacZ8ZiQj6tA5W7D3ZVav"}}}}
+{
+  "testUsers": {
+    "alice": {
+      "userName": "alice",
+      "keys": {
+        "type": "USER",
+        "name": "alice",
+        "generation": 0,
+        "signature": {
+          "publicKey": "2TDdn42Ne91GGCGSvUBcEFYncn91dDxY1yC7NoEx1zU8",
+          "secretKey": "51f96PeuvE1nYjjdm7seKUK8mdRCvvZThTv1J9H4uqhFPSACdghYwdXKUgysqrh6P7srXo7DuU22EoQHW1ZbKTag"
+        },
+        "encryption": {
+          "publicKey": "H6v4v9cgzeBCSoVWiFzVeCY2QaZcDA9k71RwzjDw6unr",
+          "secretKey": "DqRjhYXnc5RXncFbRiAixkvJZv8FViXxRvn2whJ9Xs7V"
+        },
+        "secretKey": "5vojhKQ24HFvZ4BXEJKi7pyMVqTVAcm2aUqxc6Rs3vxutmy4Y5p7miugfPKVHe4SFQbLacZ8ZiQj6tA5W7D3ZVav"
+      }
+    }
+  }
+}
