@@ -31,8 +31,6 @@ export const merge = <A extends Action>(a: SignatureChain<A>, b: SignatureChain<
   }
   const merged: SignatureChain<A> = { root, head, links }
 
-  // console.log(`merge: a=${getLength(a)}, b=${getLength(b)}, merged=${getLength(merged)} `)
-
   return merged
 }
 
