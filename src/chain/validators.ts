@@ -1,37 +1,35 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import { ActionLink, isActionLink, isMergeLink, isRootLink, ROOT, ValidatorSet } from '@/chain/types'
+import { isActionLink, isMergeLink, isRootLink, ROOT, ValidatorSet } from '@/chain/types'
 import { memoize, VALID, ValidationError } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
 
 const _validators: ValidatorSet = {
-  /** Does this link contain a hash of the previous link?  */
-  validateHash: (link, chain) => {
+  /** Does the previous link referenced by this link exist?  */
+  validatePrev: (link, chain) => {
     if (isRootLink(link)) return VALID // nothing to validate on first link
     const prevHashes = isActionLink(link) ? [link.body.prev] : link.body
     for (const hash of prevHashes) {
       const prevLink = chain.links[hash]
-
-      if (prevLink === undefined) {
-        throw new Error(`prevLink is undefined; hash='${hash}'`)
-      }
-      const expected = hashLink(prevLink.body)
-      if (hash !== expected) {
-        return {
-          isValid: false,
-          error: new ValidationError('Hash does not match previous link', {
-            link,
-            hash,
-            expected,
-          }),
-        }
-      }
+      if (prevLink === undefined)
+        return fail(`The link referenced by the hash in the \`prev\` property does not exist.`)
     }
     return VALID
   },
 
+  /** Does this link's hash check out? */
+  validateHash: (link, chain) => {
+    const { hash, body } = link
+    const expected = hashLink(body)
+    if (hash === expected) return VALID
+    else {
+      return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
+    }
+  },
+
   /** If this is a root link, it should not have any predecessors, and should be the chain's root */
   validateRoot: (link, chain) => {
+    if (isMergeLink(link)) return VALID
     const hasNoPrevLink = !('prev' in link.body) || (link.body as any).prev === undefined
     const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isTheChainRoot = getRoot(chain) === link
@@ -39,17 +37,16 @@ const _validators: ValidatorSet = {
     if (hasNoPrevLink === isTheChainRoot && isTheChainRoot === hasRootType) {
       return VALID
     } else {
-      const message =
-        hasNoPrevLink === false
-          ? // has type ROOT but isn't first
-            'The root link must be the first link in the signature chain.'
-          : // is first but doesn't have type ROOT
-            'The first link in the signature chain must be the root link. '
-      return {
-        isValid: false,
-        error: new ValidationError(message),
-        details: { link, chain },
-      }
+      const message = hasRootType
+        ? // ROOT
+          hasNoPrevLink
+          ? `The ROOT link cannot have a predecessor (\`prev\` property)` // ROOT but has prev link
+          : `The ROOT link has to be the link referenced by the chain \`root\` property` // ROOT but isn't chain root
+        : // not ROOT
+        hasNoPrevLink
+        ? `Non-ROOT links must have a predecessor (\`prev\` property)` // not ROOT but has no prev link
+        : `The link referenced by the chain \`root\` property must be a ROOT link` // not ROOT but is the chain root
+      return fail(message, { link, chain })
     }
   },
 
@@ -62,14 +59,13 @@ const _validators: ValidatorSet = {
       signature: link.signed.signature,
       publicKey: link.signed.key,
     }
-    return signatures.verify(signedMessage)
+    return signatures.verify(signedMessage) //
       ? VALID
-      : {
-          isValid: false,
-          error: new ValidationError('Signature is not valid', signedMessage),
-        }
+      : fail('Signature is not valid', signedMessage)
   },
 }
+
+const fail = (msg: string, args?: any) => ({ isValid: false, error: new ValidationError(msg, args) })
 
 const memoizeFunctionMap = (source: ValidatorSet) => {
   const result = {} as ValidatorSet
