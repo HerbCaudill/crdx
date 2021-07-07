@@ -1,26 +1,20 @@
-﻿import { asymmetric, base64, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
-import { randomKey } from '@/keyset/randomKey'
+﻿import { randomKey } from '@/keyset/randomKey'
 import { KeyScope, KeysetWithSecrets } from '@/keyset/types'
 import { HashPurpose, Optional } from '@/util'
+import { asymmetric, base64, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
 
 const { SIGNATURE, ENCRYPTION, SYMMETRIC } = HashPurpose
 
-/**
- * Generates a full set of per-user keys from a single 32-byte secret, roughly following the
- * procedure outlined in the [Keybase docs on Per-User Keys](http://keybase.io/docs/teams/puk).
- *
- * @param scope The scope associated with the new keys - e.g. `{ type: TEAM }` or `{type: ROLE,
- * name: ADMIN}`.
- * @param seed (optional) A strong secret key used to derive the other keys. This key should be
- * randomly generated to begin with and never stored. If not provided, a 32-byte random key will be
- * generated and used.
- * @returns A keyset consisting of a keypair for signing, a keypair for asymmetric encryption, and
- * a key for symmetric encryption.
- */
+/** Generates a full set of per-user keys from a single 32-byte secret, roughly following the
+ *  procedure outlined in the [Keybase docs on Per-User Keys](http://keybase.io/docs/teams/puk). */
 export function create(
-  { type, name = type }: Optional<KeyScope, 'name'>,
+  /** The scope associated with the new keys - e.g. `{ type: TEAM }` or `{type: ROLE, name: ADMIN}`.  */
+  scope: Optional<KeyScope, 'name'>,
+  /** A strong secret key used to derive the other keys. This key should be randomly generated to
+   * begin with and never stored. If not provided, a 32-byte random key will be generated and used. */
   seed: string = randomKey()
 ): KeysetWithSecrets {
+  const { type, name = type } = scope
   const stretchedSeed = stretch(`${name}:${type}:${seed}`)
   return {
     type,
