@@ -1,5 +1,5 @@
 import { append, create, merge } from '@/chain'
-import { clone } from '@/util'
+import { clone } from '@/test/util/clone'
 import { setup } from '@/test/util/setup'
 import '@/test/util/expect/toBeValid'
 
