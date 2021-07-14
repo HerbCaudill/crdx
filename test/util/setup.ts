@@ -1,6 +1,7 @@
 ﻿import * as users from '@/user'
 import { UserWithSecrets } from '@/user'
-import { arrayToMap, assert } from '@/util'
+import { assert } from '@/util'
+import { arrayToMap } from './arrayToMap'
 import { cache } from './cache'
 
 /**

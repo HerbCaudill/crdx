@@ -11,7 +11,7 @@ import {
   Sequencer,
 } from '@/chain'
 import { buildChain, findByPayload, getPayloads } from '@/test/chain/utils'
-import { setup } from '@/test/util'
+import { setup } from '@/test/util/setup'
 import { randomKey } from '@herbcaudill/crypto'
 
 const { alice } = setup('alice')

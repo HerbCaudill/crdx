@@ -1,7 +1,7 @@
 import { append, create } from '@/chain'
 import { getHead } from '@/chain/getHead'
 import { getRoot } from '@/chain/getRoot'
-import { setup } from '@/test/util'
+import { setup } from '@/test/util/setup'
 import '@/test/util/expect/toBeValid'
 
 const { alice } = setup('alice')

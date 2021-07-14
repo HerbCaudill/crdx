@@ -1,7 +1,7 @@
 ﻿import { append, create, ROOT } from '@/chain'
 import { getRoot } from '@/chain/getRoot'
 import { validate } from '@/chain/validate'
-import { setup } from '@/test/util'
+import { setup } from '@/test/util/setup'
 import { signatures } from '@herbcaudill/crypto'
 
 import '@/test/util/expect/toBeValid'

@@ -1,6 +1,6 @@
 import { append, create, merge } from '@/chain'
 import { clone } from '@/util'
-import { setup } from '@/test/util'
+import { setup } from '@/test/util/setup'
 import '@/test/util/expect/toBeValid'
 
 const { alice, bob } = setup('alice', 'bob')

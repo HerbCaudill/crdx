@@ -1,5 +1,5 @@
 import { create, deserialize, getHead, getRoot, serialize, validate } from '@/chain'
-import { setup } from '@/test/util'
+import { setup } from '@/test/util/setup'
 import '@/test/util/expect/toBeValid'
 
 const { alice } = setup('alice')
