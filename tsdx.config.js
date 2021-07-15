@@ -1,6 +1,7 @@
-﻿const replace = require('@rollup/plugin-replace');
+﻿const replace = require('@rollup/plugin-replace')
 
 module.exports = {
+  // https://github.com/formium/tsdx/issues/981
   rollup(config, opts) {
     config.plugins = config.plugins.map(p =>
       p.name === 'replace'
@@ -9,7 +10,7 @@ module.exports = {
             preventAssignment: true,
           })
         : p
-    );
-    return config; // always return a config.
+    )
+    return config // always return a config.
   },
-};
+}
