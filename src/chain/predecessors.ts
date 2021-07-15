@@ -1,12 +1,12 @@
 ﻿import { Action, isMergeLink, isRootLink, Link, SignatureChain } from '@/chain/types'
 import { memoize } from '@/util'
-import * as R from 'ramda'
+import uniq from 'lodash/uniq'
 
 export const getPredecessorHashes = memoize((chain: SignatureChain<any>, hash: string): string[] => {
   if (!(hash in chain.links)) return []
   const parents = getParentHashes(chain.links[hash])
   const predecessors = parents.flatMap(parent => getPredecessorHashes(chain, parent))
-  return R.uniq(parents.concat(predecessors))
+  return uniq(parents.concat(predecessors))
 })
 
 export const isPredecessorHash = (chain: SignatureChain<any>, a: string, b: string) =>

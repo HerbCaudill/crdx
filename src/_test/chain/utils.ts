@@ -2,7 +2,7 @@
 import { createChain } from '@/chain/createChain'
 import { merge } from '@/chain/merge'
 import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '@/chain/types'
-import { clone } from '@/test/util/clone'
+import clone from 'lodash/clone'
 import { setup } from '@/test/util/setup'
 
 const { alice } = setup('alice')

@@ -1,5 +1,5 @@
 import { append, createChain, merge } from '@/chain'
-import { clone } from '@/test/util/clone'
+import clone from 'lodash/clone'
 import { setup } from '@/test/util/setup'
 import '@/test/util/expect/toBeValid'
 
