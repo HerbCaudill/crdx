@@ -1,5 +1,6 @@
 ﻿import { append } from '@/chain/append'
-import { Action, ROOT, RootLinkBody, SignatureChain } from '@/chain/types'
+import { Action, RootLinkBody, SignatureChain } from '@/chain/types'
+import { ROOT } from '@/constants'
 import { UserWithSecrets } from '@/user'
 import { Optional } from '@/util'
 import cuid from 'cuid'
@@ -10,7 +11,7 @@ export const EMPTY_CHAIN = {
   links: {},
 }
 
-export const create = <A extends Action>(
+export const createChain = <A extends Action>(
   { name, id = cuid() }: Optional<RootLinkBody['payload'], 'id'>,
   user: UserWithSecrets
 ) => {

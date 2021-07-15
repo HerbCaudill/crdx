@@ -13,5 +13,5 @@ const { USER } = keyset.KeyType
  */
 export const create = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
   userName,
-  keys: keyset.create({ type: USER, name: userName }, seed),
+  keys: keyset.createKeyset({ type: USER, name: userName }, seed),
 })

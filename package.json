@@ -22,23 +22,26 @@
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@herbcaudill/crypto": "^0.1.14",
+    "@herbcaudill/crypto": "0",
     "buffer": "6",
-    "cuid": "^2.1.8",
+    "cuid": "2",
     "debug": "4",
     "events": "3",
     "fast-memoize": "2",
-    "ramda": "^0.27.1"
+    "ramda": "0"
   },
   "devDependencies": {
-    "@herbcaudill/tscpaths": "^0.0.17",
+    "@herbcaudill/tscpaths": "0",
     "@types/debug": "4",
-    "@types/ramda": "^0.27.42",
+    "@types/ramda": "0",
     "cross-env": "6",
     "ts-jest": "26",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.3.0",
-    "typescript": "^4.3.5"
+    "tsdx": "0",
+    "tslib": "2",
+    "typescript": "4"
+  },
+  "resolutions": {
+    "typescript": "4"
   },
   "prettier": {
     "printWidth": 120,

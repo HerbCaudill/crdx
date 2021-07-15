@@ -1,5 +1,5 @@
 ﻿import { append } from '@/chain/append'
-import { create } from '@/chain/create'
+import { createChain } from '@/chain/createChain'
 import { merge } from '@/chain/merge'
 import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '@/chain/types'
 import { clone } from '@/test/util/clone'
@@ -30,7 +30,7 @@ export const findByPayload = (chain: SignatureChain<Action>, payload: Action['pa
 export const buildChain = () => {
   const appendLink = (chain: SignatureChain<Action>, payload: string) => append(chain, { type: 'X', payload }, alice)
 
-  let root = create({ name: 'root' }, alice)
+  let root = createChain({ name: 'root' }, alice)
   let a = appendLink(root, 'a')
   let b = appendLink(a, 'b')
 

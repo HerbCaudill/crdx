@@ -1,8 +1,10 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import { isActionLink, isMergeLink, isRootLink, ROOT, ValidatorSet } from '@/chain/types'
-import { memoize, VALID, ValidationError } from '@/util'
+import { isActionLink, isMergeLink, isRootLink } from '@/chain/types'
+import { ROOT, VALID } from '@/constants'
+import { memoize } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
+import { ValidationError, ValidatorSet } from './types'
 
 const _validators: ValidatorSet = {
   /** Does the previous link referenced by this link exist?  */

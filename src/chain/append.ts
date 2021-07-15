@@ -1,4 +1,4 @@
-﻿import { EMPTY_CHAIN } from '@/chain/create'
+﻿import { EMPTY_CHAIN } from '@/chain/createChain'
 import { hashLink } from '@/chain/hashLink'
 import { Action, Link, LinkBody, SignatureChain } from '@/chain/types'
 import { redactUser, UserWithSecrets } from '@/user'

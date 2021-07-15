@@ -1,8 +1,6 @@
 ﻿import { User } from '@/user'
-import { Base58, Hash, UnixTimestamp, ValidationResult } from '@/util/types'
-
-export const ROOT = 'ROOT'
-export const MERGE = 'MERGE'
+import { Base58, Hash, UnixTimestamp } from '@/util/types'
+import { ROOT, MERGE } from '@/constants'
 
 /** A signature chain is an acyclic directed graph of links. Each link is **cryptographically
  * signed** by the author, and includes a **hash of the parent link**.
@@ -210,14 +208,6 @@ export type ActionFilterFactory = <A extends Action>(
   branches: [Sequence<A>, Sequence<A>],
   chain: SignatureChain<Action>
 ) => ActionFilter
-
-// validators
-
-export type Validator = <A extends Action>(currentLink: Link<A>, chain: SignatureChain<A>) => ValidationResult
-
-export type ValidatorSet = {
-  [key: string]: Validator
-}
 
 // type guards
 

@@ -1,11 +1,11 @@
-import { create, KeysetWithSecrets, KeyType, redactKeys } from '@/keyset'
+import { createKeyset, KeysetWithSecrets, KeyType, redactKeys } from '@/keyset'
 
 const { EPHEMERAL } = KeyType
 const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('redact', () => {
   it('should redact secrets from a random keyset', () => {
-    const secretKeyset = create({ type: KeyType.USER, name: 'foo' })
+    const secretKeyset = createKeyset({ type: KeyType.USER, name: 'foo' })
 
     const publicKeyset = redactKeys(secretKeyset)
 

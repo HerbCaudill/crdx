@@ -3,7 +3,7 @@ import {
   append,
   arbitraryDeterministicSort,
   baseResolver,
-  create,
+  createChain,
   getSequence,
   NonMergeLink,
   Resolver,
@@ -28,14 +28,14 @@ const sequencer = randomSequencer
 describe('chains', () => {
   describe('getSequence', () => {
     test('upon creation', () => {
-      var chain = create({ name: 'root' }, alice)
+      var chain = createChain({ name: 'root' }, alice)
       chain = append(chain, { type: 'X', payload: 'a' }, alice)
       const sequence = getSequence({ chain, sequencer })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
     test('no branches', () => {
-      var chain = create({ name: 'root' }, alice)
+      var chain = createChain({ name: 'root' }, alice)
       chain = append(chain, { type: 'X', payload: 'a' }, alice)
       chain = append(chain, { type: 'X', payload: 'b' }, alice)
       chain = append(chain, { type: 'X', payload: 'c' }, alice)

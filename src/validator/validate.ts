@@ -1,7 +1,8 @@
 ﻿import { getSequence } from '@/chain/getSequence'
-import { Action, Link, SignatureChain, ValidatorSet } from '@/chain/types'
-import { validators } from '@/chain/validators'
-import { InvalidResult, VALID, ValidationResult } from '@/util'
+import { Action, Link, SignatureChain } from '@/chain/types'
+import { validators } from './validators'
+import { InvalidResult, ValidatorSet, ValidationResult } from './types'
+import { VALID } from '@/constants'
 
 /**
  * Runs a signature chain through a series of validators to ensure that it is correctly formed, has

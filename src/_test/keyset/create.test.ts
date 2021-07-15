@@ -1,5 +1,5 @@
 import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
-import { create } from '@/keyset/create'
+import { createKeyset } from '@/keyset/createKeyset'
 import { KeyType } from '@/keyset/types'
 
 const { USER, EPHEMERAL } = KeyType
@@ -7,7 +7,7 @@ const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('create', () => {
   it('returns keys with the expected lengths', () => {
-    const keys = create(EPHEMERAL_SCOPE)
+    const keys = createKeyset(EPHEMERAL_SCOPE)
 
     const { signature, encryption: encryption } = keys
 
@@ -21,14 +21,14 @@ describe('create', () => {
   })
 
   it('returns keys with the expected metadata', () => {
-    const keys = create({ type: USER, name: 'alice' })
+    const keys = createKeyset({ type: USER, name: 'alice' })
 
     expect(keys.type).toEqual(USER)
     expect(keys.name).toEqual('alice')
   })
 
   it('produces working signature keys', () => {
-    const keys = create(EPHEMERAL_SCOPE)
+    const keys = createKeyset(EPHEMERAL_SCOPE)
     const { secretKey, publicKey } = keys.signature
 
     // Alice signs a message
@@ -43,8 +43,8 @@ describe('create', () => {
   it('produces working keys for asymmetric encryption', () => {
     const message = 'The dolphin leaps at twilight'
 
-    const alice = create({ type: USER, name: 'alice' }).encryption
-    const bob = create({ type: USER, name: 'bob' }).encryption
+    const alice = createKeyset({ type: USER, name: 'alice' }).encryption
+    const bob = createKeyset({ type: USER, name: 'bob' }).encryption
 
     // Alice encrypts a message for Bob
     const encrypted = asymmetric.encrypt({

@@ -1,13 +1,14 @@
-﻿import { randomKey } from '@/keyset/randomKey'
+﻿import { HashPurpose } from '@/constants'
+import { randomKey } from '@/keyset/randomKey'
 import { KeyScope, KeysetWithSecrets } from '@/keyset/types'
-import { HashPurpose, Optional } from '@/util'
+import { Optional } from '@/util'
 import { asymmetric, base58, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
 
 const { SIGNATURE, ENCRYPTION, SYMMETRIC } = HashPurpose
 
 /** Generates a full set of per-user keys from a single 32-byte secret, roughly following the
  *  procedure outlined in the [Keybase docs on Per-User Keys](http://keybase.io/docs/teams/puk). */
-export function create(
+export function createKeyset(
   /** The scope associated with the new keys - e.g. `{ type: TEAM }` or `{type: ROLE, name: ADMIN}`.  */
   scope: Optional<KeyScope, 'name'>,
   /** A strong secret key used to derive the other keys. This key should be randomly generated to

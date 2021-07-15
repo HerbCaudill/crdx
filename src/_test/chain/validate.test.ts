@@ -1,10 +1,11 @@
-﻿import { append, create, ROOT } from '@/chain'
+﻿import { append, createChain } from '@/chain'
 import { getRoot } from '@/chain/getRoot'
-import { validate } from '@/chain/validate'
+import { validate } from '@/validator/validate'
 import { setup } from '@/test/util/setup'
 import { signatures } from '@herbcaudill/crypto'
 
 import '@/test/util/expect/toBeValid'
+import { ROOT } from '@/constants'
 
 const __ = expect.objectContaining
 
@@ -14,7 +15,7 @@ describe('chains', () => {
   describe('validation', () => {
     test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
-      const chain = create({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).toBeValid()
@@ -22,7 +23,7 @@ describe('chains', () => {
 
     test(`Bob validates Alice's chain with a couple of links`, () => {
       // 👩🏾 Alice
-      const chain = create({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
       const newChain = append(chain, newLink, alice)
 
@@ -33,7 +34,7 @@ describe('chains', () => {
 
     test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
-      const chain = create({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
 
       // 🦹‍♂️ Mallory
       const payload = getRoot(chain).body.payload
@@ -45,7 +46,7 @@ describe('chains', () => {
 
     test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
-      const chain = create({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
 
       const root = getRoot(chain)
       // @ts-ignore
@@ -70,7 +71,7 @@ describe('chains', () => {
 
     test('Alice gets high and tries to add another ROOT link', () => {
       // 👩🏾 Alice
-      const chain = create({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
 
       const link = {
         type: ROOT,
