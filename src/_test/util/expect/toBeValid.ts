@@ -1,4 +1,4 @@
-﻿import { ValidationResult } from '@/util/types'
+﻿import { ValidationResult } from '@/validator'
 
 // ignore coverage
 expect.extend({

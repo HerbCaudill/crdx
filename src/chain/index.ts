@@ -1,5 +1,5 @@
-﻿export * from './arbitraryDeterministicSort'
-export * from './append'
+﻿export * from './append'
+export * from './arbitraryDeterministicSequencer'
 export * from './createChain'
 export * from './getHead'
 export * from './getRoot'
