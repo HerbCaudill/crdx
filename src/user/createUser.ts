@@ -11,7 +11,7 @@ const { USER } = keyset.KeyType
  * @param seed (optional) A seed for generating keys. This is typically only used for testing
  * purposes, to ensure predictable data.
  */
-export const create = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
+export const createUser = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
   userName,
   keys: keyset.createKeyset({ type: USER, name: userName }, seed),
 })

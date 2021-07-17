@@ -1,1 +1,3 @@
-export type Reducer<S> = (state: S) => S
+import { Action, NonMergeLink } from '@/chain'
+
+export type Reducer<S, A extends Action> = (state: S, link: NonMergeLink<A>) => S

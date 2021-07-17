@@ -20,7 +20,7 @@ export const setup = (...userNames: string[]) => {
     const testUsers: Record<string, UserWithSecrets> = userNames
       .map((userName: string) => {
         const randomSeed = userName // make these predictable
-        return users.create(userName, randomSeed)
+        return users.createUser(userName, randomSeed)
       })
       .reduce(arrayToMap('userName'), {})
 
