@@ -16,8 +16,8 @@ import { UserWithSecrets } from '@/user'
 class Store<S, A extends Action> extends EventEmitter {
   private chain: SignatureChain<A>
   private reducer: Reducer<S, A>
-  private sequencer?: Sequencer<A>
-  private resolver?: Resolver<A>
+  private sequencer?: Sequencer
+  private resolver?: Resolver
   private validators?: ValidatorSet
   private user: UserWithSecrets
 
@@ -91,8 +91,8 @@ export interface CreateStoreOptions<S, A extends Action> {
   chain: SignatureChain<A>
   reducer: Reducer<S, A>
   validators?: ValidatorSet
-  resolver?: Resolver<A>
-  sequencer?: Sequencer<A>
+  resolver?: Resolver
+  sequencer?: Sequencer
 }
 
 type Listener = () => void

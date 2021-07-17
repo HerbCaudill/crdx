@@ -16,7 +16,7 @@ import { randomKey } from '@herbcaudill/crypto'
 
 const { alice } = setup('alice')
 
-const randomSequencer: Sequencer<any> = (a, b) => {
+const randomSequencer: Sequencer = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
@@ -141,16 +141,16 @@ describe('chains', () => {
 
       test('custom sequencer', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
-        const sequencer: Sequencer<XAction> = (a, b) => {
-          const alpha = (a: XLink, b: XLink) => (a.body.payload > b.body.payload ? 1 : -1)
-          const merged: Sequence<XAction> = a.concat(b).sort(alpha)
+        const sequencer = ((a: Sequence<XAction>, b: Sequence<XAction>) => {
+          const alpha = (a: XLink, b: XLink) => (a.body.payload! > b.body.payload! ? 1 : -1)
+          const merged = a.concat(b).sort(alpha)
 
           const isI = (n: XLink) => n.body.payload === 'i'
           const Is = merged.filter(n => isI(n))
           const notIs = merged.filter(n => !isI(n))
 
           return Is.concat(notIs)
-        }
+        }) as Sequencer
 
         // inclusion rules: `e`s are omitted
         const resolver: Resolver = ([a, b], chain) => {
@@ -176,6 +176,6 @@ const split = (s: string) => s.split(/\s*/)
 
 interface XAction extends Action {
   type: 'X'
-  payload: string
+  payload?: string
 }
 type XLink = NonMergeLink<XAction>

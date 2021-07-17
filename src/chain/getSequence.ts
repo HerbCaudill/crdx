@@ -142,10 +142,10 @@ type SequenceOptions<A extends Action> = {
   head?: Link<A>
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  resolver?: Resolver<A>
+  resolver?: Resolver
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  sequencer?: Sequencer<A>
+  sequencer?: Sequencer
 }
 
 /** This resolver just collapses each branch to a single sequence of actions */

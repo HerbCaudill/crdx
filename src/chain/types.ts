@@ -34,7 +34,7 @@ export interface Action {
   type: any
 
   /** Payload of the action */
-  payload: any
+  payload?: any
 }
 
 /** The `LinkBody` adds contextual information to the `Action`. This is the part of the link that is signed */
@@ -192,7 +192,7 @@ export type Sequence<A extends Action> = NonMergeLink<A>[]
 /** A resolver takes two heads and the chain they're in, and returns a single sequence combining the
  * two while applying any logic regarding which links to discard in case of conflict.
  */
-export type Resolver<A extends Action = Action> = (
+export type Resolver = <A extends Action>(
   branches: [Link<A>, Link<A>],
   chain: SignatureChain<A>
 ) => [Sequence<A>, Sequence<A>]
@@ -200,7 +200,7 @@ export type Resolver<A extends Action = Action> = (
 /** A sequencer takes two sequences, and returns a single sequence combining the two
  * while applying any logic regarding which links take precedence.
  */
-export type Sequencer<A extends Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
+export type Sequencer = <A extends Action>(a: Sequence<A>, b: Sequence<A>) => Sequence<A>
 
 export type ActionFilter = <A extends Action>(link: NonMergeLink<A>) => boolean
 
