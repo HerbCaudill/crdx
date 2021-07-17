@@ -1,17 +1,8 @@
-import {
-  Action,
-  ActionLink,
-  arbitraryDeterministicSequencer,
-  baseResolver,
-  Resolver,
-  Sequencer,
-  SignatureChain,
-} from '@/chain'
+import { Action, ActionLink, append, getHead, getSequence, Resolver, Sequencer, SignatureChain } from '@/chain'
+import { UserWithSecrets } from '@/user'
 import { ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
-import * as chains from '@/chain'
-import { UserWithSecrets } from '@/user'
 
 class Store<S, A extends Action> extends EventEmitter {
   private chain: SignatureChain<A>
@@ -54,10 +45,10 @@ class Store<S, A extends Action> extends EventEmitter {
     this.isDispatching = true
 
     // append this action as a new link to the chain
-    this.chain = chains.append(this.chain, action, this.user)
+    this.chain = append(this.chain, action, this.user)
 
     // get the newly appended link
-    const head = chains.getHead(this.chain) as ActionLink<A>
+    const head = getHead(this.chain) as ActionLink<A>
 
     // we don't need to pass the whole chain through the reducer, just the current state + the new head
     this.state = this.reducer(this.state, head)
@@ -69,12 +60,12 @@ class Store<S, A extends Action> extends EventEmitter {
 
   private updateState() {
     // // Validate the chain's integrity.
-    // const validation = chains.validate(this.chain)
+    // const validation = validate(this.chain)
     // if (!validation.isValid) throw validation.error
 
     // Run the chain through the reducer to calculate the current team state
     const { chain, resolver, sequencer, reducer } = this
-    const sequence = chains.getSequence<A>({ chain, resolver, sequencer })
+    const sequence = getSequence<A>({ chain, resolver, sequencer })
 
     this.state = sequence.reduce(reducer, {} as S)
 
@@ -94,5 +85,3 @@ export interface CreateStoreOptions<S, A extends Action> {
   resolver?: Resolver
   sequencer?: Sequencer
 }
-
-type Listener = () => void
