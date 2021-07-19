@@ -61,7 +61,7 @@ describe('store', () => {
     })
   })
 
-  describe('validity', () => {
+  describe('validation', () => {
     test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
       const { store } = setupCounter()
