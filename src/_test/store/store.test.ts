@@ -73,7 +73,7 @@ describe('store', () => {
       payload.name = 'Mallory RAWKS'
 
       // 👨🏻‍🦲 Bob finds that the chain is no longer valid
-      expect(() => store.validate()).toThrow()
+      expect(store.validate().isValid).toBe(false)
     })
   })
 })
