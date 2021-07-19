@@ -1,20 +1,11 @@
 import { Action, ActionLink, append, getHead, getSequence, Resolver, Sequencer, SignatureChain } from '@/chain'
+import { VALID } from '@/constants'
 import { UserWithSecrets } from '@/user'
-import { ValidatorSet } from '@/validator'
+import { validate, ValidationResult, ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
 
 class Store<S, A extends Action> extends EventEmitter {
-  private chain: SignatureChain<A>
-  private reducer: Reducer<S, A>
-  private sequencer?: Sequencer
-  private resolver?: Resolver
-  private validators?: ValidatorSet
-  private user: UserWithSecrets
-
-  private state: S
-  private isDispatching = false
-
   constructor({ user, chain, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
     super()
     this.chain = chain
@@ -58,15 +49,34 @@ class Store<S, A extends Action> extends EventEmitter {
     this.emit('updated', { head: this.chain.head })
   }
 
-  private updateState() {
-    // // Validate the chain's integrity.
-    // const validation = validate(this.chain)
-    // if (!validation.isValid) throw validation.error
+  public validate() {
+    const validation = validate(this.chain, this.validators)
+    if (!validation.isValid) throw validation.error
+  }
 
-    // Run the chain through the reducer to calculate the current team state
+  // PRIVATE
+
+  private chain: SignatureChain<A>
+  private reducer: Reducer<S, A>
+  private sequencer?: Sequencer
+  private resolver?: Resolver
+
+  private validators?: ValidatorSet
+  private user: UserWithSecrets
+
+  private state: S
+  private isDispatching = false
+
+  private updateState() {
     const { chain, resolver, sequencer, reducer } = this
+
+    // Validate the chain's integrity.
+    this.validate()
+
+    // Use the resolver & sequencer to turn the graph into an ordered sequence
     const sequence = getSequence<A>({ chain, resolver, sequencer })
 
+    // Run the sequence through the reducer to calculate the current team state
     this.state = sequence.reduce(reducer, {} as S)
 
     this.emit('updated', { head: chain.head })

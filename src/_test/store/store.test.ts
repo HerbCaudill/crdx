@@ -1,60 +1,79 @@
-import { Action, createChain } from '@/chain'
+import { Action, createChain, getRoot } from '@/chain'
 import { createStore } from '@/store'
 import { Reducer } from '@/store/types'
 import { createUser } from '@/user'
 
-describe('createStore', () => {
-  describe('counter', () => {
-    const setup = () => {
-      const user = createUser('alice')
-      const chain = createChain({ name: 'counter' }, user)
-      const store = createStore({ user, chain, reducer })
-      return { user, store }
-    }
+const alice = createUser('alice')
 
-    test('initial state', () => {
-      const { store } = setup()
-      expect(store.getState()).toEqual({ value: 0 })
+const setupCounter = () => {
+  const chain = createChain({ name: 'counter' }, alice)
+  const store = createStore({ user: alice, chain, reducer })
+  return { store }
+}
+
+describe('store', () => {
+  describe('createStore', () => {
+    describe('counter', () => {
+      test('initial state', () => {
+        const { store } = setupCounter()
+        expect(store.getState()).toEqual({ value: 0 })
+      })
+
+      test('increment (default)', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'INCREMENT' })
+        expect(store.getState().value).toEqual(1)
+      })
+
+      test('multiple increments (default)', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'INCREMENT' })
+        store.dispatch({ type: 'INCREMENT' })
+        store.dispatch({ type: 'INCREMENT' })
+        expect(store.getState().value).toEqual(3)
+      })
+
+      test('increment by a value', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'INCREMENT', payload: 17 })
+        expect(store.getState().value).toEqual(17)
+      })
+
+      test('decrement (default)', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'DECREMENT' })
+        expect(store.getState().value).toEqual(-1)
+      })
+
+      test('decrement by a value', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'DECREMENT', payload: 42 })
+        expect(store.getState().value).toEqual(-42)
+      })
+
+      test('reset', () => {
+        const { store } = setupCounter()
+        store.dispatch({ type: 'INCREMENT', payload: 123 })
+        expect(store.getState().value).toEqual(123)
+        store.dispatch({ type: 'RESET' })
+        expect(store.getState().value).toEqual(0)
+      })
     })
+  })
 
-    test('increment (default)', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'INCREMENT' })
-      expect(store.getState().value).toEqual(1)
-    })
+  describe('validity', () => {
+    test('Mallory tampers with the payload; Bob is not fooled', () => {
+      // 👩🏾 Alice
+      const { store } = setupCounter()
+      // @ts-ignore (accessing private member)
+      const chain = store.chain
 
-    test('multiple increments (default)', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'INCREMENT' })
-      store.dispatch({ type: 'INCREMENT' })
-      store.dispatch({ type: 'INCREMENT' })
-      expect(store.getState().value).toEqual(3)
-    })
+      // 🦹‍♂️ Mallory
+      const payload = getRoot(chain).body.payload
+      payload.name = 'Mallory RAWKS'
 
-    test('increment by a value', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'INCREMENT', payload: 17 })
-      expect(store.getState().value).toEqual(17)
-    })
-
-    test('decrement (default)', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'DECREMENT' })
-      expect(store.getState().value).toEqual(-1)
-    })
-
-    test('decrement by a value', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'DECREMENT', payload: 42 })
-      expect(store.getState().value).toEqual(-42)
-    })
-
-    test('reset', () => {
-      const { store } = setup()
-      store.dispatch({ type: 'INCREMENT', payload: 123 })
-      expect(store.getState().value).toEqual(123)
-      store.dispatch({ type: 'RESET' })
-      expect(store.getState().value).toEqual(0)
+      // 👨🏻‍🦲 Bob finds that the chain is no longer valid
+      expect(() => store.validate()).toThrow()
     })
   })
 })
