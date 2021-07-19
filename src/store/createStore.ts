@@ -1,7 +1,6 @@
-import { Action, ActionLink, append, getHead, getSequence, Resolver, Sequencer, SignatureChain } from '@/chain'
-import { VALID } from '@/constants'
+import { Action, ActionLink, append, getHead, getSequence, merge, Resolver, Sequencer, SignatureChain } from '@/chain'
 import { UserWithSecrets } from '@/user'
-import { validate, ValidationResult, ValidatorSet } from '@/validator'
+import { validate, ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
 
@@ -45,13 +44,19 @@ class Store<S, A extends Action> extends EventEmitter {
     this.state = this.reducer(this.state, head)
 
     this.isDispatching = false
-
     this.emit('updated', { head: this.chain.head })
+
+    return this
+  }
+
+  public merge(theirChain: SignatureChain<A>) {
+    this.chain = merge(this.chain, theirChain)
+    this.updateState()
+    return this
   }
 
   public validate() {
-    const validation = validate(this.chain, this.validators)
-    if (!validation.isValid) throw validation.error
+    return validate(this.chain, this.validators)
   }
 
   // PRIVATE
