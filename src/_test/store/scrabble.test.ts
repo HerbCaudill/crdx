@@ -24,10 +24,16 @@ const setupScrabbleAttacks = () => {
     reducer: scrabbleAttacksReducer,
   })
 
+  const sync = () => {
+    bobStore.merge(aliceStore.getChain())
+    aliceStore.merge(bobStore.getChain())
+  }
+
   return {
     store: aliceStore,
     aliceStore,
     bobStore,
+    sync,
   }
 }
 
@@ -42,8 +48,10 @@ describe('scrabble attacks', () => {
       ])
       expect(Object.keys(tiles)).toHaveLength(100)
     })
+  })
 
-    test('flip a tile', () => {
+  describe('flip tiles', () => {
+    test('flip one tile', () => {
       const { store } = setupScrabbleAttacks()
 
       const availableTiles = () => Object.values(store.getState().tiles).filter(isAvailable)
@@ -149,27 +157,44 @@ describe('scrabble attacks', () => {
     })
   })
 
-  // describe('merge', () => {
-  //   test('concurrent changes are merged', () => {
-  //     const { aliceStore, bobStore } = setupScrabble()
+  describe('concurrent changes', () => {
+    test('no conflict', () => {
+      const { aliceStore, bobStore, sync } = setupScrabbleAttacks()
+      const flip = omniscientlyFlipTileByLetter(aliceStore)
 
-  //     // Bob and Alice make concurrent increments
-  //     aliceStore.dispatch({ type: 'INCREMENT' })
-  //     bobStore.dispatch({ type: 'INCREMENT' })
+      // two words are available
 
-  //     // They each only have their own increments
-  //     expect(aliceStore.getState().value).toEqual(1)
-  //     expect(bobStore.getState().value).toEqual(1)
+      flip('C')
+      flip('A')
+      flip('T')
 
-  //     // They sync up
-  //     aliceStore.merge(bobStore.getChain())
-  //     bobStore.merge(aliceStore.getChain())
+      flip('D')
+      flip('O')
+      flip('G')
 
-  //     // They each have both increments
-  //     expect(aliceStore.getState().value).toEqual(2)
-  //     expect(bobStore.getState().value).toEqual(2)
-  //   })
-  // })
+      sync()
+
+      // alice claims CAT
+      aliceStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'CAT' } })
+
+      // bob claims DOG
+      bobStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'DOG' } })
+
+      sync()
+
+      const { players, messages } = aliceStore.getState()
+      const [alice, bob] = players
+
+      // there are no error messages
+      expect(messages).toHaveLength(0)
+
+      // alice has her word
+      expect(alice.words[0]).toEqual('CAT')
+
+      // bob has his word
+      expect(bob.words[0]).toEqual('DOG')
+    })
+  })
 })
 
 // Scrabble
