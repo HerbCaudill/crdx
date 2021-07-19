@@ -66,7 +66,7 @@ describe('store', () => {
   })
 
   describe('validation', () => {
-    test('Mallory tampers with the payload; Bob is not fooled', () => {
+    test('tampering with chain is detected', () => {
       // 👩🏾 Alice makes a store
       const { store } = setupCounter()
       const chain = store.getChain()
@@ -81,7 +81,7 @@ describe('store', () => {
   })
 
   describe('merge', () => {
-    test('concurrent changes', () => {
+    test('concurrent changes are merged', () => {
       const { aliceStore, bobStore } = setupCounter()
 
       // Bob and Alice make concurrent increments
