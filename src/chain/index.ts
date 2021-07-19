@@ -1,5 +1,6 @@
 ﻿export * from './append'
 export * from './arbitraryDeterministicSequencer'
+export * from './baseResolver'
 export * from './createChain'
 export * from './getHead'
 export * from './getRoot'

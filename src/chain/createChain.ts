@@ -1,5 +1,5 @@
-﻿import { append } from '@/chain/append'
-import { Action, RootLinkBody, SignatureChain } from '@/chain/types'
+﻿import { append } from './append'
+import { Action, RootLinkBody, SignatureChain } from './types'
 import { ROOT } from '@/constants'
 import { UserWithSecrets } from '@/user'
 import { Optional } from '@/util'

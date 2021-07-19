@@ -1,4 +1,4 @@
-﻿import { Action, isMergeLink, isRootLink, Link, SignatureChain } from '@/chain/types'
+﻿import { Action, isMergeLink, isRootLink, Link, SignatureChain } from './types'
 import { memoize } from '@/util'
 import uniq from 'lodash/uniq'
 

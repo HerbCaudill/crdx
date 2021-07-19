@@ -1,5 +1,5 @@
-﻿import { getSequence } from '@/chain/getSequence'
-import { Action, Link, SignatureChain } from '@/chain/types'
+﻿import { getSequence } from './getSequence'
+import { Action, Link, SignatureChain } from './types'
 
 export const getSuccessors = <A extends Action>(chain: SignatureChain<A>, link: Link<A>): Link<A>[] =>
   getSequence({ chain, root: link }).filter(n => n !== link)

@@ -1,6 +1,6 @@
-﻿import { hashLink } from '@/chain/hashLink'
-import { isPredecessor } from '@/chain/predecessors'
-import { Action, MergeLink, SignatureChain } from '@/chain/types'
+﻿import { hashLink } from './hashLink'
+import { isPredecessor } from './predecessors'
+import { Action, MergeLink, SignatureChain } from './types'
 import { Hash } from '@/util'
 import { getHead } from './getHead'
 

@@ -1,4 +1,4 @@
-import { Link, Sequencer } from '@/chain/types'
+import { Link, Sequencer } from './types'
 import { hash } from '@herbcaudill/crypto'
 
 export const arbitraryDeterministicSequencer: Sequencer = (a, b) => {

@@ -1,6 +1,6 @@
-﻿import { EMPTY_CHAIN } from '@/chain/createChain'
-import { hashLink } from '@/chain/hashLink'
-import { Action, Link, LinkBody, SignatureChain } from '@/chain/types'
+﻿import { EMPTY_CHAIN } from './createChain'
+import { hashLink } from './hashLink'
+import { Action, Link, LinkBody, SignatureChain } from './types'
 import { redactUser, UserWithSecrets } from '@/user'
 import { signatures } from '@herbcaudill/crypto'
 

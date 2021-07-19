@@ -1,7 +1,7 @@
-﻿import { arbitraryDeterministicSequencer } from '@/chain/arbitraryDeterministicSequencer'
-import { getHead } from '@/chain/getHead'
-import { getRoot } from '@/chain/getRoot'
-import { getCommonPredecessor, isPredecessor } from '@/chain/predecessors'
+﻿import { arbitraryDeterministicSequencer } from './arbitraryDeterministicSequencer'
+import { getHead } from './getHead'
+import { getRoot } from './getRoot'
+import { getCommonPredecessor, isPredecessor } from './predecessors'
 import {
   Action,
   ActionLink,
@@ -13,7 +13,8 @@ import {
   Sequence,
   Sequencer,
   SignatureChain,
-} from '@/chain/types'
+} from './types'
+import { baseResolver } from './baseResolver'
 
 /**
  * Takes a `SignatureChain` and returns an array of links by recursively performing a topographical
@@ -144,13 +145,4 @@ export const getSequence = <A extends Action>(options: {
 
   // omit merge links before returning result
   return result.filter(n => !isMergeLink(n)) as NonMergeLink<A>[]
-}
-
-/** This resolver just collapses each branch to a single sequence of actions */
-export const baseResolver: Resolver = ([a, b], chain) => {
-  const root = getCommonPredecessor(chain, a, b)
-  const [branchA, branchB] = [a, b]
-    .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
-    .map(branch => branch.slice(1)) // omit the common predecessor itself
-  return [branchA, branchB]
 }
