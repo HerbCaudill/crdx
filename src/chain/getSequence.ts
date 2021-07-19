@@ -46,7 +46,22 @@ import {
  * You can also get the sequence of a fragment of a chain, by passing a `root` and/or a `head`; this
  * will resolve the subchain starting at `root` and ending at `head`.
  */
-export const getSequence = <A extends Action>(options: SequenceOptions<A>): NonMergeLink<A>[] => {
+export const getSequence = <A extends Action>(options: {
+  /** The SignatureChain containing the links to be sequenced */
+  chain: SignatureChain<A>
+
+  /** The link to use as the chain's root (used to process a subchain) */
+  root?: Link<A>
+
+  /** The link to use as the chain's head (used to process a subchain) */
+  head?: Link<A>
+
+  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
+  resolver?: Resolver
+
+  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
+  sequencer?: Sequencer
+}): NonMergeLink<A>[] => {
   const {
     chain,
     root = getRoot(chain),
@@ -129,23 +144,6 @@ export const getSequence = <A extends Action>(options: SequenceOptions<A>): NonM
 
   // omit merge links before returning result
   return result.filter(n => !isMergeLink(n)) as NonMergeLink<A>[]
-}
-
-type SequenceOptions<A extends Action> = {
-  /** The SignatureChain containing the links to be sequenced */
-  chain: SignatureChain<A>
-
-  /** The link to use as the chain's root (used to process a subchain) */
-  root?: Link<A>
-
-  /** The link to use as the chain's head (used to process a subchain) */
-  head?: Link<A>
-
-  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  resolver?: Resolver
-
-  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  sequencer?: Sequencer
 }
 
 /** This resolver just collapses each branch to a single sequence of actions */
