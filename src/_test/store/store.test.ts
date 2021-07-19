@@ -23,13 +23,13 @@ describe('store', () => {
         expect(store.getState()).toEqual({ value: 0 })
       })
 
-      test('increment (default)', () => {
+      test('increment', () => {
         const { store } = setupCounter()
         store.dispatch({ type: 'INCREMENT' })
         expect(store.getState().value).toEqual(1)
       })
 
-      test('multiple increments (default)', () => {
+      test('multiple increments', () => {
         const { store } = setupCounter()
         store.dispatch({ type: 'INCREMENT' })
         store.dispatch({ type: 'INCREMENT' })
@@ -43,7 +43,7 @@ describe('store', () => {
         expect(store.getState().value).toEqual(17)
       })
 
-      test('decrement (default)', () => {
+      test('decrement', () => {
         const { store } = setupCounter()
         store.dispatch({ type: 'DECREMENT' })
         expect(store.getState().value).toEqual(-1)
