@@ -1,3 +1,4 @@
+export * from '@/util/arrayToMap'
 export * from '@/util/assert'
 export * from '@/util/debug'
 export * from '@/util/memoize'

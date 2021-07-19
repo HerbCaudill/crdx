@@ -16,7 +16,7 @@ import { validate, ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
 
-class Store<S, A extends Action> extends EventEmitter {
+export class Store<S, A extends Action> extends EventEmitter {
   constructor({ user, chain, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
     super()
     this.chain = typeof chain === 'string' ? deserialize(chain) : chain

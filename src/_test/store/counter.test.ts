@@ -9,59 +9,58 @@ const bob = createUser('bob')
 const setupCounter = () => {
   const chain = createChain({ name: 'counter' }, alice)
   const aliceStore = createStore({ user: alice, chain, reducer: counterReducer })
-  const saved = aliceStore.save()
+
+  const saved = aliceStore.getChain()
   const bobStore = createStore({ user: bob, chain: saved, reducer: counterReducer })
 
   return { store: aliceStore, aliceStore, bobStore }
 }
 
-describe('store', () => {
+describe('counter', () => {
   describe('createStore', () => {
-    describe('counter', () => {
-      test('initial state', () => {
-        const { store } = setupCounter()
-        expect(store.getState()).toEqual({ value: 0 })
-      })
+    test('initial state', () => {
+      const { store } = setupCounter()
+      expect(store.getState()).toEqual({ value: 0 })
+    })
 
-      test('increment', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'INCREMENT' })
-        expect(store.getState().value).toEqual(1)
-      })
+    test('increment', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'INCREMENT' })
+      expect(store.getState().value).toEqual(1)
+    })
 
-      test('multiple increments', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'INCREMENT' })
-        store.dispatch({ type: 'INCREMENT' })
-        store.dispatch({ type: 'INCREMENT' })
-        expect(store.getState().value).toEqual(3)
-      })
+    test('multiple increments', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'INCREMENT' })
+      store.dispatch({ type: 'INCREMENT' })
+      store.dispatch({ type: 'INCREMENT' })
+      expect(store.getState().value).toEqual(3)
+    })
 
-      test('increment by a value', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'INCREMENT', payload: 17 })
-        expect(store.getState().value).toEqual(17)
-      })
+    test('increment by a value', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'INCREMENT', payload: 17 })
+      expect(store.getState().value).toEqual(17)
+    })
 
-      test('decrement', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'DECREMENT' })
-        expect(store.getState().value).toEqual(-1)
-      })
+    test('decrement', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'DECREMENT' })
+      expect(store.getState().value).toEqual(-1)
+    })
 
-      test('decrement by a value', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'DECREMENT', payload: 42 })
-        expect(store.getState().value).toEqual(-42)
-      })
+    test('decrement by a value', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'DECREMENT', payload: 42 })
+      expect(store.getState().value).toEqual(-42)
+    })
 
-      test('reset', () => {
-        const { store } = setupCounter()
-        store.dispatch({ type: 'INCREMENT', payload: 123 })
-        expect(store.getState().value).toEqual(123)
-        store.dispatch({ type: 'RESET' })
-        expect(store.getState().value).toEqual(0)
-      })
+    test('reset', () => {
+      const { store } = setupCounter()
+      store.dispatch({ type: 'INCREMENT', payload: 123 })
+      expect(store.getState().value).toEqual(123)
+      store.dispatch({ type: 'RESET' })
+      expect(store.getState().value).toEqual(0)
     })
   })
 

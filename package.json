@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@herbcaudill/crypto": "0",
+    "@herbcaudill/random": "^0.3.0",
     "cuid": "2",
     "debug": "4",
     "events": "3",
