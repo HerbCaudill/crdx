@@ -1,4 +1,16 @@
-import { Action, ActionLink, append, getHead, getSequence, merge, Resolver, Sequencer, SignatureChain } from '@/chain'
+import {
+  Action,
+  ActionLink,
+  append,
+  deserialize,
+  getHead,
+  getSequence,
+  merge,
+  Resolver,
+  Sequencer,
+  serialize,
+  SignatureChain,
+} from '@/chain'
 import { UserWithSecrets } from '@/user'
 import { validate, ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
@@ -7,7 +19,7 @@ import { Reducer } from './types'
 class Store<S, A extends Action> extends EventEmitter {
   constructor({ user, chain, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
     super()
-    this.chain = chain
+    this.chain = typeof chain === 'string' ? deserialize(chain) : chain
     this.reducer = reducer
     this.validators = validators
     this.resolver = resolver
@@ -27,6 +39,10 @@ class Store<S, A extends Action> extends EventEmitter {
       )
 
     return this.state
+  }
+
+  public getChain(): SignatureChain<A> {
+    return this.chain
   }
 
   public dispatch(action: A) {
@@ -53,6 +69,10 @@ class Store<S, A extends Action> extends EventEmitter {
     this.chain = merge(this.chain, theirChain)
     this.updateState()
     return this
+  }
+
+  public save() {
+    return serialize(this.chain)
   }
 
   public validate() {
@@ -94,7 +114,7 @@ export const createStore = <S, A extends Action>(options: CreateStoreOptions<S, 
 
 export interface CreateStoreOptions<S, A extends Action> {
   user: UserWithSecrets
-  chain: SignatureChain<A>
+  chain: string | SignatureChain<A>
   reducer: Reducer<S, A>
   validators?: ValidatorSet
   resolver?: Resolver

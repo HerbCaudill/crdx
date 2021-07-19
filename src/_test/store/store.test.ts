@@ -4,11 +4,15 @@ import { Reducer } from '@/store/types'
 import { createUser } from '@/user'
 
 const alice = createUser('alice')
+const bob = createUser('bob')
 
 const setupCounter = () => {
   const chain = createChain({ name: 'counter' }, alice)
-  const store = createStore({ user: alice, chain, reducer })
-  return { store }
+  const aliceStore = createStore({ user: alice, chain, reducer: counterReducer })
+  const saved = aliceStore.save()
+  const bobStore = createStore({ user: bob, chain: saved, reducer: counterReducer })
+
+  return { store: aliceStore, aliceStore, bobStore }
 }
 
 describe('store', () => {
@@ -63,22 +67,45 @@ describe('store', () => {
 
   describe('validation', () => {
     test('Mallory tampers with the payload; Bob is not fooled', () => {
-      // 👩🏾 Alice
+      // 👩🏾 Alice makes a store
       const { store } = setupCounter()
-      // @ts-ignore (accessing private member)
-      const chain = store.chain
+      const chain = store.getChain()
 
-      // 🦹‍♂️ Mallory
+      // 🦹‍♂️ Mallory tampers with the root link
       const payload = getRoot(chain).body.payload
       payload.name = 'Mallory RAWKS'
 
-      // 👨🏻‍🦲 Bob finds that the chain is no longer valid
+      // 👩🏾 Alice is not fooled
       expect(store.validate().isValid).toBe(false)
+    })
+  })
+
+  describe('merge', () => {
+    test('concurrent changes', () => {
+      const { aliceStore, bobStore } = setupCounter()
+
+      // Bob and Alice make concurrent increments
+      aliceStore.dispatch({ type: 'INCREMENT' })
+      bobStore.dispatch({ type: 'INCREMENT' })
+
+      // They each only have their own increments
+      expect(aliceStore.getState().value).toEqual(1)
+      expect(bobStore.getState().value).toEqual(1)
+
+      // They sync up
+      aliceStore.merge(bobStore.getChain())
+      bobStore.merge(aliceStore.getChain())
+
+      // They each have both increments
+      expect(aliceStore.getState().value).toEqual(2)
+      expect(bobStore.getState().value).toEqual(2)
     })
   })
 })
 
 // Counter
+
+// action types
 
 interface IncrementAction extends Action {
   type: 'INCREMENT'
@@ -96,11 +123,15 @@ interface ResetAction extends Action {
 
 type CounterAction = IncrementAction | DecrementAction | ResetAction
 
+// state
+
 interface CounterState {
   value: number
 }
 
-const reducer: Reducer<CounterState, CounterAction> = (state, link) => {
+// reducer
+
+const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
   const action = link.body
   switch (action.type) {
     case 'ROOT': {
