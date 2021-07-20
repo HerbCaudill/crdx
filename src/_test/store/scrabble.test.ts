@@ -66,7 +66,7 @@ describe('scrabble attacks', () => {
       expect(availableTiles()).toHaveLength(1)
     })
 
-    test('claim a word (all tiles are available)', () => {
+    test('claim a word (tiles are available)', () => {
       const { aliceStore } = setupScrabbleAttacks()
       const availableTiles = () => Object.values(aliceStore.getState().tiles).filter(isAvailable)
       const flip = omniscientlyFlipTileByLetter(aliceStore)
@@ -194,10 +194,43 @@ describe('scrabble attacks', () => {
       // bob has his word
       expect(bob.words[0]).toEqual('DOG')
     })
+
+    test('claim same word', () => {
+      const { aliceStore, bobStore, sync } = setupScrabbleAttacks()
+      const flip = omniscientlyFlipTileByLetter(aliceStore)
+
+      // one word is available
+
+      flip('C')
+      flip('A')
+      flip('T')
+
+      sync()
+
+      // alice claims CAT
+      aliceStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'CAT' } })
+
+      // bob claims CAT
+      bobStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'CAT' } })
+
+      sync()
+
+      expect(aliceStore.getState()).toEqual(bobStore.getState())
+
+      const { players, messages } = aliceStore.getState()
+      const [alice, bob] = players
+
+      // there is one error message
+      expect(messages).toHaveLength(1)
+
+      // one of them got the word
+      console.log(alice.words, bob.words)
+      expect(alice.words.includes('CAT') || bob.words.includes('CAT')).toBe(true)
+    })
   })
 })
 
-// Scrabble
+// Scrabble Attacks
 
 // action types
 
