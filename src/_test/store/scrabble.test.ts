@@ -223,9 +223,10 @@ describe('scrabble attacks', () => {
       // there is one error message
       expect(messages).toHaveLength(1)
 
-      // one of them got the word
-      console.log(alice.words, bob.words)
+      // somebody got the word
       expect(alice.words.includes('CAT') || bob.words.includes('CAT')).toBe(true)
+      // only one person got the word
+      expect(alice.words.includes('CAT') && bob.words.includes('CAT')).toBe(false)
     })
   })
 })
@@ -283,8 +284,6 @@ type TileSet = Record<number, Tile>
 // utilities
 
 const isAvailable = (tile: Tile) => !tile.isTaken && tile.isFaceUp
-
-const notUndefined = <T>(x: T): T => x
 
 const findByLetterIn = (tiles: Tile[] | TileSet) => {
   const tileArray = Array.isArray(tiles) ? tiles : Object.values(tiles)
