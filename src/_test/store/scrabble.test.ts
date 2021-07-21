@@ -215,6 +215,7 @@ describe('scrabble attacks', () => {
 
       sync()
 
+      // alice and bob converge on the same state
       expect(aliceStore.getState()).toEqual(bobStore.getState())
 
       const { players, messages } = aliceStore.getState()
