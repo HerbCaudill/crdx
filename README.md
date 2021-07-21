@@ -1,7 +1,5 @@
 <img src='https://github.com/HerbCaudill/crdx/blob/master/img/crdx-logo.png' width='150' />
 
-### Multiplayer Redux
-
 What do you get when you cross [CRDTs](https://crdt.tech/) with [Redux](https://redux.js.org/)? You
 get conflict-free, replicated, principled state management.
 
