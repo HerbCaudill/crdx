@@ -1,8 +1,9 @@
 {
   "name": "crdx",
   "author": "HerbCaudill",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
+  "repository": "https://github.com/herbcaudill/crdx",
   "main": "dist/index.js",
   "module": "dist/crdx.esm.js",
   "typings": "dist/index.d.ts",
