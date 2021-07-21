@@ -9,6 +9,8 @@ that can automatically sync with peers, with no need for a server.
 
 ## Why
 
+A CRDT (conflict-free replicated datatype) is ... TODO
+
 For many peer-to-peer applications, a generic JSON-based CRDT like
 [Automerge](https://github.com/automerge/automerge) or [Yjs](https://github.com/yjs/yjs) is a good
 solution for creating data structures that can reliably stay in sync.
