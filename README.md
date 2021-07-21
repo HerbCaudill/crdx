@@ -3,7 +3,7 @@
 ### Multiplayer Redux
 
 What do you get when you cross [CRDTs](https://crdt.tech/) with [Redux](https://redux.js.org/)? You
-get conflict-free replicated Redux-like state management.
+get conflict-free, replicated, principled state management.
 
 This library helps you create your own CRDT, with semantics and conflict-resolution rules that are
 appropriate to your domain. It's exposed to your application as a Redux-compatible store — but one
@@ -59,3 +59,7 @@ decide what to do with these concurrent actions: It might
 ## How
 
 TODO
+
+```
+
+```
