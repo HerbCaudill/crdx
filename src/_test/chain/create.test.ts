@@ -10,7 +10,7 @@ const __ = expect.objectContaining
 
 describe('chains', () => {
   test('create', () => {
-    const chain = createChain({ name: 'a' }, defaultUser)
+    const chain = createChain({ user: defaultUser, name: 'a' })
     const expected = __({ body: __({ payload: __({ name: 'a' }) }) })
     expect(getRoot(chain)).toEqual(expected)
     expect(getHead(chain)).toEqual(expected)
@@ -18,7 +18,7 @@ describe('chains', () => {
 
   test('serialize/deserialize', () => {
     // 👨🏻‍🦲 Bob saves a chain to a file and loads it later
-    const chain = createChain({ name: 'Spies Я Us' }, defaultUser)
+    const chain = createChain({ user: defaultUser, name: 'Spies Я Us' })
 
     // serialize
     const chainJson = serialize(chain)

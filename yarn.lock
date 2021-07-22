@@ -916,19 +916,19 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@herbcaudill/crypto@0":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-0.1.14.tgz#5d70c25bd22443c458d38fab5cf7d837cd3888b2"
-  integrity sha512-6S4OEO4iB54jpAvPz5BU1qUpK5XXLAJxU0NNkSuZLmdIVHkaZTPAcJsdEnNC40tPQ2xjdJt57palGfsNqXAtMA==
+"@herbcaudill/crypto@1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-1.0.1.tgz#4c7436f77402de87c7feb8985b0bc4a2c7ce02ad"
+  integrity sha512-aSI6zROsk8JiFQ9fWaJGYwIquF2QIuhy/BQI8hmK/T0BRDkyBHRQ0ZvDh0GOBZMsKcbV58XPhJSLuYvlOA3+Pg==
   dependencies:
-    "@stablelib/base64" "1"
     "@stablelib/utf8" "1"
+    base-x "^3.0.8"
     json-stable-stringify "1"
     msgpack-lite "0"
     scrypt-js "^3.0.1"
     tweetnacl "1"
 
-"@herbcaudill/random@^0.3.0":
+"@herbcaudill/random@0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@herbcaudill/random/-/random-0.3.0.tgz#211419d8e8be248cd45edd00e407731dec3879ea"
   integrity sha512-PQQ8Wym+y7Eh1LLQTJziLAwxiXwBCxmap2OLMwLykOxIUVBFoIezODVMraxqGlrRl+KYrpOiN+Cx0QtbAZAwCg==
@@ -1242,11 +1242,6 @@
   integrity sha512-iQADsW4LBMISqZ6Ci1dupJL9pprqwcVFTcOsEmQOEhW+KLCVn/Y4Jrvg2k19fIHCp+iFprriYPTdRcQR8NbUPg==
   dependencies:
     "@sinonjs/commons" "^1.7.0"
-
-"@stablelib/base64@1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@stablelib/base64/-/base64-1.0.1.tgz#bdfc1c6d3a62d7a3b7bbc65b6cce1bb4561641be"
-  integrity sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==
 
 "@stablelib/utf8@1":
   version "1.0.1"
@@ -1840,6 +1835,13 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
+
+base-x@^3.0.8:
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/base-x/-/base-x-3.0.8.tgz#1e1106c2537f0162e8b52474a557ebb09000018d"
+  integrity sha512-Rl/1AWP4J/zRrk54hhlxH4drNxPJXYUaKffODVI53/dAsV4t9fBxyxYKAVPU1XBHxYwOWP9h9H0hM2MVw4YfJA==
+  dependencies:
+    safe-buffer "^5.0.1"
 
 base@^0.11.1:
   version "0.11.2"
@@ -5265,7 +5267,7 @@ sade@^1.4.2:
   dependencies:
     mri "^1.1.0"
 
-safe-buffer@^5.1.0:
+safe-buffer@^5.0.1, safe-buffer@^5.1.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==

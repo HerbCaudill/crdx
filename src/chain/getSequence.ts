@@ -14,7 +14,6 @@ import {
   Sequencer,
   SignatureChain,
 } from './types'
-import { baseResolver } from './baseResolver'
 
 /**
  * Takes a `SignatureChain` and returns an array of links by recursively performing a topographical
@@ -58,17 +57,17 @@ export const getSequence = <A extends Action>(options: {
   head?: Link<A>
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  resolver?: Resolver
+  resolver?: Resolver<A>
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  sequencer?: Sequencer
+  sequencer?: Sequencer<A>
 }): NonMergeLink<A>[] => {
   const {
     chain,
     root = getRoot(chain),
     head = getHead(chain),
-    resolver = baseResolver,
-    sequencer = arbitraryDeterministicSequencer,
+    resolver = baseResolver as Resolver<A>,
+    sequencer = arbitraryDeterministicSequencer as Sequencer<A>,
   } = options
   let result: Link<A>[]
 
@@ -117,7 +116,8 @@ export const getSequence = <A extends Action>(options: {
 
       // Recursively resolve the branch containing the root into a sequence.
       const isOurBranchHead = (h: Link<A>) => root === h || isPredecessor(chain, root, h)
-      const ourBranchHead = branchHeads.find(isOurBranchHead)!
+      const ourBranchHead = branchHeads.find(isOurBranchHead)
+      options.sequencer
       result = getSequence({
         ...options,
         head: ourBranchHead,
@@ -145,4 +145,14 @@ export const getSequence = <A extends Action>(options: {
 
   // omit merge links before returning result
   return result.filter(n => !isMergeLink(n)) as NonMergeLink<A>[]
+}
+
+/** This resolver just collapses each branch to a single sequence of actions */
+
+export const baseResolver: Resolver<any> = ([a, b], chain) => {
+  const root = getCommonPredecessor(chain, a, b)
+  const [branchA, branchB] = [a, b]
+    .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
+    .map(branch => branch.slice(1)) // omit the common predecessor itself
+  return [branchA, branchB]
 }

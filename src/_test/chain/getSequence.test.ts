@@ -1,22 +1,19 @@
 import {
-  Action,
   append,
   arbitraryDeterministicSort,
   baseResolver,
   createChain,
   getSequence,
-  NonMergeLink,
   Resolver,
-  Sequence,
   Sequencer,
 } from '@/chain'
-import { buildChain, findByPayload, getPayloads } from '@/test/chain/utils'
+import { buildChain, findByPayload, getPayloads, XAction, XLink } from '@/test/chain/utils'
 import { setup } from '@/test/util/setup'
 import { randomKey } from '@herbcaudill/crypto'
 
 const { alice } = setup('alice')
 
-const randomSequencer: Sequencer = (a, b) => {
+const randomSequencer: Sequencer<any> = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
@@ -28,14 +25,14 @@ const sequencer = randomSequencer
 describe('chains', () => {
   describe('getSequence', () => {
     test('upon creation', () => {
-      var chain = createChain({ name: 'root' }, alice)
+      var chain = createChain({ user: alice, name: 'root' })
       chain = append(chain, { type: 'X', payload: 'a' }, alice)
       const sequence = getSequence({ chain, sequencer })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
     test('no branches', () => {
-      var chain = createChain({ name: 'root' }, alice)
+      var chain = createChain({ user: alice, name: 'root' })
       chain = append(chain, { type: 'X', payload: 'a' }, alice)
       chain = append(chain, { type: 'X', payload: 'b' }, alice)
       chain = append(chain, { type: 'X', payload: 'c' }, alice)
@@ -141,7 +138,7 @@ describe('chains', () => {
 
       test('custom sequencer', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
-        const sequencer = ((a: Sequence<XAction>, b: Sequence<XAction>) => {
+        const sequencer: Sequencer<XAction> = (a, b) => {
           const alpha = (a: XLink, b: XLink) => (a.body.payload! > b.body.payload! ? 1 : -1)
           const merged = a.concat(b).sort(alpha)
 
@@ -150,10 +147,10 @@ describe('chains', () => {
           const notIs = merged.filter(n => !isI(n))
 
           return Is.concat(notIs)
-        }) as Sequencer
+        }
 
         // inclusion rules: `e`s are omitted
-        const resolver: Resolver = ([a, b], chain) => {
+        const resolver: Resolver<XAction> = ([a, b], chain) => {
           const [_a, _b] = baseResolver([a, b], chain)
 
           const eFilter = (n: XLink) => n.body.payload !== 'e'
@@ -173,9 +170,3 @@ describe('chains', () => {
 
 // split on whitespace
 const split = (s: string) => s.split(/\s*/)
-
-interface XAction extends Action {
-  type: 'X'
-  payload?: string
-}
-type XLink = NonMergeLink<XAction>

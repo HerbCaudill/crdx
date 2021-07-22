@@ -1,5 +1,17 @@
 ﻿import { Base58, Base58Keypair } from '@herbcaudill/crypto'
 
+// TODO: use this pattern for all enums
+
+export const TEAM = 'TEAM'
+export const ROLE = 'ROLE'
+export const USER = 'USER'
+export const DEVICE = 'DEVICE'
+export const EPHEMERAL = 'EPHEMERAL'
+
+// avoiding enums https://maxheiber.medium.com/alternatives-to-typescript-enums-50e4c16600b1
+export const KeyType = { TEAM, ROLE, USER, DEVICE, EPHEMERAL } as const
+export type KeyType = typeof KeyType[keyof typeof KeyType]
+
 /**
  * Represents the scope of a keyset. Could be:
  * - a specific user: `{type: USER, name: 'alice'}`
@@ -8,11 +20,6 @@
 export interface KeyScope {
   type: KeyType
   name: string
-}
-
-export enum KeyType {
-  USER = 'USER',
-  EPHEMERAL = 'EPHEMERAL',
 }
 
 export interface KeyMetadata extends KeyScope {

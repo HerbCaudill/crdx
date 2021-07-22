@@ -9,7 +9,7 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupScrabbleAttacks = () => {
-  const chain = createChain<ScrabbleAttacksAction>({ name: 'scrabble' }, alice)
+  const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble' })
 
   const aliceStore = createStore({
     user: alice,

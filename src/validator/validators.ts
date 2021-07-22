@@ -1,6 +1,6 @@
 ﻿import { getRoot } from '@/chain/getRoot'
 import { hashLink } from '@/chain/hashLink'
-import { isActionLink, isMergeLink, isRootLink } from '@/chain/types'
+import { isMergeLink, isRootLink } from '@/chain/types'
 import { ROOT, VALID } from '@/constants'
 import { memoize } from '@/util'
 import { signatures } from '@herbcaudill/crypto'
@@ -9,14 +9,18 @@ import { ValidationError, ValidatorSet } from './types'
 const _validators: ValidatorSet = {
   /** Does the previous link referenced by this link exist?  */
   validatePrev: (link, chain) => {
-    if (isRootLink(link)) return VALID // nothing to validate on first link
-    const prevHashes = isActionLink(link) ? [link.body.prev] : link.body
-    for (const hash of prevHashes) {
-      const prevLink = chain.links[hash]
-      if (prevLink === undefined)
-        return fail(`The link referenced by the hash in the \`prev\` property does not exist.`)
+    if (isRootLink(link)) {
+      // ROOT link
+      return VALID // nothing to validate on first link
+    } else {
+      const prevHashes = isMergeLink(link) ? link.body : [link.body.prev]
+      for (const hash of prevHashes) {
+        const prevLink = chain.links[hash]
+        if (prevLink === undefined)
+          return fail(`The link referenced by the hash in the \`prev\` property does not exist.`)
+      }
+      return VALID
     }
-    return VALID
   },
 
   /** Does this link's hash check out? */

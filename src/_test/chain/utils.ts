@@ -7,14 +7,14 @@ import { setup } from '@/test/util/setup'
 
 const { alice } = setup('alice')
 
-export const getPayloads = (sequence: Link<any>[]) =>
+export const getPayloads = (sequence: Link<XAction>[]) =>
   sequence //
     .filter(link => !isRootLink(link) && !isMergeLink(link))
-    .map(link => (link.body as LinkBody<Action>).payload)
+    .map(link => (link.body as LinkBody<XAction>).payload)
 
-export const findByPayload = (chain: SignatureChain<Action>, payload: Action['payload']) => {
+export const findByPayload = (chain: SignatureChain<XAction>, payload: XAction['payload']) => {
   const links = Object.values(chain.links)
-  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<Action>
+  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<XAction>
 }
 
 /**
@@ -28,9 +28,10 @@ export const findByPayload = (chain: SignatureChain<Action>, payload: Action['pa
  *```
  */
 export const buildChain = () => {
-  const appendLink = (chain: SignatureChain<Action>, payload: string) => append(chain, { type: 'X', payload }, alice)
+  const appendLink = (chain: SignatureChain<XAction>, payload: string) =>
+    append(chain, { type: 'X', payload } as XAction, alice)
 
-  let root = createChain({ name: 'root' }, alice)
+  let root = createChain<XAction>({ user: alice, name: 'root' })
   let a = appendLink(root, 'a')
   let b = appendLink(a, 'b')
 
@@ -72,3 +73,9 @@ export const buildChain = () => {
 }
 
 export const getHashes = (chain: SignatureChain<any>) => Object.keys(chain.links)
+
+export interface XAction extends Action {
+  type: 'X'
+  payload: string
+}
+export type XLink = NonMergeLink<XAction>

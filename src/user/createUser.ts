@@ -1,8 +1,6 @@
 ﻿import { randomKey } from '@herbcaudill/crypto'
-import * as keyset from '@/keyset'
 import { UserWithSecrets } from '@/user/types'
-
-const { USER } = keyset.KeyType
+import { createKeyset, KeyType } from '@/keyset'
 
 /**
  * Creates a new local user, with randomly-generated keys.
@@ -13,5 +11,5 @@ const { USER } = keyset.KeyType
  */
 export const createUser = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
   userName,
-  keys: keyset.createKeyset({ type: USER, name: userName }, seed),
+  keys: createKeyset({ type: KeyType.USER, name: userName }, seed),
 })

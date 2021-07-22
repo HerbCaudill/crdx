@@ -1,3 +1,6 @@
+import { KeyScope } from './keyset'
+import { ValidationResult } from './validator/types'
+
 export enum HashPurpose {
   SIGNATURE = 'SIGNATURE',
   ENCRYPTION = 'ENCRYPTION',
@@ -7,7 +10,6 @@ export enum HashPurpose {
 
 export const ROOT = 'ROOT'
 export const MERGE = 'MERGE'
-
-import { ValidationResult } from './validator/types'
-
 export const VALID = { isValid: true } as ValidationResult
+
+export const EPHEMERAL_SCOPE: KeyScope = { type: 'EPHEMERAL', name: 'EPHEMERAL' }

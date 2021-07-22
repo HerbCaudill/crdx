@@ -15,7 +15,7 @@ describe('chains', () => {
   describe('validation', () => {
     test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
-      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).toBeValid()
@@ -23,7 +23,7 @@ describe('chains', () => {
 
     test(`Bob validates Alice's chain with a couple of links`, () => {
       // 👩🏾 Alice
-      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
       const newChain = append(chain, newLink, alice)
 
@@ -34,7 +34,7 @@ describe('chains', () => {
 
     test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
-      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       // 🦹‍♂️ Mallory
       const payload = getRoot(chain).body.payload
@@ -46,7 +46,7 @@ describe('chains', () => {
 
     test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
-      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       const root = getRoot(chain)
       // @ts-ignore
@@ -71,7 +71,7 @@ describe('chains', () => {
 
     test('Alice gets high and tries to add another ROOT link', () => {
       // 👩🏾 Alice
-      const chain = createChain({ name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' }, alice)
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       const link = {
         type: ROOT,

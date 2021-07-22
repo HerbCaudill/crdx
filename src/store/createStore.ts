@@ -2,6 +2,7 @@ import {
   Action,
   ActionLink,
   append,
+  createChain,
   deserialize,
   getHead,
   getSequence,
@@ -12,14 +13,24 @@ import {
   SignatureChain,
 } from '@/chain'
 import { UserWithSecrets } from '@/user'
+import { Optional } from '@/util'
 import { validate, ValidatorSet } from '@/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
 
 export class Store<S, A extends Action> extends EventEmitter {
-  constructor({ user, chain, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
+  constructor({ user, chain, rootPayload, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
     super()
-    this.chain = typeof chain === 'string' ? deserialize(chain) : chain
+
+    this.chain = !chain
+      ? // no chain provided, create one
+        createChain({ user, rootPayload })
+      : typeof chain === 'string'
+      ? // serialized chain provided, deserialize it
+        deserialize(chain)
+      : // chain provided, use it
+        chain
+
     this.reducer = reducer
     this.validators = validators
     this.resolver = resolver
@@ -45,13 +56,16 @@ export class Store<S, A extends Action> extends EventEmitter {
     return this.chain
   }
 
-  public dispatch(action: A) {
+  public dispatch(action: Optional<A, 'payload'>) {
     if (this.isDispatching) throw new Error('Reducers may not dispatch actions.')
+
+    // equip the action with an empty payload if it doesn't have one
+    const actionWithPayload = { payload: undefined, ...action } as A
 
     this.isDispatching = true
 
     // append this action as a new link to the chain
-    this.chain = append(this.chain, action, this.user)
+    this.chain = append(this.chain, actionWithPayload, this.user)
 
     // get the newly appended link
     const head = getHead(this.chain) as ActionLink<A>
@@ -83,8 +97,8 @@ export class Store<S, A extends Action> extends EventEmitter {
 
   private chain: SignatureChain<A>
   private reducer: Reducer<S, A>
-  private sequencer?: Sequencer
-  private resolver?: Resolver
+  private sequencer?: Sequencer<A>
+  private resolver?: Resolver<A>
 
   private validators?: ValidatorSet
   private user: UserWithSecrets
@@ -112,11 +126,25 @@ export const createStore = <S, A extends Action>(options: CreateStoreOptions<S, 
   return new Store(options)
 }
 
-export interface CreateStoreOptions<S, A extends Action> {
+export type CreateStoreOptions<S, A extends Action> = {
+  /** */
   user: UserWithSecrets
-  chain: string | SignatureChain<A>
+
+  /** */
+  chain?: string | SignatureChain<A>
+
+  /** */
+  rootPayload?: any
+
+  /** */
   reducer: Reducer<S, A>
+
+  /** */
   validators?: ValidatorSet
-  resolver?: Resolver
-  sequencer?: Sequencer
+
+  /** */
+  resolver?: Resolver<A>
+
+  /** */
+  sequencer?: Sequencer<A>
 }

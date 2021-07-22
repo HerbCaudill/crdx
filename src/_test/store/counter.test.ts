@@ -7,7 +7,7 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupCounter = () => {
-  const chain = createChain({ name: 'counter' }, alice)
+  const chain = createChain<CounterAction>({ user: alice, name: 'counter' })
   const aliceStore = createStore({ user: alice, chain, reducer: counterReducer })
 
   const saved = aliceStore.getChain()
@@ -106,21 +106,21 @@ describe('counter', () => {
 
 // action types
 
+type CounterAction = IncrementAction | DecrementAction | ResetAction
+
 interface IncrementAction extends Action {
   type: 'INCREMENT'
-  payload?: number
+  payload: number
 }
 
 interface DecrementAction extends Action {
   type: 'DECREMENT'
-  payload?: number
+  payload: number
 }
 
 interface ResetAction extends Action {
   type: 'RESET'
 }
-
-type CounterAction = IncrementAction | DecrementAction | ResetAction
 
 // state
 

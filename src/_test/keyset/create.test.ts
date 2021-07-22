@@ -1,9 +1,9 @@
 import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
 import { createKeyset } from '@/keyset/createKeyset'
 import { KeyType } from '@/keyset/types'
+import { EPHEMERAL_SCOPE } from '@/constants'
 
 const { USER, EPHEMERAL } = KeyType
-const EPHEMERAL_SCOPE = { type: EPHEMERAL, name: EPHEMERAL }
 
 describe('create', () => {
   it('returns keys with the expected lengths', () => {
