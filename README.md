@@ -1,4 +1,4 @@
-<img src='https://github.com/HerbCaudill/crdx/blob/master/img/crdx-logo.png' width='150' />
+<img src='https://raw.githubusercontent.com/HerbCaudill/crdx/master/img/crdx-logo.png' width='150' />
 
 What do you get when you cross [CRDTs](https://crdt.tech/) with [Redux](https://redux.js.org/)? You
 get conflict-free, replicated, principled state management.
@@ -20,7 +20,7 @@ in a JSON object. When that happens, one of the two values "wins", in an **arbit
 way. (See the [Automerge docs](https://github.com/automerge/automerge#conflicting-changes) for more
 on how that works.)
 
-<img src='https://github.com/HerbCaudill/crdx/blob/master/img/crdx-illustration-01.png' width='500' />
+<img src='https://raw.githubusercontent.com/HerbCaudill/crdx/master/img/crdx-illustration-01.png' width='500' />
 
 But what if your definition of a **conflict** is more subtle than just competing values for a single
 property? And what if you have your own rules for **conflict resolution**?
