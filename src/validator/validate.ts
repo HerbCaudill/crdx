@@ -1,8 +1,8 @@
-﻿import { getSequence } from '@/chain/getSequence'
-import { Action, Link, SignatureChain } from '@/chain/types'
+﻿import { getSequence } from '/chain/getSequence'
+import { Action, Link, SignatureChain } from '/chain/types'
 import { validators } from './validators'
 import { InvalidResult, ValidatorSet, ValidationResult } from './types'
-import { VALID } from '@/constants'
+import { VALID } from '/constants'
 
 /**
  * Runs a signature chain through a series of validators to ensure that it is correctly formed, has
@@ -11,15 +11,15 @@ import { VALID } from '@/constants'
  * @customValidators Any additional validators (besides the base validators that test the chain's
  * integrity)
  */
-export const validate = <A extends Action>(
-  chain: SignatureChain<A>,
+export const validate = <A extends Action, C>(
+  chain: SignatureChain<A, C>,
   customValidators: ValidatorSet = {}
 ): ValidationResult => {
   /**
    * Returns a single reducer function that runs all validators.
    * @param validators A map of validators
    */
-  const composeValidators = (...validators: ValidatorSet[]) => (result: ValidationResult, currentLink: Link<A>) => {
+  const composeValidators = (...validators: ValidatorSet[]) => (result: ValidationResult, currentLink: Link<A, C>) => {
     const mergedValidators = merge(validators)
     // short-circuit validation if any previous validation has failed
     if (result.isValid === false) return result as InvalidResult

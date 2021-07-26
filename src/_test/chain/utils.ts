@@ -1,20 +1,20 @@
-﻿import { append } from '@/chain/append'
-import { createChain } from '@/chain/createChain'
-import { merge } from '@/chain/merge'
-import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '@/chain/types'
+﻿import { append } from '/chain/append'
+import { createChain } from '/chain/createChain'
+import { merge } from '/chain/merge'
+import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '/chain/types'
 import clone from 'lodash/clone'
-import { setup } from '@/test/util/setup'
+import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
 
-export const getPayloads = (sequence: Link<XAction>[]) =>
+export const getPayloads = (sequence: Link<XAction, any>[]) =>
   sequence //
     .filter(link => !isRootLink(link) && !isMergeLink(link))
-    .map(link => (link.body as LinkBody<XAction>).payload)
+    .map(link => (link.body as LinkBody<XAction, any>).payload)
 
-export const findByPayload = (chain: SignatureChain<XAction>, payload: XAction['payload']) => {
+export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAction['payload']) => {
   const links = Object.values(chain.links)
-  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<XAction>
+  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<XAction, any>
 }
 
 /**
@@ -28,10 +28,10 @@ export const findByPayload = (chain: SignatureChain<XAction>, payload: XAction['
  *```
  */
 export const buildChain = () => {
-  const appendLink = (chain: SignatureChain<XAction>, payload: string) =>
+  const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
     append(chain, { type: 'X', payload } as XAction, alice)
 
-  let root = createChain<XAction>({ user: alice, name: 'root' })
+  let root = createChain<XAction, any>({ user: alice, name: 'root' })
   let a = appendLink(root, 'a')
   let b = appendLink(a, 'b')
 
@@ -72,10 +72,10 @@ export const buildChain = () => {
   return a
 }
 
-export const getHashes = (chain: SignatureChain<any>) => Object.keys(chain.links)
+export const getHashes = (chain: SignatureChain<any, any>) => Object.keys(chain.links)
 
 export interface XAction extends Action {
   type: 'X'
   payload: string
 }
-export type XLink = NonMergeLink<XAction>
+export type XLink = NonMergeLink<XAction, {}>

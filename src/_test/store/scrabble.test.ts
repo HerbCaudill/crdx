@@ -1,8 +1,8 @@
-import { Action, createChain } from '@/chain'
-import { createStore, Store } from '@/store'
-import { Reducer } from '@/store/types'
-import { createUser } from '@/user'
-import { arrayToMap } from '@/util'
+import { Action, createChain } from '/chain'
+import { createStore, Store } from '/store'
+import { Reducer } from '/store/types'
+import { createUser } from '/user'
+import { arrayToMap } from '/util'
 import { makeRandom } from '@herbcaudill/random'
 
 const alice = createUser('alice')

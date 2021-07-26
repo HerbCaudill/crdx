@@ -1,6 +1,7 @@
-import { Action, SignatureChain, getParentHashes } from '@/chain'
+import { getParentHashes } from '/chain/predecessors'
+import { Action, SignatureChain } from '/chain/types'
 
-export function getMissingLinks<A extends Action>(chain: SignatureChain<A>) {
+export function getMissingLinks<A extends Action, C>(chain: SignatureChain<A, C>) {
   const parentHashes = Object.values(chain.links) //
     .flatMap(link => getParentHashes(link)) as string[]
   return parentHashes //

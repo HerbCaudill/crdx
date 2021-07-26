@@ -11,15 +11,25 @@ import {
   Sequencer,
   serialize,
   SignatureChain,
-} from '@/chain'
-import { UserWithSecrets } from '@/user'
-import { Optional } from '@/util'
-import { validate, ValidatorSet } from '@/validator'
+} from '/chain'
+import { UserWithSecrets } from '/user'
+import { Optional } from '/util'
+import { validate, ValidatorSet } from '/validator'
 import EventEmitter from 'events'
 import { Reducer } from './types'
 
-export class Store<S, A extends Action> extends EventEmitter {
-  constructor({ user, chain, rootPayload, reducer, validators, resolver, sequencer }: CreateStoreOptions<S, A>) {
+export class Store<S, A extends Action, C = {}> extends EventEmitter {
+  constructor({
+    user,
+    context = {} as C,
+    chain,
+    rootPayload,
+    initialState = {} as S,
+    reducer,
+    validators,
+    resolver,
+    sequencer,
+  }: CreateStoreOptions<S, A, C>) {
     super()
 
     this.chain = !chain
@@ -31,6 +41,8 @@ export class Store<S, A extends Action> extends EventEmitter {
       : // chain provided, use it
         chain
 
+    this.context = context
+    this.initialState = initialState
     this.reducer = reducer
     this.validators = validators
     this.resolver = resolver
@@ -52,7 +64,7 @@ export class Store<S, A extends Action> extends EventEmitter {
     return this.state
   }
 
-  public getChain(): SignatureChain<A> {
+  public getChain(): SignatureChain<A, C> {
     return this.chain
   }
 
@@ -65,10 +77,10 @@ export class Store<S, A extends Action> extends EventEmitter {
     this.isDispatching = true
 
     // append this action as a new link to the chain
-    this.chain = append(this.chain, actionWithPayload, this.user)
+    this.chain = append(this.chain, actionWithPayload, this.user, this.context)
 
     // get the newly appended link
-    const head = getHead(this.chain) as ActionLink<A>
+    const head = getHead(this.chain) as ActionLink<A, C>
 
     // we don't need to pass the whole chain through the reducer, just the current state + the new head
     this.state = this.reducer(this.state, head)
@@ -79,7 +91,7 @@ export class Store<S, A extends Action> extends EventEmitter {
     return this
   }
 
-  public merge(theirChain: SignatureChain<A>) {
+  public merge(theirChain: SignatureChain<A, C>) {
     this.chain = merge(this.chain, theirChain)
     this.updateState()
     return this
@@ -90,18 +102,23 @@ export class Store<S, A extends Action> extends EventEmitter {
   }
 
   public validate() {
-    return validate(this.chain, this.validators)
+    const validationResult = validate(this.chain, this.validators)
+    if (validationResult.isValid === false) {
+      throw validationResult.error
+    }
   }
 
   // PRIVATE
 
-  private chain: SignatureChain<A>
+  private user: UserWithSecrets
+  private context: C
+  private chain: SignatureChain<A, C>
+  private initialState: S
   private reducer: Reducer<S, A>
-  private sequencer?: Sequencer<A>
-  private resolver?: Resolver<A>
+  private sequencer?: Sequencer<A, C>
+  private resolver?: Resolver<A, C>
 
   private validators?: ValidatorSet
-  private user: UserWithSecrets
 
   private state: S
   private isDispatching = false
@@ -113,28 +130,34 @@ export class Store<S, A extends Action> extends EventEmitter {
     this.validate()
 
     // Use the resolver & sequencer to turn the graph into an ordered sequence
-    const sequence = getSequence<A>({ chain, resolver, sequencer })
+    const sequence = getSequence<A, C>({ chain, resolver, sequencer })
 
     // Run the sequence through the reducer to calculate the current team state
-    this.state = sequence.reduce(reducer, {} as S)
+    this.state = sequence.reduce(reducer, this.initialState)
 
     this.emit('updated', { head: chain.head })
   }
 }
 
-export const createStore = <S, A extends Action>(options: CreateStoreOptions<S, A>) => {
+export const createStore = <S, A extends Action, C>(options: CreateStoreOptions<S, A, C>) => {
   return new Store(options)
 }
 
-export type CreateStoreOptions<S, A extends Action> = {
-  /** */
+export type CreateStoreOptions<S, A extends Action, C> = {
+  /** The user local user, along with their secret keys for signing, encrypting, etc.  */
   user: UserWithSecrets
 
-  /** */
-  chain?: string | SignatureChain<A>
+  /** Additional context information to be added to each link (e.g. device, client, etc.) */
+  context?: C
+
+  /** A chain to preload (e.g. from saved state) */
+  chain?: string | SignatureChain<A, C>
+
+  /** Additional information to include in the root node */
+  rootPayload?: any
 
   /** */
-  rootPayload?: any
+  initialState?: S
 
   /** */
   reducer: Reducer<S, A>
@@ -143,8 +166,8 @@ export type CreateStoreOptions<S, A extends Action> = {
   validators?: ValidatorSet
 
   /** */
-  resolver?: Resolver<A>
+  resolver?: Resolver<A, C>
 
   /** */
-  sequencer?: Sequencer<A>
+  sequencer?: Sequencer<A, C>
 }

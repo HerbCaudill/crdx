@@ -1,6 +1,6 @@
-﻿import { User } from '@/user'
-import { Base58, Hash, UnixTimestamp } from '@/util/types'
-import { ROOT, MERGE } from '@/constants'
+﻿import { User } from '/user'
+import { Base58, Hash, UnixTimestamp } from '/util/types'
+import { ROOT, MERGE } from '/constants'
 
 /////////////////// SIGNATURE CHAIN, LINKS, ACTIONS
 
@@ -14,7 +14,7 @@ import { ROOT, MERGE } from '@/constants'
  * links themselves, plus a pointer to the **root** (the “founding” link added when the chain was
  * created) and the **head** (the most recent link we know about).
  */
-export interface SignatureChain<A extends Action> {
+export interface SignatureChain<A extends Action, C> {
   /** Hash of the root link (the "founding" link added when the chain was created) */
   root: Hash
 
@@ -22,11 +22,11 @@ export interface SignatureChain<A extends Action> {
   head: Hash
 
   /** Hash table of all the links we know about */
-  links: LinkMap<A>
+  links: LinkMap<A, C>
 }
 
 /** A `LinkMap` is a hash table of links */
-export type LinkMap<A extends Action> = Record<Hash, Link<A>>
+export type LinkMap<A extends Action, C> = Record<Hash, Link<A, C>>
 
 /** There are three types of links:
  * - an `ActionLink` is a normal link
@@ -35,15 +35,15 @@ export type LinkMap<A extends Action> = Record<Hash, Link<A>>
  *
  * A `Link` could be any of these three.
  */
-export type Link<A extends Action> = ActionLink<A> | RootLink | MergeLink
+export type Link<A extends Action, C> = ActionLink<A, C> | RootLink<C> | MergeLink
 
 /** The full link, consisting of a body and a signature block */
-export type SignedLink<A extends Action> = {
+export type SignedLink<A extends Action, C> = {
   /** Hash of this link */
   hash: Hash
 
   /** The part of the link that is signed & hashed */
-  body: LinkBody<A>
+  body: LinkBody<A, C>
 
   /** The signature block (signature, name, and key) */
   signed: {
@@ -59,7 +59,7 @@ export type SignedLink<A extends Action> = {
 }
 
 /** The `LinkBody` adds contextual information to the `Action`. This is the part of the link that is signed */
-export type LinkBody<A extends Action> = A extends RootAction ? RootLinkBody : ActionLinkBody<A>
+export type LinkBody<A extends Action, C> = A extends RootAction ? RootLinkBody : ActionLinkBody<A, C>
 
 /** An `Action` is analogous to a Redux action: it has a string label (e.g. 'ADD_USER' or 'INCREMENT')
  * and a payload that can contain anything.
@@ -103,19 +103,20 @@ export interface Action {
  * }
  * ```
  */
-export type ActionLink<A extends Action> = SignedLink<A>
+export type ActionLink<A extends Action, C> = SignedLink<A, C>
 
 /** An `ActionLinkBody` includes a hash of the previous link. */
-export type ActionLinkBody<A extends Action> = A & {
-  /** User who authored this link */
-  user: User
+export type ActionLinkBody<A extends Action, C> = A &
+  C & {
+    /** User who authored this link */
+    user: User
 
-  /** Unix timestamp on device that created this link */
-  timestamp: UnixTimestamp
+    /** Unix timestamp on device that created this link */
+    timestamp: UnixTimestamp
 
-  /** Hash of the previous link */
-  prev: Hash
-}
+    /** Hash of the previous link */
+    prev: Hash
+  }
 
 // ROOT LINKS
 
@@ -143,7 +144,7 @@ export type ActionLinkBody<A extends Action> = A & {
  * }
  * ```
  */
-export type RootLink = SignedLink<RootAction>
+export type RootLink<C> = SignedLink<RootAction, C>
 
 export interface RootAction {
   type: 'ROOT'
@@ -184,36 +185,36 @@ export type MergeLink = {
 }
 
 /** A `NonMergeLink` is either a RootLink or an ActionLink. */
-export type NonMergeLink<A extends Action> = RootLink | ActionLink<A> // excludes MergeLink
+export type NonMergeLink<A extends Action, C> = RootLink<C> | ActionLink<A, C> // excludes MergeLink
 
 // TYPE GUARDS
 
-export const isRootLink = (link: Link<any>): link is RootLink => {
+export const isRootLink = (link: Link<any, any>): link is RootLink<any> => {
   return 'type' in link.body && link.body.type === ROOT
 }
 
-export const isMergeLink = (link: Link<any>): link is MergeLink => {
+export const isMergeLink = (link: Link<any, any>): link is MergeLink => {
   return 'type' in link && link.type === MERGE
 }
 
-export const isActionLink = <A extends Action>(link: Link<A>): link is ActionLink<A> => {
+export const isActionLink = <A extends Action, C>(link: Link<A, C>): link is ActionLink<A, C> => {
   return 'prev' in link.body
 }
 
 /////////////////// SEQUENCES
 
 /** A `Sequence` is a topological sort of a signature chain (or a portion thereof). It has no merge links because all merges have been resolved. */
-export type Sequence<A extends Action> = NonMergeLink<A>[]
+export type Sequence<A extends Action, C> = NonMergeLink<A, C>[]
 
 /** A sequencer takes two sequences, and returns a single sequence combining the two
  * while applying any logic regarding which links take precedence.
  */
-export type Sequencer<A extends Action> = (a: Sequence<A>, b: Sequence<A>) => Sequence<A>
+export type Sequencer<A extends Action, C> = (a: Sequence<A, C>, b: Sequence<A, C>) => Sequence<A, C>
 
 /** A resolver takes two heads and the chain they're in, and returns a single sequence combining the
  * two while applying any logic regarding which links to discard in case of conflict.
  */
-export type Resolver<A extends Action> = (
-  branches: [Link<A>, Link<A>],
-  chain: SignatureChain<A>
-) => [Sequence<A>, Sequence<A>]
+export type Resolver<A extends Action, C> = (
+  branches: [Link<A, C>, Link<A, C>],
+  chain: SignatureChain<A, C>
+) => [Sequence<A, C>, Sequence<A, C>]

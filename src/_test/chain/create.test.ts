@@ -1,7 +1,7 @@
-import { createChain, deserialize, getHead, getRoot, serialize } from '@/chain'
-import { setup } from '@/test/util/setup'
-import '@/test/util/expect/toBeValid'
-import { validate } from '@/validator'
+import { createChain, deserialize, getHead, getRoot, serialize } from '/chain'
+import { setup } from '/test/util/setup'
+import '/test/util/expect/toBeValid'
+import { validate } from '/validator'
 
 const { alice } = setup('alice')
 const defaultUser = alice

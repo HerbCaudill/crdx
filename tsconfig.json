@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./",
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,8 +17,8 @@
     "noUnusedParameters": false,
     "outDir": "./dist",
     "paths": {
-      "@/test/*": ["./src/_test/*"],
-      "@/*": ["./src/*"]
+      "/test/*": ["src/_test/*"],
+      "/*": ["src/*"]
     },
     "rootDir": "./src",
     "skipLibCheck": true,
@@ -27,5 +27,5 @@
     "strictPropertyInitialization": false,
     "target": "ES6"
   },
-  "include": ["src", "@types", "test"]
+  "include": ["src", "@types"]
 }

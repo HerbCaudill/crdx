@@ -1,7 +1,7 @@
-import { Action, createChain, getRoot } from '@/chain'
-import { createStore } from '@/store'
-import { Reducer } from '@/store/types'
-import { createUser } from '@/user'
+import { Action, createChain, getRoot } from '/chain'
+import { createStore } from '/store'
+import { Reducer } from '/store/types'
+import { createUser } from '/user'
 
 const alice = createUser('alice')
 const bob = createUser('bob')
@@ -75,7 +75,7 @@ describe('counter', () => {
       payload.name = 'Mallory RAWKS'
 
       // 👩🏾 Alice is not fooled
-      expect(store.validate().isValid).toBe(false)
+      expect(() => store.validate()).toThrow()
     })
   })
 

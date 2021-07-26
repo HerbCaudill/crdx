@@ -1,8 +1,8 @@
-﻿import { getRoot } from '@/chain/getRoot'
-import { hashLink } from '@/chain/hashLink'
-import { isMergeLink, isRootLink } from '@/chain/types'
-import { ROOT, VALID } from '@/constants'
-import { memoize } from '@/util'
+﻿import { getRoot } from '/chain/getRoot'
+import { hashLink } from '/chain/hashLink'
+import { isMergeLink, isRootLink } from '/chain/types'
+import { ROOT, VALID } from '/constants'
+import { memoize } from '/util'
 import { signatures } from '@herbcaudill/crypto'
 import { ValidationError, ValidatorSet } from './types'
 

@@ -1,7 +1,7 @@
-import { append, createChain, merge } from '@/chain'
+import { append, createChain, merge } from '/chain'
 import clone from 'lodash/clone'
-import { setup } from '@/test/util/setup'
-import '@/test/util/expect/toBeValid'
+import { setup } from '/test/util/setup'
+import '/test/util/expect/toBeValid'
 
 const { alice, bob } = setup('alice', 'bob')
 const defaultUser = alice

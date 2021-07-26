@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { memoize } from '@/util/memoize'
+import { memoize } from '/util/memoize'
 
 // ignore file coverage
 

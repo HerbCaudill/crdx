@@ -1,7 +1,7 @@
-﻿import { HashPurpose } from '@/constants'
+﻿import { HashPurpose } from '/constants'
 import { randomKey } from './randomKey'
 import { KeyScope, KeyType, KeysetWithSecrets } from './types'
-import { Optional } from '@/util'
+import { Optional } from '/util'
 import { asymmetric, base58, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
 
 const { SIGNATURE, ENCRYPTION, SYMMETRIC } = HashPurpose

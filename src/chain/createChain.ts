@@ -1,5 +1,5 @@
-﻿import { ROOT } from '@/constants'
-import { UserWithSecrets } from '@/user'
+﻿import { ROOT } from '/constants'
+import { UserWithSecrets } from '/user'
 import cuid from 'cuid'
 import { append } from './append'
 import { Action, SignatureChain } from './types'
@@ -10,11 +10,12 @@ export const EMPTY_CHAIN = {
   links: {},
 }
 
-export const createChain = <A extends Action>({
+export const createChain = <A extends Action, C = {}>({
   user,
   id = cuid(),
   name = id,
   rootPayload = {},
+  context = {} as C,
 }: {
   /** Local user (with secret keys) that is creating the chain.  */
   user: UserWithSecrets
@@ -27,6 +28,8 @@ export const createChain = <A extends Action>({
 
   /** Object containing information to be added to the ROOT link. */
   rootPayload?: any
+
+  context?: C
 }) => {
   const link = {
     type: ROOT,
@@ -36,5 +39,5 @@ export const createChain = <A extends Action>({
       ...rootPayload, // the root payload may override name or id
     },
   }
-  return append(EMPTY_CHAIN, link, user) as SignatureChain<A>
+  return append(EMPTY_CHAIN, link, user, context) as SignatureChain<A, C>
 }

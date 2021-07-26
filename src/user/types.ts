@@ -1,4 +1,4 @@
-﻿import { Keyset, KeysetWithSecrets } from '@/keyset'
+﻿import { Keyset, KeysetWithSecrets } from '/keyset'
 
 export interface User {
   /** Username (or ID or email) */

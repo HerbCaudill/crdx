@@ -1,7 +1,7 @@
 import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
-import { createKeyset } from '@/keyset/createKeyset'
-import { KeyType } from '@/keyset/types'
-import { EPHEMERAL_SCOPE } from '@/constants'
+import { createKeyset } from '/keyset/createKeyset'
+import { KeyType } from '/keyset/types'
+import { EPHEMERAL_SCOPE } from '/constants'
 
 const { USER, EPHEMERAL } = KeyType
 

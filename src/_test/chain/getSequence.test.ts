@@ -1,19 +1,11 @@
-import {
-  append,
-  arbitraryDeterministicSort,
-  baseResolver,
-  createChain,
-  getSequence,
-  Resolver,
-  Sequencer,
-} from '@/chain'
-import { buildChain, findByPayload, getPayloads, XAction, XLink } from '@/test/chain/utils'
-import { setup } from '@/test/util/setup'
+import { append, arbitraryDeterministicSort, baseResolver, createChain, getSequence, Resolver, Sequencer } from '/chain'
+import { buildChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
+import { setup } from '/test/util/setup'
 import { randomKey } from '@herbcaudill/crypto'
 
 const { alice } = setup('alice')
 
-const randomSequencer: Sequencer<any> = (a, b) => {
+const randomSequencer: Sequencer<any, any> = (a, b) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
@@ -80,7 +72,7 @@ describe('chains', () => {
 
       test('root', () => {
         const b = findByPayload(chain, 'b')
-        const sequence = getSequence<any>({ chain, root: b, sequencer })
+        const sequence = getSequence<any, any>({ chain, root: b, sequencer })
 
         const expected = [
           'b   j k l   c d f e g   h i   o n',
@@ -107,7 +99,7 @@ describe('chains', () => {
 
       test('head', () => {
         const d = findByPayload(chain, 'd')
-        const sequence = getSequence<any>({ chain, head: d, sequencer })
+        const sequence = getSequence<any, any>({ chain, head: d, sequencer })
 
         const expected = 'a b c d'
 
@@ -117,7 +109,7 @@ describe('chains', () => {
       test('root & head', () => {
         const j = findByPayload(chain, 'j')
         const l = findByPayload(chain, 'l')
-        const sequence = getSequence<any>({ chain, root: j, head: l, sequencer })
+        const sequence = getSequence<any, any>({ chain, root: j, head: l, sequencer })
 
         const expected = 'j k l'
 
@@ -126,7 +118,7 @@ describe('chains', () => {
 
       test('root within a branch', () => {
         const c = findByPayload(chain, 'c')
-        const sequence = getSequence<any>({ chain, root: c, sequencer })
+        const sequence = getSequence<any, any>({ chain, root: c, sequencer })
 
         const expected = [
           'c d   e g   f   o n', //
@@ -138,7 +130,7 @@ describe('chains', () => {
 
       test('custom sequencer', () => {
         // sequence rules: `i`s go first, otherwise alphabetical
-        const sequencer: Sequencer<XAction> = (a, b) => {
+        const sequencer: Sequencer<XAction, any> = (a, b) => {
           const alpha = (a: XLink, b: XLink) => (a.body.payload! > b.body.payload! ? 1 : -1)
           const merged = a.concat(b).sort(alpha)
 
@@ -150,7 +142,7 @@ describe('chains', () => {
         }
 
         // inclusion rules: `e`s are omitted
-        const resolver: Resolver<XAction> = ([a, b], chain) => {
+        const resolver: Resolver<XAction, any> = ([a, b], chain) => {
           const [_a, _b] = baseResolver([a, b], chain)
 
           const eFilter = (n: XLink) => n.body.payload !== 'e'

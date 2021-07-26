@@ -1,21 +1,23 @@
-﻿import { redactUser, UserWithSecrets } from '@/user'
+﻿import { redactUser, UserWithSecrets } from '/user'
 import { signatures } from '@herbcaudill/crypto'
 import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
 import { Action, LinkBody, SignatureChain, SignedLink } from './types'
 
-export const append = <A extends Action>(
-  chain: SignatureChain<A> | typeof EMPTY_CHAIN,
+export const append = <A extends Action, C>(
+  chain: SignatureChain<A, C> | typeof EMPTY_CHAIN,
   action: A,
-  user: UserWithSecrets
-): SignatureChain<A> => {
+  user: UserWithSecrets,
+  context: C = {} as C
+): SignatureChain<A, C> => {
   // chain to previous head
   const body = {
     ...action,
     user: redactUser(user),
     timestamp: new Date().getTime(),
+    ...context,
     ...(chain.head ? { prev: chain.head } : {}),
-  } as LinkBody<A>
+  } as LinkBody<A, C>
 
   // if ('head' in chain) body.prev = chain.head
 
@@ -23,7 +25,7 @@ export const append = <A extends Action>(
   const hash = hashLink(body)
 
   // attach signature
-  const signedLink: SignedLink<A> = {
+  const signedLink: SignedLink<A, C> = {
     body,
     hash,
     signed: {
@@ -39,5 +41,5 @@ export const append = <A extends Action>(
   // return new chain
   const root = chain.root ?? hash // if no root was given, this was the first link
   const head = hash
-  return { root, head, links } as SignatureChain<A>
+  return { root, head, links } as SignatureChain<A, C>
 }
