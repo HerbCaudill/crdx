@@ -4,12 +4,17 @@ import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
 import { Action, LinkBody, SignatureChain, SignedLink } from './types'
 
-export const append = <A extends Action, C>(
-  chain: SignatureChain<A, C> | typeof EMPTY_CHAIN,
-  action: A,
-  user: UserWithSecrets,
-  context: C = {} as C
-): SignatureChain<A, C> => {
+export const append = <A extends Action, C>({
+  chain,
+  action,
+  user,
+  context = {} as C,
+}: {
+  chain: SignatureChain<A, C> | typeof EMPTY_CHAIN
+  action: A
+  user: UserWithSecrets
+  context?: C
+}): SignatureChain<A, C> => {
   // chain to previous head
   const body = {
     ...action,

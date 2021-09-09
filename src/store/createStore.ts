@@ -77,7 +77,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.isDispatching = true
 
     // append this action as a new link to the chain
-    this.chain = append(this.chain, actionWithPayload, this.user, this.context)
+    this.chain = append({ chain: this.chain, action: actionWithPayload, user: this.user, context: this.context })
 
     // get the newly appended link
     const head = getHead(this.chain) as ActionLink<A, C>

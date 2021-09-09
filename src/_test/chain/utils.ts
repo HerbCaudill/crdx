@@ -29,7 +29,7 @@ export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAct
  */
 export const buildChain = () => {
   const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
-    append(chain, { type: 'X', payload } as XAction, alice)
+    append({ chain, action: { type: 'X', payload } as XAction, user: alice })
 
   let root = createChain<XAction, any>({ user: alice, name: 'root' })
   let a = appendLink(root, 'a')

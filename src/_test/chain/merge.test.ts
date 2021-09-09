@@ -30,7 +30,7 @@ describe('chains', () => {
       const bobChain = clone(chain)
 
       // 👩🏾 Alice makes edits
-      const aliceChain = append(chain, { type: 'FOO', payload: 'doin stuff' }, alice)
+      const aliceChain = append({ chain, action: { type: 'FOO', payload: 'doin stuff' }, user: alice })
 
       // 👨🏻‍🦲 Bob doesn't make any changes
 
@@ -54,11 +54,11 @@ describe('chains', () => {
       const bobChain = { ...aliceChain }
 
       // 👩🏾 Alice makes changes while disconnected
-      const aliceBranch1 = append(aliceChain, { type: 'FOO', payload: 'alice 1' }, alice)
-      const aliceBranch2 = append(aliceBranch1, { type: 'FOO', payload: 'alice 2' }, alice)
+      const aliceBranch1 = append({ chain: aliceChain, action: { type: 'FOO', payload: 'alice 1' }, user: alice })
+      const aliceBranch2 = append({ chain: aliceBranch1, action: { type: 'FOO', payload: 'alice 2' }, user: alice })
 
       // 👨🏻‍🦲 Bob makes changes while disconnected
-      const bobBranch = append(bobChain, { type: 'FOO', payload: 'bob' }, bob)
+      const bobBranch = append({ chain: bobChain, action: { type: 'FOO', payload: 'bob' }, user: bob })
 
       // 👩🏾👨🏻‍🦲 They sync back up
       const aliceMerged = merge(aliceBranch2, bobBranch)

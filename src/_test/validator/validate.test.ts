@@ -25,7 +25,7 @@ describe('chains', () => {
       // 👩🏾 Alice
       const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
-      const newChain = append(chain, newLink, alice)
+      const newChain = append({ chain, action: newLink, user: alice })
 
       // 👨🏻‍🦲 Bob
       const isValid = validate(newChain)
@@ -79,7 +79,7 @@ describe('chains', () => {
       }
 
       // add it to an empty chain
-      const newChain = append(chain, link, alice)
+      const newChain = append({ chain, action: link, user: alice })
 
       // nope
       expect(validate(newChain)).not.toBeValid()

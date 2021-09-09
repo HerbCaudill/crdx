@@ -18,16 +18,16 @@ describe('chains', () => {
   describe('getSequence', () => {
     test('upon creation', () => {
       var chain = createChain({ user: alice, name: 'root' })
-      chain = append(chain, { type: 'X', payload: 'a' }, alice)
+      chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
       const sequence = getSequence({ chain, sequencer })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
     test('no branches', () => {
       var chain = createChain({ user: alice, name: 'root' })
-      chain = append(chain, { type: 'X', payload: 'a' }, alice)
-      chain = append(chain, { type: 'X', payload: 'b' }, alice)
-      chain = append(chain, { type: 'X', payload: 'c' }, alice)
+      chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
+      chain = append({ chain, action: { type: 'X', payload: 'b' }, user: alice })
+      chain = append({ chain, action: { type: 'X', payload: 'c' }, user: alice })
       const sequence = getSequence({ chain, sequencer })
 
       const expected = 'a b c'

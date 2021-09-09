@@ -39,5 +39,5 @@ export const createChain = <A extends Action, C = {}>({
       ...rootPayload, // the root payload may override name or id
     },
   }
-  return append(EMPTY_CHAIN, link, user, context) as SignatureChain<A, C>
+  return append({ chain: EMPTY_CHAIN, action: link, user, context }) as SignatureChain<A, C>
 }
