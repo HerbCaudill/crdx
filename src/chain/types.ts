@@ -94,8 +94,8 @@ export interface Action {
  *     timestamp: 1625483593289,
  *     prev: 'DcKrkYgFtKIv13VmkKyEv2S4',
  *   },
- *   hash: 'F0tTf04UOCexC6yMsBJTsUYr',
  *   signed: {
+ *   hash: 'F0tTf04UOCexC6yMsBJTsUYr',
  *     userName: 'alice',
  *     signature: 'Wev5XI1Kr5VC0nYhUOamRdpp',
  *     key: 'w5Cu6PUO6YqptRfNrO9utQO6',
