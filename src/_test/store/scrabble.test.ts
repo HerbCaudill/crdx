@@ -5,43 +5,44 @@ import { createUser } from '/user'
 import { arrayToMap } from '/util'
 import { makeRandom } from '@herbcaudill/random'
 
+/*
+
+This is a somewhat more complicated example, modeling the game Scrabble Attacks (created by Nancy
+Hawa). See https://github.com/HerbCaudill/scrabbleattacks for rules. 
+
+This store doesn't have a custom resolver; any conflicting actions (e.g. concurrent attempts to take
+the same letter) are ordered arbitrarily and dealt with in the reducer. 
+
+*/
+
 const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupScrabbleAttacks = () => {
   const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble' })
+  const reducer = scrabbleAttacksReducer
 
-  const aliceStore = createStore({
-    user: alice,
-    chain,
-    reducer: scrabbleAttacksReducer,
-  })
+  // Alice starts a game and adds Bob as a player
+  const aliceStore = createStore({ user: alice, chain, reducer })
   aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userName: 'bob' } })
 
-  const bobStore = createStore({
-    user: bob,
-    chain: aliceStore.getChain(),
-    reducer: scrabbleAttacksReducer,
-  })
+  // Bob starts with a copy of Alice's chain
+  const bobStore = createStore({ user: bob, chain: aliceStore.getChain(), reducer })
 
+  // To sync, each merges their chain with the other's
   const sync = () => {
     bobStore.merge(aliceStore.getChain())
     aliceStore.merge(bobStore.getChain())
   }
 
-  return {
-    store: aliceStore,
-    aliceStore,
-    bobStore,
-    sync,
-  }
+  return { aliceStore, bobStore, sync }
 }
 
 describe('scrabble attacks', () => {
   describe('createStore', () => {
     test('initial state', () => {
-      const { store } = setupScrabbleAttacks()
-      const { players, tiles } = store.getState()
+      const { aliceStore } = setupScrabbleAttacks()
+      const { players, tiles } = aliceStore.getState()
       expect(players).toEqual([
         { userName: 'alice', words: [] },
         { userName: 'bob', words: [] },
@@ -52,15 +53,15 @@ describe('scrabble attacks', () => {
 
   describe('flip tiles', () => {
     test('flip one tile', () => {
-      const { store } = setupScrabbleAttacks()
+      const { aliceStore } = setupScrabbleAttacks()
 
-      const availableTiles = () => Object.values(store.getState().tiles).filter(isAvailable)
+      const availableTiles = () => Object.values(aliceStore.getState().tiles).filter(isAvailable)
 
       // no tiles are face up
       expect(availableTiles()).toHaveLength(0)
 
       // we flip one tile
-      store.dispatch({ type: 'FLIP_TILE', payload: { id: 1 } })
+      aliceStore.dispatch({ type: 'FLIP_TILE', payload: { id: 1 } })
 
       // now one tile is face up
       expect(availableTiles()).toHaveLength(1)
@@ -232,55 +233,100 @@ describe('scrabble attacks', () => {
   })
 })
 
-// Scrabble Attacks
+// Scrabble Attacks stuff
 
-// action types
+// reducer
 
-interface AddPlayer extends Action {
-  type: 'ADD_PLAYER'
-  payload: { userName: string }
+const SEED = 'test 12345'
+
+const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksAction> = (state, link) => {
+  const action = link.body
+  const { players, tiles, messages } = state
+  switch (action.type) {
+    case 'ROOT': {
+      const { userName } = link.signed
+      const rootPlayer = { userName, words: [] }
+      return {
+        players: [rootPlayer],
+        tiles: initialTiles(SEED),
+        messages: [],
+      }
+    }
+
+    case 'ADD_PLAYER': {
+      const { userName } = action.payload
+      const newPlayer = { userName, words: [] }
+      return {
+        ...state,
+        players: players.concat(newPlayer),
+      }
+    }
+
+    case 'FLIP_TILE': {
+      const { id } = action.payload
+      const tileToFlip = tiles[id]
+      return {
+        ...state,
+        tiles: {
+          ...tiles,
+          [id]: {
+            ...tileToFlip,
+            isFaceUp: true,
+          },
+        },
+      }
+    }
+
+    case 'CLAIM_WORD': {
+      const userName = link.signed.userName
+      const { word } = action.payload
+
+      let availableTiles = Object.values(tiles).filter(isAvailable)
+
+      const wordLetters = word.split('') as Letter[]
+
+      // see if there's a tile to match each letter in this word
+      let matchingTiles = []
+      for (const letter of wordLetters) {
+        const find = findByLetterIn(availableTiles)
+        const matchingTile = find(letter)
+
+        if (matchingTile === undefined) {
+          // not available - abort
+          const newMessage = { userName, message: `letter ${letter} not available` }
+          return {
+            ...state,
+            messages: messages.concat(newMessage),
+          }
+        } else {
+          // mark this tile as taken
+          matchingTiles.push({ ...matchingTile, isTaken: true })
+          // remove this tile from available set
+          availableTiles = availableTiles.filter(tile => tile.id !== matchingTile.id)
+        }
+      }
+
+      const takenTiles = matchingTiles.reduce(arrayToMap('id'), {})
+
+      return {
+        ...state,
+        // add this word to the player's words
+        players: players.map(player => {
+          const words = player.userName === userName ? player.words.concat(word) : player.words
+          return {
+            ...player,
+            words,
+          }
+        }),
+        // mark these tiles as taken
+        tiles: {
+          ...tiles,
+          ...takenTiles,
+        },
+      }
+    }
+  }
 }
-
-interface FlipTileAction extends Action {
-  type: 'FLIP_TILE'
-  payload: { id: number }
-}
-
-interface ClaimWordAction extends Action {
-  type: 'CLAIM_WORD'
-  payload: { word: string }
-}
-
-type ScrabbleAttacksAction = AddPlayer | FlipTileAction | ClaimWordAction
-
-// state
-
-interface ScrabbleAttacksState {
-  players: Player[]
-  tiles: TileSet
-  messages: Message[]
-}
-
-interface Message {
-  userName: string
-  message: string
-}
-
-interface Player {
-  userName: string
-  words: string[]
-}
-
-type Letter = keyof typeof letterMap
-
-interface Tile {
-  letter: Letter
-  id: number
-  isFaceUp: boolean
-  isTaken: boolean
-}
-
-type TileSet = Record<number, Tile>
 
 // utilities
 
@@ -299,101 +345,37 @@ const omniscientlyFlipTileByLetter = (store: Store<ScrabbleAttacksState, Scrabbl
   }
 }
 
-// reducer
+export const initialTiles = (seed: string = new Date().toISOString()) => {
+  const r = makeRandom(seed)
+  const randomSort = () => r.plusOrMinus()
 
-const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksAction> = (state, link) => {
-  const action = link.body
-  const { players, tiles, messages } = state
-  switch (action.type) {
-    case 'ROOT': {
-      const rootPlayer: Player = { userName: link.signed.userName, words: [] }
-      const seed = 'test seed 12345'
-      return {
-        players: [rootPlayer],
-        tiles: initialTiles(seed),
-        messages: [],
-      }
-    }
+  const nOfEach = (letter: Letter, i: number): Letter[] => {
+    const N = letterMap[letter].count
+    return new Array(N).fill(letter)
+  }
 
-    case 'ADD_PLAYER': {
-      const { userName } = action.payload
-      const newPlayer: Player = {
-        userName,
-        words: [],
-      }
-      return {
-        ...state,
-        players: players.concat(newPlayer),
-      }
-    }
-
-    case 'FLIP_TILE': {
-      const { id } = action.payload
-      const tileToFlip = tiles[id]
-      const flippedTile: Tile = {
-        ...tileToFlip,
-        isFaceUp: true,
-      }
-      return {
-        ...state,
-        tiles: {
-          ...tiles,
-          [id]: flippedTile,
-        },
-      }
-    }
-
-    case 'CLAIM_WORD': {
-      const userName = link.signed.userName
-      const { word } = action.payload
-
-      let availableTiles = Object.values(tiles).filter(isAvailable)
-
-      const wordLetters = word.split('') as Letter[]
-
-      // see if there's a tile to match each letter in this word
-      let matchingTiles = []
-      for (const letter of wordLetters) {
-        const find = findByLetterIn(availableTiles)
-        const matchingTile = find(letter)
-        if (matchingTile !== undefined) {
-          matchingTiles.push(matchingTile)
-          // remove this tile from available set
-          availableTiles = availableTiles.filter(tile => tile.id !== matchingTile.id)
-        }
-      }
-
-      if (wordLetters.length > matchingTiles.length) {
-        const newMessage = { userName, message: 'letter not available' }
-        return {
-          ...state,
-          messages: messages.concat(newMessage),
-        }
-      } else {
-        const takenTiles = matchingTiles //
-          .map(tile => ({ ...tile, isTaken: true }))
-          .reduce(arrayToMap('id'), {})
-
-        return {
-          ...state,
-          // add this word to the player's words
-          players: players.map(player => {
-            const words = player.userName === userName ? player.words.concat(word) : player.words
-            return {
-              ...player,
-              words,
-            }
-          }),
-          // mark these tiles as taken
-          tiles: {
-            ...tiles,
-            ...takenTiles,
-          },
-        }
-      }
+  const makeTile = (letter: Letter, i: number): Tile => {
+    return {
+      letter,
+      id: i,
+      isFaceUp: false,
+      isTaken: false,
     }
   }
+
+  const tileSet = alphabet
+    // return N of each letter
+    .flatMap(nOfEach)
+    // scramble order
+    .sort(randomSort)
+    // build tiles in initial state
+    .map(makeTile)
+
+  // turn into map for easy lookup
+  return tileSet.reduce(arrayToMap('id'), {})
 }
+
+// constants
 
 export const WILD = '*'
 export const letterMap = {
@@ -428,32 +410,50 @@ export const letterMap = {
 
 export const alphabet = Object.keys(letterMap) as Letter[]
 
-export const initialTiles = (seed: string = new Date().toISOString()) => {
-  const r = makeRandom(seed)
-  const randomSort = () => r.plusOrMinus()
+// action types
 
-  const nOfEach = (letter: Letter, i: number): Letter[] => {
-    const N = letterMap[letter].count
-    return new Array(N).fill(letter)
-  }
-
-  const makeTile = (letter: Letter, i: number): Tile => {
-    return {
-      letter,
-      id: i,
-      isFaceUp: false,
-      isTaken: false,
-    }
-  }
-
-  const tileSet = alphabet
-    // return N of each letter
-    .flatMap(nOfEach)
-    // scramble order
-    .sort(randomSort)
-    // build tiles in initial state
-    .map(makeTile)
-
-  // turn into map for easy lookup
-  return tileSet.reduce(arrayToMap('id'), {})
+interface AddPlayer extends Action {
+  type: 'ADD_PLAYER'
+  payload: { userName: string }
 }
+
+interface FlipTileAction extends Action {
+  type: 'FLIP_TILE'
+  payload: { id: number }
+}
+
+interface ClaimWordAction extends Action {
+  type: 'CLAIM_WORD'
+  payload: { word: string }
+}
+
+type ScrabbleAttacksAction = AddPlayer | FlipTileAction | ClaimWordAction
+
+// state & related types
+
+interface ScrabbleAttacksState {
+  players: Player[]
+  tiles: TileSet
+  messages: Message[]
+}
+
+interface Message {
+  userName: string
+  message: string
+}
+
+interface Player {
+  userName: string
+  words: string[]
+}
+
+type Letter = keyof typeof letterMap
+
+interface Tile {
+  letter: Letter
+  id: number
+  isFaceUp: boolean
+  isTaken: boolean
+}
+
+type TileSet = Record<number, Tile>
