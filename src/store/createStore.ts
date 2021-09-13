@@ -7,7 +7,7 @@ import {
   getHead,
   getSequence,
   merge,
-  Resolver,
+  Filter,
   Sequencer,
   serialize,
   SignatureChain,
@@ -27,7 +27,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     initialState = {} as S,
     reducer,
     validators,
-    resolver,
+    filter,
     sequencer,
   }: CreateStoreOptions<S, A, C>) {
     super()
@@ -45,7 +45,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.initialState = initialState
     this.reducer = reducer
     this.validators = validators
-    this.resolver = resolver
+    this.filter = filter
     this.sequencer = sequencer
     this.user = user
 
@@ -116,7 +116,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private initialState: S
   private reducer: Reducer<S, A>
   private sequencer?: Sequencer<A, C>
-  private resolver?: Resolver<A, C>
+  private filter?: Filter<A, C>
 
   private validators?: ValidatorSet
 
@@ -124,13 +124,13 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private isDispatching = false
 
   private updateState() {
-    const { chain, resolver, sequencer, reducer } = this
+    const { chain, filter, sequencer, reducer } = this
 
     // Validate the chain's integrity.
     this.validate()
 
-    // Use the resolver & sequencer to turn the graph into an ordered sequence
-    const sequence = getSequence<A, C>({ chain, resolver, sequencer })
+    // Use the filter & sequencer to turn the graph into an ordered sequence
+    const sequence = getSequence<A, C>({ chain, filter, sequencer })
 
     // Run the sequence through the reducer to calculate the current team state
     this.state = sequence.reduce(reducer, this.initialState)
@@ -166,7 +166,7 @@ export type CreateStoreOptions<S, A extends Action, C> = {
   validators?: ValidatorSet
 
   /** */
-  resolver?: Resolver<A, C>
+  filter?: Filter<A, C>
 
   /** */
   sequencer?: Sequencer<A, C>

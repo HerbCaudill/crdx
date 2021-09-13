@@ -1,4 +1,4 @@
-import { append, arbitraryDeterministicSort, baseResolver, createChain, getSequence, Resolver, Sequencer } from '/chain'
+import { append, arbitraryDeterministicSort, createChain, Filter, getSequence, Sequencer } from '/chain'
 import { buildChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
 import { setup } from '/test/util/setup'
 import { randomKey } from '@herbcaudill/crypto'
@@ -129,6 +129,12 @@ describe('chains', () => {
       })
 
       test('custom sequencer', () => {
+        // inclusion rules: `e`s are omitted
+        const filter: Filter<XAction, any> = ([a, b]) => {
+          const eFilter = (n: XLink) => n.body.payload !== 'e'
+          return [a.filter(eFilter), b.filter(eFilter)]
+        }
+
         // sequence rules: `i`s go first, otherwise alphabetical
         const sequencer: Sequencer<XAction, any> = (a, b) => {
           const alpha = (a: XLink, b: XLink) => (a.body.payload! > b.body.payload! ? 1 : -1)
@@ -141,15 +147,7 @@ describe('chains', () => {
           return Is.concat(notIs)
         }
 
-        // inclusion rules: `e`s are omitted
-        const resolver: Resolver<XAction, any> = ([a, b], chain) => {
-          const [_a, _b] = baseResolver([a, b], chain)
-
-          const eFilter = (n: XLink) => n.body.payload !== 'e'
-          return [_a.filter(eFilter), _b.filter(eFilter)]
-        }
-
-        const sequence = getSequence({ chain, sequencer, resolver })
+        const sequence = getSequence({ chain, sequencer, filter })
 
         // note that `i` comes first in the merged portion, and `e` is omitted
         const expected = 'a b   i c d f g h j k l o    n'

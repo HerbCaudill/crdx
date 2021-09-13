@@ -5,11 +5,11 @@ import { getCommonPredecessor, isPredecessor } from './predecessors'
 import {
   Action,
   ActionLink,
+  ActionLinkBody,
+  Filter,
   isMergeLink,
   Link,
   NonMergeLink,
-  ActionLinkBody,
-  Resolver,
   Sequence,
   Sequencer,
   SignatureChain,
@@ -57,7 +57,7 @@ export const getSequence = <A extends Action, C>(options: {
   head?: Link<A, C>
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  resolver?: Resolver<A, C>
+  filter?: Filter<A, C>
 
   /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
   sequencer?: Sequencer<A, C>
@@ -66,10 +66,13 @@ export const getSequence = <A extends Action, C>(options: {
     chain,
     root = getRoot(chain),
     head = getHead(chain),
-    resolver = baseResolver as Resolver<A, C>,
+    filter = noFilter as Filter<A, C>,
     sequencer = arbitraryDeterministicSequencer as Sequencer<A, C>,
   } = options
   let result: Link<A, C>[]
+
+  type Branch = Sequence<A, C>
+  type TwoBranches = [Branch, Branch]
 
   // 0 parents (root link)
   if (head === root) {
@@ -117,7 +120,6 @@ export const getSequence = <A extends Action, C>(options: {
       // Recursively resolve the branch containing the root into a sequence.
       const isOurBranchHead = (h: Link<A, C>) => root === h || isPredecessor(chain, root, h)
       const ourBranchHead = branchHeads.find(isOurBranchHead)
-      options.sequencer
       result = getSequence({
         ...options,
         head: ourBranchHead,
@@ -127,19 +129,29 @@ export const getSequence = <A extends Action, C>(options: {
     // The common predecessor is after the root, so we have two branches to merge, going back to
     // the most recent common predecessor.
     else {
-      // Resolve each branch (conflicting actions can be omitted by the resolver)
-      const [branchA, branchB] = resolver(branchHeads, chain)
+      // Resolve each branch
+      const root = getCommonPredecessor(chain, ...branchHeads)
+      const branches = branchHeads
+        .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
+        .map(branch => branch.slice(1)) as TwoBranches // omit the common predecessor itself
 
-      // Sequence the two branches relative to each other
-      const sequencedBranches = sequencer(branchA, branchB)
+      const resolver = (branches: TwoBranches, chain: SignatureChain<A, C>) => {
+        // Apply any filters
+        const filteredBranches = filter(branches, chain)
 
+        // Sequence the two branches relative to each other
+        const sequencedBranches = sequencer(...filteredBranches)
+        return sequencedBranches
+      }
+
+      const resolvedBranches = resolver(branches, chain)
       // Now we can resume recursing our way back from the common predecessor towards the root
       const predecessors = getSequence({
         ...options,
         head: commonPredecessor,
       })
 
-      result = [...predecessors, ...sequencedBranches, head] as Sequence<A, C>
+      result = [...predecessors, ...resolvedBranches, head] as Sequence<A, C>
     }
   }
 
@@ -147,12 +159,4 @@ export const getSequence = <A extends Action, C>(options: {
   return result.filter(n => !isMergeLink(n)) as NonMergeLink<A, C>[]
 }
 
-/** This resolver just collapses each branch to a single sequence of actions */
-
-export const baseResolver: Resolver<any, any> = ([a, b], chain) => {
-  const root = getCommonPredecessor(chain, a, b)
-  const [branchA, branchB] = [a, b]
-    .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
-    .map(branch => branch.slice(1)) // omit the common predecessor itself
-  return [branchA, branchB]
-}
+export const noFilter: Filter<any, any> = ([a, b]) => [a, b]
