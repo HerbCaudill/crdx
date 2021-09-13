@@ -10,8 +10,8 @@ import {
   isMergeLink,
   Link,
   NonMergeLink,
+  Resolver,
   Sequence,
-  Sequencer,
   SignatureChain,
 } from './types'
 
@@ -56,19 +56,9 @@ export const getSequence = <A extends Action, C>(options: {
   /** The link to use as the chain's head (used to process a subchain) */
   head?: Link<A, C>
 
-  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  filter?: Filter<A, C>
-
-  /** A function that takes two sequences and returns a single sequence, applying any logic regarding which links are omitted */
-  sequencer?: Sequencer<A, C>
+  resolver?: Resolver<A, C>
 }): NonMergeLink<A, C>[] => {
-  const {
-    chain,
-    root = getRoot(chain),
-    head = getHead(chain),
-    filter = noFilter as Filter<A, C>,
-    sequencer = arbitraryDeterministicSequencer as Sequencer<A, C>,
-  } = options
+  const { chain, root = getRoot(chain), head = getHead(chain), resolver = baseResolver as Resolver<A, C> } = options
   let result: Link<A, C>[]
 
   type Branch = Sequence<A, C>
@@ -135,14 +125,14 @@ export const getSequence = <A extends Action, C>(options: {
         .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
         .map(branch => branch.slice(1)) as TwoBranches // omit the common predecessor itself
 
-      const resolver = (branches: TwoBranches, chain: SignatureChain<A, C>) => {
-        // Apply any filters
-        const filteredBranches = filter(branches, chain)
+      // const resolver = (branches: TwoBranches, chain: SignatureChain<A, C>) => {
+      //   // Apply any filters
+      //   const filteredBranches = filter(branches, chain)
 
-        // Sequence the two branches relative to each other
-        const sequencedBranches = sequencer(...filteredBranches)
-        return sequencedBranches
-      }
+      //   // Sequence the two branches relative to each other
+      //   const sequencedBranches = sequencer(...filteredBranches)
+      //   return sequencedBranches
+      // }
 
       const resolvedBranches = resolver(branches, chain)
       // Now we can resume recursing our way back from the common predecessor towards the root
@@ -160,3 +150,7 @@ export const getSequence = <A extends Action, C>(options: {
 }
 
 export const noFilter: Filter<any, any> = ([a, b]) => [a, b]
+
+export const baseResolver: Resolver<any, any> = ([a, b]) => {
+  return arbitraryDeterministicSequencer(a, b)
+}
