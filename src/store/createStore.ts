@@ -11,6 +11,9 @@ import {
   Sequencer,
   serialize,
   SignatureChain,
+  Resolver,
+  noFilter,
+  arbitraryDeterministicSequencer,
 } from '/chain'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
@@ -27,8 +30,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     initialState = {} as S,
     reducer,
     validators,
-    filter,
-    sequencer,
+    filter = noFilter,
+    sequencer = arbitraryDeterministicSequencer,
   }: CreateStoreOptions<S, A, C>) {
     super()
 
@@ -115,8 +118,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private chain: SignatureChain<A, C>
   private initialState: S
   private reducer: Reducer<S, A>
-  private sequencer?: Sequencer<A, C>
-  private filter?: Filter<A, C>
+  private sequencer: Sequencer<A, C>
+  private filter: Filter<A, C>
 
   private validators?: ValidatorSet
 
@@ -129,8 +132,14 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     // Validate the chain's integrity.
     this.validate()
 
+    const resolver: Resolver<A, C> = ([a, b], chain) => {
+      const filteredBranches = filter([a, b], chain)
+      const sequencedBranches = sequencer(...filteredBranches)
+      return sequencedBranches
+    }
+
     // Use the filter & sequencer to turn the graph into an ordered sequence
-    const sequence = getSequence<A, C>({ chain, filter, sequencer })
+    const sequence = getSequence<A, C>({ chain, resolver })
 
     // Run the sequence through the reducer to calculate the current team state
     this.state = sequence.reduce(reducer, this.initialState)
