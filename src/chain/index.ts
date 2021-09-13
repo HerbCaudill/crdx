@@ -1,5 +1,5 @@
 ﻿export * from './append'
-export * from './arbitraryDeterministicSequencer'
+export * from './baseResolver'
 export * from './createChain'
 export * from './getHead'
 export * from '../_test/chain/getMissingLinks'

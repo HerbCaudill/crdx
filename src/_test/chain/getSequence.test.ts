@@ -1,28 +1,15 @@
-import {
-  append,
-  arbitraryDeterministicSort,
-  createChain,
-  Filter,
-  getSequence,
-  Resolver,
-  Sequence,
-  Sequencer,
-} from '/chain'
+import { randomKey } from '@herbcaudill/crypto'
+import { append, arbitraryDeterministicSort, createChain, getSequence, Resolver } from '/chain'
 import { buildChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
 import { setup } from '/test/util/setup'
-import { randomKey } from '@herbcaudill/crypto'
 
 const { alice } = setup('alice')
 
-const randomSequencer: Sequencer<any, any> = (a, b) => {
+const randomResolver: Resolver<any, any> = ([a, b]) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
   const hashKey = randomKey()
   const [_a, _b] = [a, b].sort(arbitraryDeterministicSort(hashKey))
   return _a.concat(_b)
-}
-
-const resolver: Resolver<any, any> = ([a, b], chain) => {
-  return randomSequencer(a, b)
 }
 
 describe('chains', () => {
@@ -30,7 +17,7 @@ describe('chains', () => {
     test('upon creation', () => {
       var chain = createChain({ user: alice, name: 'root' })
       chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
-      const sequence = getSequence({ chain, resolver })
+      const sequence = getSequence({ chain, resolver: randomResolver })
       expect(getPayloads(sequence)).toEqual(['a'])
     })
 
@@ -39,7 +26,7 @@ describe('chains', () => {
       chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
       chain = append({ chain, action: { type: 'X', payload: 'b' }, user: alice })
       chain = append({ chain, action: { type: 'X', payload: 'c' }, user: alice })
-      const sequence = getSequence({ chain, resolver })
+      const sequence = getSequence({ chain, resolver: randomResolver })
 
       const expected = 'a b c'
 
@@ -55,7 +42,7 @@ describe('chains', () => {
       const chain = buildChain()
 
       test('full sequence', () => {
-        const sequence = getSequence({ chain, resolver })
+        const sequence = getSequence({ chain, resolver: randomResolver })
 
         // the resolved sequence will be one of these
         const expected = [
@@ -83,7 +70,7 @@ describe('chains', () => {
 
       test('root', () => {
         const b = findByPayload(chain, 'b')
-        const sequence = getSequence<any, any>({ chain, root: b, resolver })
+        const sequence = getSequence<any, any>({ chain, root: b, resolver: randomResolver })
 
         const expected = [
           'b   j k l   c d f e g   h i   o n',
@@ -110,7 +97,7 @@ describe('chains', () => {
 
       test('head', () => {
         const d = findByPayload(chain, 'd')
-        const sequence = getSequence<any, any>({ chain, head: d, resolver })
+        const sequence = getSequence<any, any>({ chain, head: d, resolver: randomResolver })
 
         const expected = 'a b c d'
 
@@ -120,7 +107,7 @@ describe('chains', () => {
       test('root & head', () => {
         const j = findByPayload(chain, 'j')
         const l = findByPayload(chain, 'l')
-        const sequence = getSequence<any, any>({ chain, root: j, head: l, resolver })
+        const sequence = getSequence<any, any>({ chain, root: j, head: l, resolver: randomResolver })
 
         const expected = 'j k l'
 
@@ -129,7 +116,7 @@ describe('chains', () => {
 
       test('root within a branch', () => {
         const c = findByPayload(chain, 'c')
-        const sequence = getSequence<any, any>({ chain, root: c, resolver })
+        const sequence = getSequence<any, any>({ chain, root: c, resolver: randomResolver })
 
         const expected = [
           'c d   e g   f   o n', //
@@ -140,11 +127,14 @@ describe('chains', () => {
       })
 
       test('custom resolver', () => {
-        // inclusion rules: `e`s are omitted
-        const eFilter = (n: XLink) => n.body.payload !== 'e'
+        const resolver: Resolver<XAction, any> = ([_a, _b]) => {
+          // inclusion rules: `e`s are omitted
 
-        // sequence rules: `i`s go first, otherwise alphabetical
-        const iFirstSequencer: Sequencer<XAction, any> = (a, b) => {
+          const eFilter = (n: XLink) => n.body.payload !== 'e'
+          const [a, b] = [_a.filter(eFilter), _b.filter(eFilter)]
+
+          // sequence rules: `i`s go first, otherwise alphabetical
+
           const alpha = (a: XLink, b: XLink) => (a.body.payload! > b.body.payload! ? 1 : -1)
           const merged = a.concat(b).sort(alpha)
 
@@ -152,10 +142,10 @@ describe('chains', () => {
           const Is = merged.filter(n => isI(n))
           const notIs = merged.filter(n => !isI(n))
 
-          return Is.concat(notIs)
-        }
+          const sequencedBranches = Is.concat(notIs)
 
-        const resolver: Resolver<XAction, any> = ([a, b]) => iFirstSequencer(a.filter(eFilter), b.filter(eFilter))
+          return sequencedBranches
+        }
 
         const sequence = getSequence({ chain, resolver })
 

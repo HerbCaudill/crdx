@@ -1,11 +1,9 @@
 import { base58, hash } from '@herbcaudill/crypto'
-import { Action, createChain, isMergeLink, isRootLink, noFilter } from '/chain'
-import { VALID } from '/constants'
+import { Action, baseResolver, createChain } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
 import { UnixTimestamp } from '/util'
-import { ValidatorSet } from '/validator'
 
 /*
 
@@ -33,12 +31,12 @@ const setupScheduler = () => {
   const reducer = schedulerReducer
 
   // TODO
-  const filter = noFilter
+  const resolver = baseResolver
 
   // everyone starts out with the same store
-  const aliceStore = createStore({ user: alice, chain, reducer, filter })
-  const bobStore = createStore({ user: bob, chain, reducer, filter })
-  const charlieStore = createStore({ user: charlie, chain, reducer, filter })
+  const aliceStore = createStore({ user: alice, chain, reducer, resolver })
+  const bobStore = createStore({ user: bob, chain, reducer, resolver })
+  const charlieStore = createStore({ user: charlie, chain, reducer, resolver })
 
   const sync = () => {
     // UGLY HACK for 3-way sync

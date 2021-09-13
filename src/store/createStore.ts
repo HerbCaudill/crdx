@@ -1,25 +1,22 @@
+import EventEmitter from 'events'
+import { Reducer } from './types'
 import {
   Action,
   ActionLink,
   append,
+  baseResolver,
   createChain,
   deserialize,
   getHead,
   getSequence,
   merge,
-  Filter,
-  Sequencer,
+  Resolver,
   serialize,
   SignatureChain,
-  Resolver,
-  noFilter,
-  arbitraryDeterministicSequencer,
 } from '/chain'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
-import EventEmitter from 'events'
-import { Reducer } from './types'
 
 export class Store<S, A extends Action, C = {}> extends EventEmitter {
   constructor({
@@ -30,8 +27,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     initialState = {} as S,
     reducer,
     validators,
-    filter = noFilter,
-    sequencer = arbitraryDeterministicSequencer,
+    resolver = baseResolver,
   }: CreateStoreOptions<S, A, C>) {
     super()
 
@@ -48,8 +44,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.initialState = initialState
     this.reducer = reducer
     this.validators = validators
-    this.filter = filter
-    this.sequencer = sequencer
+    this.resolver = resolver
     this.user = user
 
     // set the initial state
@@ -118,25 +113,17 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private chain: SignatureChain<A, C>
   private initialState: S
   private reducer: Reducer<S, A>
-  private sequencer: Sequencer<A, C>
-  private filter: Filter<A, C>
-
+  private resolver: Resolver<A, C>
   private validators?: ValidatorSet
 
   private state: S
   private isDispatching = false
 
   private updateState() {
-    const { chain, filter, sequencer, reducer } = this
+    const { chain, resolver, reducer } = this
 
     // Validate the chain's integrity.
     this.validate()
-
-    const resolver: Resolver<A, C> = ([a, b], chain) => {
-      const filteredBranches = filter([a, b], chain)
-      const sequencedBranches = sequencer(...filteredBranches)
-      return sequencedBranches
-    }
 
     // Use the filter & sequencer to turn the graph into an ordered sequence
     const sequence = getSequence<A, C>({ chain, resolver })
@@ -175,8 +162,5 @@ export type CreateStoreOptions<S, A extends Action, C> = {
   validators?: ValidatorSet
 
   /** */
-  filter?: Filter<A, C>
-
-  /** */
-  sequencer?: Sequencer<A, C>
+  resolver?: Resolver<A, C>
 }
