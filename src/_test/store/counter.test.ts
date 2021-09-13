@@ -3,6 +3,13 @@ import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
 
+/*
+
+This is intended to be the simplest possible proof of concept: An increment-only counter. There is
+no custom resolver because there are no conflicts possible. 
+
+*/
+
 const alice = createUser('alice')
 const bob = createUser('bob')
 
@@ -35,32 +42,6 @@ describe('counter', () => {
       store.dispatch({ type: 'INCREMENT' })
       store.dispatch({ type: 'INCREMENT' })
       expect(store.getState().value).toEqual(3)
-    })
-
-    test('increment by a value', () => {
-      const { store } = setupCounter()
-      store.dispatch({ type: 'INCREMENT', payload: 17 })
-      expect(store.getState().value).toEqual(17)
-    })
-
-    test('decrement', () => {
-      const { store } = setupCounter()
-      store.dispatch({ type: 'DECREMENT' })
-      expect(store.getState().value).toEqual(-1)
-    })
-
-    test('decrement by a value', () => {
-      const { store } = setupCounter()
-      store.dispatch({ type: 'DECREMENT', payload: 42 })
-      expect(store.getState().value).toEqual(-42)
-    })
-
-    test('reset', () => {
-      const { store } = setupCounter()
-      store.dispatch({ type: 'INCREMENT', payload: 123 })
-      expect(store.getState().value).toEqual(123)
-      store.dispatch({ type: 'RESET' })
-      expect(store.getState().value).toEqual(0)
     })
   })
 
@@ -106,20 +87,11 @@ describe('counter', () => {
 
 // action types
 
-type CounterAction = IncrementAction | DecrementAction | ResetAction
+type CounterAction = IncrementAction
 
 interface IncrementAction extends Action {
   type: 'INCREMENT'
   payload: number
-}
-
-interface DecrementAction extends Action {
-  type: 'DECREMENT'
-  payload: number
-}
-
-interface ResetAction extends Action {
-  type: 'RESET'
 }
 
 // state
@@ -142,22 +114,6 @@ const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
       return {
         ...state,
         value: state.value + step,
-      }
-    }
-
-    case 'DECREMENT': {
-      const step = action.payload ?? 1
-
-      return {
-        ...state,
-        value: state.value - step,
-      }
-    }
-
-    case 'RESET': {
-      return {
-        ...state,
-        value: 0,
       }
     }
   }
