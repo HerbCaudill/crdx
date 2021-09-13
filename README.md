@@ -101,20 +101,20 @@ The resulting object might look like this:
 
 ```js
 {
-	userName: 'alice',
+  userName: 'alice',
   keys: {
     type: 'USER',
     name: 'alice',
     generation: 0,
     signature: {
-      publicKey: '4BMEnbKJNTvutayk8LRTiqYARnAQxFEDGbUvLoKU1kWG17PJ',
-      secretKey: 'qE1UhQikFMll1S3MaT2Nz5ZFtyCEWT37rI6Lf4J1BwWjp4RF',
+      publicKey: '4BMEn...',
+      secretKey: 'qE1Uh...',
     },
     encryption: {
-      publicKey: 'FFKQrvXluEPgOjHHLp7QNdq6WKrXRGHHnXggTXo8UZp6q86W',
-      secretKey: 'w40gofuBt9hQn9o5kqXMZlUEsn0xSGzy8GFeli7gklsPYlzQ',
+      publicKey: 'FFKQr...',
+      secretKey: 'w40go...',
     },
-    secretKey: 'Bldq9LxeMLd4gRajVb3pvSxzPf15tfTiJxM2p7arFc5WyaKq'
+    secretKey: 'Bldq9...''
   }
 }
 ```
@@ -123,7 +123,7 @@ You’ll need to store this information securely once it’s been generated.
 
 CRDX doesn’t keep track of any other users’ names or public keys — you’ll need to ensure that Alice has some way of knowing what Bob’s public signature key is.
 
-> The [@localfirst/auth](https://github.com/local-first-web/auth) library uses CRDX internally to manage group membership and permissions, and keeps track of each member’s public keys on the signature chain itself.
+> If you don't already have a public key infrastructure (PKI) solution, you might be interested in [@localfirst/auth](https://github.com/local-first-web/auth). This library uses CRDX internally to manage group membership and permissions, and keeps track of each member’s public keys on the signature chain itself.
 
 #### The resolver function
 
@@ -141,5 +141,7 @@ Your resolver will decide what to do with these concurrent actions. It might
 - etc.
 
 The resolver is a pure function that is given two concurrent branches and returns a single branch.
+
+Here's a resolver that orders branches alphabetically according to
 
 #### The reducer function
