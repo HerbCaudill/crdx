@@ -169,7 +169,6 @@ describe('scheduler', () => {
     expect(Object.keys(charlieStore.getState().conflicts)).toHaveLength(0)
   })
 
-  // don't have custom resolver yet
   it('two conflicting reservations', () => {
     // repeat test to make random success less likely
     for (let i = 0; i < 25; i++) {
