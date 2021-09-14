@@ -1,5 +1,5 @@
 import { base58, hash } from '@herbcaudill/crypto'
-import { Action, baseResolver, createChain } from '/chain'
+import { Action, baseResolver, createChain, Resolver, Sequence } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -20,18 +20,16 @@ const bob = createUser('bob')
 const charlie = createUser('charlie')
 
 // the person with the longest tenure wins in the case of conflicts
-const tenureLookup = {
+const tenureLookup: Record<string, number> = {
   alice: 10,
   bob: 3,
   charlie: 7,
 }
 
 const setupScheduler = () => {
-  const chain = createChain<SchedulerAction>({ user: alice, name: 'scheduler' })
+  const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler' })
+  const resolver = schedulerResolver
   const reducer = schedulerReducer
-
-  // TODO
-  const resolver = baseResolver
 
   // everyone starts out with the same store
   const aliceStore = createStore({ user: alice, chain, reducer, resolver })
@@ -172,9 +170,9 @@ describe('scheduler', () => {
   })
 
   // don't have custom resolver yet
-  it.skip('two conflicting reservations', () => {
+  it('two conflicting reservations', () => {
     // repeat test to make random success less likely
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 25; i++) {
       const { aliceStore, bobStore, sync } = setupScheduler()
 
       aliceStore.dispatch({
@@ -214,7 +212,19 @@ describe('scheduler', () => {
   })
 })
 
-//
+// resolver
+
+const sum = (arr: number[]) => arr.reduce((total, n) => total + n, 0)
+const average = (arr: number[]) => sum(arr) / arr.length
+const averageSeniority = (branch: Branch) => average(branch.map(link => tenureLookup[link.signed.userName]))
+const bySeniority = (a: Branch, b: Branch) => averageSeniority(b) - averageSeniority(a)
+
+const schedulerResolver: Resolver<SchedulerAction, SchedulerState> = branches =>
+  branches
+    // choose one of the two branches to go first
+    .sort(bySeniority)
+    // join the two sequences into a single one
+    .flat()
 
 // reducer
 
@@ -255,11 +265,11 @@ const schedulerReducer: Reducer<SchedulerState, SchedulerAction> = (state, link)
   }
 }
 
+// utilities
+
 const getId = (reservation: Reservation): string => {
   return base58.encode(hash('RESERVATION_ID', reservation))
 }
-
-// utilities
 
 // quick test to make sure the `overlaps` function works
 describe('overlaps', () => {
@@ -299,6 +309,7 @@ interface MakeReservation extends Action {
 }
 
 type SchedulerAction = MakeReservation
+
 // state
 
 interface SchedulerState {
@@ -317,3 +328,5 @@ interface Conflict {
   loser: Reservation
   winner: Reservation
 }
+
+type Branch = Sequence<SchedulerAction, SchedulerState>
