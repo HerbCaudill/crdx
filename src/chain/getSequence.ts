@@ -53,8 +53,7 @@ export const getSequence = <A extends Action, C>(options: {
   head?: Link<A, C>
 
   /** The resolver to use when merging concurrent branches into a single sequence. If no resolver is
-   * provided, a default one will be used. The default resolver simply concatenates the concurrent
-   * branches in an arbitrary but deterministic order. */
+   * provided, the concurrent branches will be concatenated in an arbitrary but deterministic order. */
   resolver?: Resolver<A, C>
 }): NonMergeLink<A, C>[] => {
   const { chain, root = getRoot(chain), head = getHead(chain), resolver = baseResolver as Resolver<A, C> } = options
