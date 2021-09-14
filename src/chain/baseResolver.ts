@@ -1,10 +1,10 @@
 import { hash } from '@herbcaudill/crypto'
 import { Link, Resolver } from './types'
 
-export const baseResolver: Resolver<any, any> = ([a, b]) => {
-  const [_a, _b] = [a, b].sort(arbitraryDeterministicSort()) // ensure predictable order
-  return _a.concat(_b)
-}
+export const baseResolver: Resolver<any, any> = sequences =>
+  sequences
+    .sort(arbitraryDeterministicSort()) // choose one to go first, in predictable order
+    .flat() // join the two sequences into a single one
 
 export const arbitraryDeterministicSort = (hashKey = 'DETERMINISTIC_SORT') => (
   a: Link<any, any>[],
