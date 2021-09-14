@@ -20,8 +20,8 @@ const bob = createUser('bob')
 const charlie = createUser('charlie')
 
 // the person with the longest tenure wins in the case of conflicts
-const tenureLookup: Record<string, number> = {
-  alice: 10,
+const seniorityLookup: Record<string, number> = {
+  alice: 10, // years
   bob: 3,
   charlie: 7,
 }
@@ -54,7 +54,7 @@ describe('scheduler', () => {
   it('new store', () => {
     const { aliceStore } = setupScheduler()
     const { reservations } = aliceStore.getState()
-    expect(reservations).toEqual({})
+    expect(reservations).toEqual([])
   })
 
   it('one reservation', () => {
@@ -77,8 +77,7 @@ describe('scheduler', () => {
     expect(Object.keys(reservations)).toHaveLength(1)
 
     // it is the one we just made
-    const id = getId(reservation)
-    expect(reservations[id]).toEqual({
+    expect(reservations[0]).toEqual({
       reservedBy: 'alice',
       room: '101',
       start: 1631458800000,
@@ -207,6 +206,7 @@ describe('scheduler', () => {
       // alice wins because she has seniority
       const conflict = aliceStore.getState().conflicts[0]
       expect(conflict.winner.reservedBy).toBe('alice')
+      expect(conflict.loser.reservedBy).toBe('bob')
     }
   })
 })
@@ -215,24 +215,35 @@ describe('scheduler', () => {
 
 const sum = (arr: number[]) => arr.reduce((total, n) => total + n, 0)
 const average = (arr: number[]) => sum(arr) / arr.length
-const averageSeniority = (branch: Branch) => average(branch.map(link => tenureLookup[link.signed.userName]))
-const bySeniority = (a: Branch, b: Branch) => averageSeniority(b) - averageSeniority(a)
 
-const schedulerResolver: Resolver<SchedulerAction, SchedulerState> = branches =>
-  branches
-    // choose one of the two branches to go first
+const averageSeniority = (branch: SchedulerSequence) =>
+  average(branch.map(link => seniorityLookup[link.signed.userName]))
+
+const bySeniority = (a: SchedulerSequence, b: SchedulerSequence) => averageSeniority(b) - averageSeniority(a)
+
+/** The resolver is given two sequences of reservation actions made concurrently. (In practice each
+ *  sequence is likely to consist of a single action.) It returns a single sequence that prioritizes
+ *  actions made by the person with the most seniority. */
+const schedulerResolver: Resolver<SchedulerAction, SchedulerState> = sequences =>
+  sequences
+    // choose one of the two sequences to go first
     .sort(bySeniority)
     // join the two sequences into a single one
     .flat()
 
 // reducer
 
+/**
+ * The reducer goes through the reservation actions in the chain one by one, building up the current
+ * state. Any conflicts that are found are resolved by favoring the reservation found first. The
+ * resulting state contains the effective reservations
+ */
 const schedulerReducer: Reducer<SchedulerState, SchedulerAction> = (state, link) => {
   const action = link.body
   const { reservations, conflicts } = state
   switch (action.type) {
     case 'ROOT': {
-      return { reservations: {}, conflicts: [] }
+      return { reservations: [], conflicts: [] } as SchedulerState
     }
 
     case 'MAKE_RESERVATION': {
@@ -249,26 +260,18 @@ const schedulerReducer: Reducer<SchedulerState, SchedulerAction> = (state, link)
             loser: newReservation,
           }),
         }
-      }
-
-      // no conflicts, so we add the new reservation
-      const newId = getId(newReservation)
-      return {
-        ...state,
-        reservations: {
-          ...reservations,
-          [newId]: newReservation,
-        },
+      } else {
+        // no conflicts, so we add the new reservation
+        return {
+          ...state,
+          reservations: reservations.concat(newReservation),
+        }
       }
     }
   }
 }
 
 // utilities
-
-const getId = (reservation: Reservation): string => {
-  return base58.encode(hash('RESERVATION_ID', reservation))
-}
 
 // quick test to make sure the `overlaps` function works
 describe('overlaps', () => {
@@ -312,7 +315,7 @@ type SchedulerAction = MakeReservation
 // state
 
 interface SchedulerState {
-  reservations: Record<string, Reservation>
+  reservations: Reservation[]
   conflicts: Conflict[]
 }
 
@@ -328,4 +331,4 @@ interface Conflict {
   winner: Reservation
 }
 
-type Branch = Sequence<SchedulerAction, SchedulerState>
+type SchedulerSequence = Sequence<SchedulerAction, SchedulerState>
