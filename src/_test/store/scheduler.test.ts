@@ -24,15 +24,13 @@ describe('scheduler', () => {
   }
 
   const setup = () => {
-    const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler' })
-
     // resolver
 
     const sum = (arr: number[]) => arr.reduce((total, n) => total + n, 0)
     const average = (arr: number[]) => sum(arr) / arr.length
 
-    const averageSeniority = (branch: SchedulerSequence) =>
-      average(branch.map(link => seniorityLookup[link.signed.userName]))
+    const averageSeniority = (sequence: SchedulerSequence) =>
+      average(sequence.map(link => seniorityLookup[link.signed.userName]))
 
     const bySeniority = (a: SchedulerSequence, b: SchedulerSequence) => averageSeniority(b) - averageSeniority(a)
 
@@ -49,42 +47,45 @@ describe('scheduler', () => {
     // reducer
 
     /**
-     * The reducer goes through the reservation actions in the chain one by one, building up the current
-     * state. Any conflicts that are found are resolved by favoring the reservation found first. The
+     * The reducer goes through the reservation actions one by one, building up the current state.
+     * Any conflicts that are found are resolved by favoring the reservation found first. The
      * resulting state contains the effective reservations
      */
     const reducer: Reducer<SchedulerState, SchedulerAction> = (state, link) => {
       const action = link.body
       const { reservations, conflicts } = state
       switch (action.type) {
-        case 'ROOT': {
-          return { reservations: [], conflicts: [] } as SchedulerState
-        }
+        case 'ROOT':
+          return { reservations: [], conflicts: [] }
 
         case 'MAKE_RESERVATION': {
           const newReservation = action.payload
 
           // look for any conflicting reservations
           const conflictingReservation = Object.values(reservations).find(r => overlaps(r, newReservation))
-          if (conflictingReservation) {
-            // the existing reservation stays; the new one is not added; & we log the conflict
+
+          if (conflictingReservation)
+            // the existing reservation stays; the new one is not added
             return {
               ...state,
+              // record the conflict so the application can surface it
               conflicts: conflicts.concat({
                 winner: conflictingReservation,
                 loser: newReservation,
               }),
             }
-          } else {
-            // no conflicts, so we add the new reservation
-            return {
-              ...state,
-              reservations: reservations.concat(newReservation),
-            }
+
+          // no conflicts, so we add the new reservation
+          return {
+            ...state,
+            reservations: reservations.concat(newReservation),
           }
         }
       }
     }
+
+    const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler' })
+
     // everyone starts out with the same store
     const aliceStore = createStore({ user: alice, chain, reducer, resolver })
     const bobStore = createStore({ user: bob, chain, reducer, resolver })
@@ -99,24 +100,26 @@ describe('scheduler', () => {
 
   it('new store', () => {
     const { aliceStore } = setup()
-    const { reservations } = aliceStore.getState()
+    const { reservations, conflicts } = aliceStore.getState()
     expect(reservations).toEqual([])
+    expect(conflicts).toEqual([])
   })
 
   it('one reservation', () => {
     const { aliceStore } = setup()
 
-    const reservation = {
-      reservedBy: 'alice',
-      room: '101',
-      start: new Date('2021-09-12T15:00Z').getTime(),
-      end: new Date('2021-09-12T17:00Z').getTime(),
-    }
+    // alice reserves a room
     aliceStore.dispatch({
       type: 'MAKE_RESERVATION',
-      payload: reservation,
+      payload: {
+        reservedBy: 'alice',
+        room: '101',
+        start: new Date('2021-09-12T15:00Z').getTime(),
+        end: new Date('2021-09-12T17:00Z').getTime(),
+      },
     })
 
+    // check the current state
     const { reservations } = aliceStore.getState()
 
     // there is one reservation
@@ -134,6 +137,7 @@ describe('scheduler', () => {
   it('two non-conflicting reservations', () => {
     const { aliceStore, bobStore, sync } = setup()
 
+    // alice reserves a room
     aliceStore.dispatch({
       type: 'MAKE_RESERVATION',
       payload: {
@@ -168,7 +172,7 @@ describe('scheduler', () => {
 
   it('two conflicting reservations', () => {
     // repeat test to make random success less likely
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 5; i++) {
       const { aliceStore, bobStore, sync } = setup()
 
       aliceStore.dispatch({
