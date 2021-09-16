@@ -39,10 +39,8 @@ describe('scheduler', () => {
      *  actions made by the person with the most seniority. */
     const resolver: Resolver<SchedulerAction, SchedulerState> = sequences =>
       sequences
-        // choose one of the two sequences to go first
-        .sort(bySeniority)
-        // join the two sequences into a single one
-        .flat()
+        .sort(bySeniority) // choose one of the two sequences to go first
+        .flat() // join the two sequences into a single one
 
     // reducer
 
