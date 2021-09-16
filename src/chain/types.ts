@@ -203,11 +203,12 @@ export const isActionLink = <A extends Action, C>(link: Link<A, C>): link is Act
 
 /////////////////// SEQUENCES
 
-/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). It has no merge links because all merges have been resolved. */
+/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). It has no merge
+ *  links because all merges have been resolved. */
 export type Sequence<A extends Action, C> = NonMergeLink<A, C>[]
 
 /** A resolver takes two sequences, and returns a single sequence combining the two
- * while applying any logic regarding which links are included and what order they're in.
+ *  while applying any logic regarding which links are included and what order they're in.
  */
 export type Resolver<A extends Action, C> = (
   branches: [Sequence<A, C>, Sequence<A, C>],
