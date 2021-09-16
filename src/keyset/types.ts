@@ -1,7 +1,5 @@
 ﻿import { Base58, Base58Keypair } from '@herbcaudill/crypto'
 
-// TODO: use this pattern for all enums
-
 export const TEAM = 'TEAM'
 export const ROLE = 'ROLE'
 export const USER = 'USER'
