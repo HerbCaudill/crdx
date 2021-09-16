@@ -17,8 +17,15 @@ import {
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
-import { CreateStoreOptions } from './createStore'
+import { StoreOptions } from './StoreOptions'
 
+/**
+ * A CRDX `Store` is intended to work very much like a Redux store.
+ * https://github.com/reduxjs/redux/blob/master/src/createStore.ts
+ *
+ * The only way to change the data in the store is to `dispatch` an action to it. There should only
+ * be a single store in an application.
+ */
 export class Store<S, A extends Action, C = {}> extends EventEmitter {
   constructor({
     user,
@@ -29,7 +36,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     reducer,
     validators,
     resolver = baseResolver,
-  }: CreateStoreOptions<S, A, C>) {
+  }: StoreOptions<S, A, C>) {
     super()
 
     this.chain = !chain
@@ -52,26 +59,35 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.updateState()
   }
 
+  /** Returns the store's most recent state. */
   public getState(): S {
     return this.state
   }
 
+  /** Returns the current signature chain */
   public getChain(): SignatureChain<A, C> {
     return this.chain
   }
 
-  /** Dispatches an action to be added to the signature chain. This is the only way to trigger a
-   *  state change.
+  /** Returns a the current signature chain in serialized form; this can be used to rehydrate this
+   * store from storage. */
+  public save() {
+    return serialize(this.chain)
+  }
+
+  /**
+   * Dispatches an action to be added to the signature chain. This is the only way to trigger a
+   * state change.
    *
-   *  The `reducer` function provided when creating the store will be called with the current state
-   *  and the given `action`. Its return value will be considered the **next** state of the tree,
-   *  and any change listeners will be notified.
+   * The `reducer` function provided when creating the store will be called with the current state
+   * and the given `action`. Its return value will be considered the **next** state of the tree,
+   * and any change listeners will be notified.
    *
-   *  @param action A plain object representing what changed. It is a good idea to keep actions
-   *  serializable so you can record and replay user sessions. An action must have a `type` property
-   *  which may not be `undefined`. It is a good idea to use string constants for action types.
+   * @param action A plain object representing what changed. It is a good idea to keep actions
+   * serializable so you can record and replay user sessions. An action must have a `type` property
+   * which may not be `undefined`. It is a good idea to use string constants for action types.
    *
-   *  @returns For convenience, the same action object you dispatched.
+   * @returns For convenience, the same action object you dispatched.
    */
   public dispatch(action: Optional<A, 'payload'>) {
     // equip the action with an empty payload if it doesn't have one
@@ -103,11 +119,11 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     return this
   }
 
-  /** Returns a serialized chain that can be used to rehydrate this store from storage. */
-  public save() {
-    return serialize(this.chain)
-  }
-
+  /**
+   * Validates the store's integrity, using the built-in validators (which check, among other
+   * things, the crypto hashes and signatures) as well as any validators provided by the
+   * application.
+   */
   public validate() {
     const validationResult = validate(this.chain, this.validators)
     if (validationResult.isValid === false) {
@@ -116,14 +132,22 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   }
 
   // PRIVATE
+
+  /** The user object provided in options */
   private user: UserWithSecrets
+
+  /** The context object provided in options */
   private context: C
-  private chain: SignatureChain<A, C>
+
+  /** The inital state provided in options */
   private initialState: S
+
+  /** The reducer function provided in the constructor */
   private reducer: Reducer<S, A, C>
   private resolver: Resolver<A, C>
   private validators?: ValidatorSet
 
+  private chain: SignatureChain<A, C>
   private state: S
 
   private updateState() {
