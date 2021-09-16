@@ -89,6 +89,23 @@ console.log(state.value) // 2
 
 #### The signature chain
 
+A signature chain is an acyclic directed graph of links. Each link
+
+- is **cryptographically signed** by the author; and
+- includes a **hash of the parent link**.
+
+This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or removed without causing the hash and signature checks to fail.
+
+![sigchain.1](https://raw.githubusercontent.com/HerbCaudill/pics/master/sigchain.1.png)
+
+A signature chain is just data and can be stored as JSON. It consists of a hash table of the links themselves, plus a pointer to the **root** (the “founding” link added when the chain was created) and the **head** (the most recent link we know about).
+
+If Alice adds new links to the signature chain while disconnected from Bob, there’s no problem: When they sync up, Bob will realize that he’s behind and he’ll get the latest links in the chain.
+
+If Alice and Bob _both_ add new links to the signature while they’re disconnected from each other. When they sync up, they each add a special **merge link**, pointing to their two divergent heads. This merge link becomes the new head for both of them.
+
+![image](https://user-images.githubusercontent.com/2136620/98110368-43240700-1e9f-11eb-9ea9-ecd1253e9ffe.png)
+
 #### Users and keys
 
 In order to sign actions dispatched to the store, CRDX needs to know the name and keys of the local user. CRDX provides the `createUser` function to generate a user object with a new (randomly generated) keyset in the correct format:
@@ -141,7 +158,5 @@ Your resolver will decide what to do with these concurrent actions. It might
 - etc.
 
 The resolver is a pure function that is given two concurrent branches and returns a single branch.
-
-Here's a resolver that orders branches alphabetically according to
 
 #### The reducer function
