@@ -65,5 +65,7 @@ export const receiveMessage = <A extends Action, C>(
   state.ourHead = chain.head
   state.theirHead = theirHead
 
+  if (state.ourHead === state.theirHead) state.lastCommonHead = state.ourHead
+
   return [chain, state]
 }
