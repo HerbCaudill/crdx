@@ -37,7 +37,7 @@ export class Network {
   deliverAll() {
     let messageCount = 0
     const peerCount = Object.keys(this.peers).length
-    const maxMessages = 10 ** peerCount // should be plenty
+    const maxMessages = 10 ** (peerCount - 1) // should be plenty - any more & something has gone haywire
 
     const delivered = [] as NetworkMessage[]
 
