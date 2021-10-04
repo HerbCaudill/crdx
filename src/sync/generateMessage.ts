@@ -1,7 +1,7 @@
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncPayload, SyncState } from './types'
 import { Action, getHead, getPredecessorHashes, isPredecessor, SignatureChain } from '/chain'
-import { arrayToMap, unique } from '/util'
+import { arrayToMap, truncateHashes, unique } from '/util'
 
 export const generateMessage = <A extends Action, C>(
   chain: SignatureChain<A, C>,
@@ -15,7 +15,7 @@ export const generateMessage = <A extends Action, C>(
   let message: SyncPayload<A, C> | undefined
 
   if (lastCommonHead === ourHead) {
-    // CASE 1: We're already synced up, don't return a message
+    // CASE 1: Everyone knows we're synced up, no more information to exchange
     message = undefined
   } else {
     message = { root, head }
