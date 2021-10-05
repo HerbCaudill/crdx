@@ -1,12 +1,12 @@
 import { TruncatedHashFilter } from './TruncatedHashFilter'
-import { SyncPayload, SyncState } from './types'
+import { SyncMessage, SyncState } from './types'
 import { Action, getMissingLinks, merge, SignatureChain } from '/chain'
 import { assert, Hash, unique } from '/util'
 
 export const receiveMessage = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   state: SyncState,
-  message: SyncPayload<A, C>
+  message: SyncMessage<A, C>
 ): [SignatureChain<A, C>, SyncState] => {
   const {
     root: theirRoot, //
@@ -32,16 +32,14 @@ export const receiveMessage = <A extends Action, C>(
     links: { ...chain.links, ...state.pendingLinks },
   }
 
-  // check if we have links with missing dependencies
-  const missingLinks = getMissingLinks(theirChain)
+  // check if we are missing any dependencies
+  state.ourNeed = getMissingLinks(theirChain)
 
   // if we have everything we need, reconstruct their chain and merge with it
-  if (!missingLinks.length) {
+  if (!state.ourNeed.length) {
     state.pendingLinks = {} // we've used all the pending links, clear that out
     chain = merge(chain, theirChain)
   }
-
-  state.ourNeed = missingLinks
 
   // 2. What do they need?
 
@@ -49,13 +47,11 @@ export const receiveMessage = <A extends Action, C>(
     const filter = new TruncatedHashFilter().load(encodedFilter)
 
     const theyMightNotHave = (hash: Hash) =>
-      !(
-        filter.hasHash(hash) ||
-        theirRoot === hash ||
-        theirHead === hash ||
-        state.weHaveSent.includes(hash) ||
-        state.theyHaveSent.includes(hash)
-      )
+      !filter.hasHash(hash) &&
+      theirRoot !== hash &&
+      theirHead !== hash &&
+      !state.weHaveSent.includes(hash) &&
+      !state.theyHaveSent.includes(hash)
 
     state.theirNeed = Object.keys(chain.links).filter(theyMightNotHave)
   } else {

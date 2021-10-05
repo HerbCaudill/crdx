@@ -17,15 +17,16 @@
     "noUnusedParameters": false,
     "outDir": "./dist",
     "paths": {
-      "/test/*": ["src/_test/*"],
-      "/*": ["src/*"]
+      "/*": ["src/*"],
+      "/test/*": ["src/_test/*"]
     },
     "rootDir": "./src",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "target": "ES6"
+    "target": "ES6",
+    "useUnknownInCatchVariables": false
   },
   "include": ["src", "@types"]
 }

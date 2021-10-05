@@ -3,13 +3,22 @@ import { createChain, SignatureChain } from '/chain'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
-import { SyncPayload, SyncState } from '/sync/types'
+import { SyncMessage, SyncState } from '/sync/types'
 import { UserWithSecrets } from '/user'
+import { assert, debug } from '/util'
+
+const log = debug('crdx:network')
+
+const logMessage = (msg: NetworkMessage) => {
+  const { to, from, body } = msg
+  const { head, links } = body
+  log(`${from}->${to} ${head} (${links?.count || 0} links)`)
+}
 
 // Simulates a peer-to-peer network
 export class Network {
   peers: Record<string, Peer>
-  queue: any[]
+  queue: NetworkMessage[]
 
   constructor() {
     this.peers = {}
@@ -29,7 +38,7 @@ export class Network {
   }
 
   // Enqueues one message to be sent from fromPeer to toPeer
-  sendMessage(from: string, to: string, body: SyncPayload<any, any>) {
+  sendMessage(from: string, to: string, body: SyncMessage<any, any>) {
     this.queue.push({ from, to, body })
   }
 
@@ -37,29 +46,33 @@ export class Network {
   deliverAll() {
     let messageCount = 0
     const peerCount = Object.keys(this.peers).length
-    const maxMessages = 10 ** (peerCount - 1) // should be plenty - any more & something has gone haywire
+    const maxMessages = 5 ** peerCount // should be plenty - any more & something has gone haywire
 
     const delivered = [] as NetworkMessage[]
 
     while (this.queue.length) {
+      // catch failure to converge
+      if (messageCount++ > maxMessages) throw new Error('loop detected')
+
+      // send the oldest message in the queue
       const message = this.queue.shift()
+      assert(message) // make ts happy
+
+      logMessage(message)
 
       const { to, from, body } = message
-
       this.peers[to].receiveMessage(from, body)
 
       // log the message for the results of this delivery run
       delivered.push(message)
-
-      // catch failure to converge
-      if (messageCount++ > maxMessages) throw truncateStack(new Error('loop detected'))
     }
+    // console.log(`${messageCount} msgs delivered`)
     return delivered
   }
 }
 
 // One peer, which may be connected to any number of other peers
-class Peer {
+export class Peer {
   syncStates: Record<string, SyncState>
   userName: string
   chain: SignatureChain<any, any>
@@ -69,6 +82,7 @@ class Peer {
     this.userName = userName
     this.chain = chain
     this.network = network
+    this.network.registerPeer(this)
     this.syncStates = {}
   }
 
@@ -87,9 +101,9 @@ class Peer {
   }
 
   // Called by Network when we receive a message from another peer
-  receiveMessage(sender: string, message: SyncPayload<any, any>) {
+  receiveMessage(sender: string, message: SyncMessage<any, any>) {
     const [chain, syncState] = receiveMessage(this.chain, this.syncStates[sender], message)
-    this.chain = chain //merge(this.chain, chain)
+    this.chain = chain
     this.syncStates[sender] = syncState
     this.sync()
   }
@@ -129,7 +143,5 @@ export const setupWithNetwork = (...userNames: string[]): [Record<string, TestUs
 export type NetworkMessage = {
   to: string
   from: string
-  body: SyncPayload<any, any>
+  body: SyncMessage<any, any>
 }
-
-export type MessageMutator = (msg: NetworkMessage) => NetworkMessage

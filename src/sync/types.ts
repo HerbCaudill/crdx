@@ -29,7 +29,7 @@ export interface SyncState {
   pendingLinks: LinkMap<any, any>
 }
 
-export interface SyncPayload<A extends Action, C> {
+export interface SyncMessage<A extends Action, C> {
   /** Our root. We just send this as a sanity check - if our roots don't match we can't sync. */
   root: Hash
 

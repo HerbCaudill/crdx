@@ -6,19 +6,18 @@ const substituteTokens = (s: string) => {
     .replace(/"/g, '')
     .replace('::', '')
 
-    .replace(/alice/gi, '👩🏾')
-    .replace(/bob/gi, '👨🏻‍🦲')
-    .replace(/charlie/gi, '👳🏽‍♂️')
-    .replace(/dwight/gi, '👴')
-    .replace(/eve/gi, '🦹‍♀️')
+  // .replace(/alice/gi, '👩🏾')
+  // .replace(/bob/gi, '👨🏻‍🦲')
+  // .replace(/charlie/gi, '👳🏽‍♂️')
+  // .replace(/dwight/gi, '👴')
+  // .replace(/eve/gi, '🦹‍♀️')
 
-    .replace(/laptop/gi, '💻')
-    .replace(/phone/gi, '📱')
+  // .replace(/laptop/gi, '💻')
+  // .replace(/phone/gi, '📱')
 }
 
 export function debug(prefix: string) {
   const debug = originalDebug(prefix)
-  debug.log = (s: string, ...args: any[]) =>
-    console.log(substituteTokens(s), ...args.map(truncateHashes))
+  debug.log = (s: string, ...args: any[]) => originalDebug('crdx')(substituteTokens(s), ...args.map(truncateHashes))
   return debug
 }

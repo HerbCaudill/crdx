@@ -1,6 +1,6 @@
-import { NetworkMessage, setupWithNetwork, TestUserStuff } from '../util/Network'
+import { Network, NetworkMessage, Peer, setupWithNetwork, TestUserStuff } from '../util/Network'
 import { Action, append, createChain, SignatureChain } from '/chain'
-import { generateMessage, initSyncState, receiveMessage, SyncPayload, SyncState } from '/sync'
+import { generateMessage, initSyncState, receiveMessage, SyncMessage, SyncState } from '/sync'
 import { createUser, User, UserWithSecrets } from '/user'
 import { assert, truncateHashes } from '/util'
 
@@ -172,7 +172,6 @@ describe('sync', () => {
       alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: 999 }, user: alice.user })
       alice.peer.sync()
 
-      // make sure we didn't send more information that we had to
       const msgs2 = network.deliverAll()
       expect(countLinks(msgs2)).toEqual(1)
       expectToBeSynced(alice, bob)
@@ -229,26 +228,46 @@ describe('sync', () => {
       expectToBeSynced(alice, bob)
     })
 
-    // it.skip('with simulated false positives', async () => {
-    //   const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
-    //   network.connect(alice.peer, bob.peer)
-    //   // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes
-    //   for (let i = 0; i < N; i++) {
-    //     alice.team.addRole(`alice-${i}`)
-    //     bob.team.addRole(`bob-${i}`)
-    //   }
-    //   expectNotToBeSynced(alice, bob)
-    //   alice.peer.sync()
-    //   bob.peer.sync()
-    //   // Deliver messages but randomly omit some links
-    //   const msgs = network.deliverAll(removeRandomLinks)
-    //   // All links were eventually sent and none were repeated
-    //   expect(countLinks(msgs)).toEqual(N + N + 1)
-    //   // TODO: this is sending too many messages
-    //   expect(msgs.length).toBeLessThanOrEqual(5)
-    //   // We were still able to sync up
-    //   expectToBeSynced(alice, bob)
-    // })
+    it.only('three peers, concurrent changes', () => {
+      const [{ alice, bob, charlie }, network] = setupWithNetwork('alice', 'bob', 'charlie')
+      network.connect(alice.peer, bob.peer)
+      network.connect(alice.peer, charlie.peer)
+      network.connect(bob.peer, charlie.peer)
+
+      alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user })
+
+      alice.peer.sync()
+      bob.peer.sync()
+      charlie.peer.sync()
+      network.deliverAll()
+
+      // no changes yet; everyone is synced up
+      expectToBeSynced(alice, bob)
+      expectToBeSynced(bob, charlie)
+      expectToBeSynced(alice, charlie)
+
+      // everyone makes changes while offline; now they are out of sync
+      alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'A' }, user: alice.user })
+      bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'B' }, user: bob.user })
+      charlie.peer.chain = append({ chain: charlie.peer.chain, action: { type: 'C' }, user: charlie.user })
+      expectNotToBeSynced(alice, bob)
+
+      // now they reconnect and sync back up
+      alice.peer.sync()
+      network.deliverAll()
+      bob.peer.sync()
+      network.deliverAll()
+      charlie.peer.sync()
+      network.deliverAll()
+
+      // Links sent should be N+1 per peer
+      // expect(countLinks(msgs)).toEqual(3 * (N + 1))
+
+      // Now they are synced up again
+      expectToBeSynced(alice, bob)
+      expectToBeSynced(bob, charlie)
+      expectToBeSynced(alice, charlie)
+    })
 
     const expectToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
       expect(a.peer.chain.head).toEqual(b.peer.chain.head)
@@ -262,27 +281,160 @@ describe('sync', () => {
         message.body.links ? Object.keys(message.body.links).length : 0
       return messages.reduce((result, message) => result + linksInMessage(message), 0)
     }
-
-    // this mutates a message containing multiple inks by removing one link
-    // const removeRandomLinks: MessageMutator = msg => {
-    //   const { links } = msg.body
-    //   if (!links || Object.keys(links).length <= 3) return msg
-    //   const hashes = Object.keys(links)
-    //   const modifiedLinks = hashes.reduce((result, hash) => {
-    //     return Math.random() < 0.1
-    //       ? result
-    //       : {
-    //           ...result,
-    //           [hash]: links[hash],
-    //         }
-    //   }, {})
-    //   return {
-    //     ...msg,
-    //     body: {
-    //       ...msg.body,
-    //       links: modifiedLinks,
-    //     },
-    //   }
-    // }
   })
+
+  describePeers('a', 'b')
+  describePeers('a', 'b', 'c')
+  // describePeers('a', 'b', 'c', 'd')
+
+  // these take longer to run
+  // describePeers(['a', 'b', 'c', 'd', 'e'])
+  // describePeers(['a', 'b', 'c', 'd', 'e', 'f'])
+  // describePeers(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+
+  function describePeers(...userNames: string[]) {
+    describe(`${userNames.length} peers`, () => {
+      function connectAll(network: Network) {
+        const peers = Object.values(network.peers)
+        peers.forEach((a, i) => {
+          const followingPeers = peers.slice(i + 1)
+          followingPeers.forEach(b => {
+            network.connect(a, b)
+          })
+        })
+        return [userNames, network]
+      }
+
+      function connectDaisyChain(network: Network) {
+        const peers = Object.values(network.peers)
+        peers.slice(0, peers.length - 1).forEach((a, i) => {
+          const b = peers[i + 1]
+          network.connect(a, b)
+        })
+        return network
+      }
+
+      function assertAllEqual(network: Network) {
+        const peers = Object.values(network.peers)
+        peers.slice(0, peers.length - 1).forEach((a, i) => {
+          const b = peers[i + 1]
+          expect(a.chain.head).toEqual(b.chain.head)
+        })
+      }
+
+      function assertAllDifferent(network: Network) {
+        const peers = Object.values(network.peers)
+        peers.slice(0, peers.length - 1).forEach((a, i) => {
+          const b = peers[i + 1]
+          expect(a.chain.head).not.toEqual(b.chain.head)
+        })
+      }
+
+      it(`syncs a single change (direct connections)`, () => {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectAll(network)
+
+        // first user makes a change
+        const founder = userRecords[userNames[0]]
+        founder.peer.chain = append({ chain: founder.peer.chain, action: { type: 'FOO' }, user: founder.user })
+
+        founder.peer.sync()
+        network.deliverAll()
+
+        // all peers have the same doc
+        assertAllEqual(network)
+      })
+
+      it(`syncs a single change (indirect connections)`, () => {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectDaisyChain(network)
+
+        // first user makes a change
+        const founder = userRecords[userNames[0]]
+        founder.peer.chain = append({ chain: founder.peer.chain, action: { type: 'FOO' }, user: founder.user })
+
+        for (const userName of userNames) userRecords[userName].peer.sync()
+        network.deliverAll()
+
+        // all peers have the same doc
+        assertAllEqual(network)
+      })
+
+      it(`syncs multiple changes (direct connections)`, () => {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectAll(network)
+
+        // each user makes a change
+        for (const userName in userRecords) {
+          const { user, peer } = userRecords[userName]
+          peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+          peer.sync()
+          network.deliverAll()
+        }
+
+        // all peers have the same doc
+        assertAllEqual(network)
+      })
+
+      it(`syncs multiple changes (indirect connections)`, () => {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectDaisyChain(network)
+
+        // each user makes a change
+        for (const userName in userRecords) {
+          const { user, peer } = userRecords[userName]
+          peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+          peer.sync()
+          network.deliverAll()
+        }
+
+        // all peers have the same doc
+        assertAllEqual(network)
+      })
+
+      it('syncs divergent changes (indirect connections)', function() {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectDaisyChain(network)
+
+        // each user makes a change
+        for (const userName in userRecords) {
+          const { user, peer } = userRecords[userName]
+          peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+        }
+
+        // while they're disconnected, they have divergent docs
+        assertAllDifferent(network)
+
+        for (const userName in userRecords) {
+          userRecords[userName].peer.sync()
+          network.deliverAll()
+        }
+
+        // after connecting, their docs converge
+        assertAllEqual(network)
+      })
+
+      it('syncs divergent changes (direct connections)', function() {
+        const [userRecords, network] = setupWithNetwork(...userNames)
+        connectAll(network)
+
+        // each user makes a change
+        for (const userName in userRecords) {
+          const { user, peer } = userRecords[userName]
+          peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+        }
+
+        // while they're disconnected, they have divergent docs
+        assertAllDifferent(network)
+
+        for (const userName in userRecords) {
+          userRecords[userName].peer.sync()
+          network.deliverAll()
+        }
+
+        // after connecting, their docs converge
+        assertAllEqual(network)
+      })
+    })
+  }
 })
