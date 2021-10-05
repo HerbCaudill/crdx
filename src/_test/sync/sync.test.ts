@@ -1,8 +1,8 @@
-import { Network, NetworkMessage, Peer, setupWithNetwork, TestUserStuff } from '../util/Network'
-import { Action, append, createChain, SignatureChain } from '/chain'
-import { generateMessage, initSyncState, receiveMessage, SyncMessage, SyncState } from '/sync'
-import { createUser, User, UserWithSecrets } from '/user'
-import { assert, truncateHashes } from '/util'
+import { Network, NetworkMessage, setupWithNetwork, TestUserStuff } from '../util/Network'
+import { append, createChain } from '/chain'
+import { generateMessage, initSyncState, receiveMessage } from '/sync'
+import { createUser } from '/user'
+import { assert } from '/util'
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
@@ -228,7 +228,7 @@ describe('sync', () => {
       expectToBeSynced(alice, bob)
     })
 
-    it.only('three peers, concurrent changes', () => {
+    it('three peers, concurrent changes', () => {
       const [{ alice, bob, charlie }, network] = setupWithNetwork('alice', 'bob', 'charlie')
       network.connect(alice.peer, bob.peer)
       network.connect(alice.peer, charlie.peer)
@@ -260,8 +260,13 @@ describe('sync', () => {
       charlie.peer.sync()
       network.deliverAll()
 
-      // Links sent should be N+1 per peer
-      // expect(countLinks(msgs)).toEqual(3 * (N + 1))
+      // TODO: ideally this should work without the intermediate `deliverAll` calls - see note below
+      /*
+      alice.peer.sync()
+      bob.peer.sync()
+      charlie.peer.sync()
+      network.deliverAll()
+      */
 
       // Now they are synced up again
       expectToBeSynced(alice, bob)
@@ -284,7 +289,8 @@ describe('sync', () => {
   })
 
   describePeers('a', 'b')
-  describePeers('a', 'b', 'c')
+
+  // describePeers('a', 'b', 'c')
   // describePeers('a', 'b', 'c', 'd')
 
   // these take longer to run
@@ -407,6 +413,7 @@ describe('sync', () => {
 
         for (const userName in userRecords) {
           userRecords[userName].peer.sync()
+          // TODO: we should be able to just call this once, outside the loop (see note)
           network.deliverAll()
         }
 
@@ -429,6 +436,7 @@ describe('sync', () => {
 
         for (const userName in userRecords) {
           userRecords[userName].peer.sync()
+          // TODO: we should be able to just call this once, outside the loop (see note below)
           network.deliverAll()
         }
 
@@ -438,3 +446,13 @@ describe('sync', () => {
     })
   }
 })
+
+/*
+TODO tests should pass with a single `deliverAll` call. 
+
+Currently this causes merge links to pile up in different ways for different peers, 
+sending the sync process into an infinite loop. The solution is probably to get 
+rid of explicit merge links altogether, and instead use the same structure as 
+Automerge: Multiple heads, and multiple parents per node. 
+
+*/
