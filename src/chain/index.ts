@@ -2,7 +2,6 @@
 export * from './baseResolver'
 export * from './createChain'
 export * from './getHead'
-export * from '../_test/chain/getMissingLinks'
 export * from './getRoot'
 export * from './getSequence'
 export * from './merge'
