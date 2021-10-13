@@ -1,6 +1,7 @@
+import { getMissingLinks } from './getMissingLinks'
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getMissingLinks, merge, SignatureChain } from '/chain'
+import { Action, merge, SignatureChain } from '/chain'
 import { assert, Hash, unique } from '/util'
 
 export const receiveMessage = <A extends Action, C>(
@@ -28,7 +29,7 @@ export const receiveMessage = <A extends Action, C>(
 
   const theirChain = {
     root: theirRoot,
-    head: theirHead,
+    head: [...theirHead],
     links: { ...chain.links, ...state.pendingLinks },
   }
 
@@ -49,7 +50,7 @@ export const receiveMessage = <A extends Action, C>(
     const theyMightNotHave = (hash: Hash) =>
       !filter.hasHash(hash) &&
       theirRoot !== hash &&
-      theirHead !== hash &&
+      !theirHead.includes(hash) &&
       !state.weHaveSent.includes(hash) &&
       !state.theyHaveSent.includes(hash)
 
