@@ -19,7 +19,7 @@ export interface SignatureChain<A extends Action, C> {
   root: Hash
 
   /** Hash of the head link (the most recent link we know about) */
-  head: Hash
+  head: Hash[]
 
   /** Hash table of all the links we know about */
   links: LinkMap<A, C>
@@ -114,8 +114,8 @@ export type ActionLinkBody<A extends Action, C> = A &
     /** Unix timestamp on device that created this link */
     timestamp: UnixTimestamp
 
-    /** Hash of the previous link */
-    prev: Hash
+    /** Head(s) of the chain when this link was added */
+    prev: Hash[]
   }
 
 // ROOT LINKS
