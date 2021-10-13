@@ -33,10 +33,14 @@ describe('chains', () => {
       expect(getPayloads(sequence)).toEqual(split(expected))
     })
 
-    /*                      ┌─→ e ─→ g ─┐
-         a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
-                 ├─→ h ─→ i ─────────────────┘         │
-                 └─→ j ─→ k ─→ l ──────────────────────┘           */
+    /*           
+                ┌e─g┐
+            ┌c─d┤   ├o┐
+         a─b┤   └─f─┤ ├n
+            ├──h─i──┘ │ 
+            └─j─k─l───┘           
+                 
+    */
 
     describe('complex chain', () => {
       const chain = buildChain()
