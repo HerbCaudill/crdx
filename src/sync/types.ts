@@ -6,16 +6,16 @@ export type EncodedFilter = Uint8Array // the encoded output of a probabilistic 
 export interface SyncState {
   /** The head we had in common with this peer the last time we synced. If null, we don't have any
    * record of having synced before. */
-  lastCommonHead: Hash | null
+  lastCommonHead: Hash[]
 
   /** Our head as of the last time we sent a sync message */
-  ourHead: Hash | null
+  ourHead: Hash[]
 
   /** Links that we know we need because links we have depend on them */
   ourNeed: Hash[]
 
   /** Their head as of the last time they sent a sync message */
-  theirHead: Hash | null
+  theirHead: Hash[]
 
   /** Links they said they needed in their most recent sync message */
   theirNeed: Hash[]
@@ -34,7 +34,7 @@ export interface SyncMessage<A extends Action, C> {
   root: Hash
 
   /** Our head at the time of sending. */
-  head: Hash
+  head: Hash[]
 
   /** Any links we know they need. */
   links?: LinkMap<A, C>
