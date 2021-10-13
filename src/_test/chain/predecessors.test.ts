@@ -14,7 +14,7 @@ describe('chains', () => {
   describe('predecessors', () => {
     describe('getPredecessors', () => {
       test('head', () => {
-        const predecessors = getPayloads(getPredecessors(chain, getHead(chain))).sort() // ignore order
+        const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0])).sort() // ignore order
         const expected = 'a b c d e f g h i j k l o'.split(' ')
         expect(predecessors).toEqual(expected)
       })
@@ -52,36 +52,6 @@ describe('chains', () => {
       test(`c doesn't precede l`, () => expect(testCase('c', 'l')).toBe(false))
 
       test(`nonexistent nodes don't precede anything`, () => expect(testCase('nope', 'c')).toBe(false))
-
-      test('merge nodes', () => {
-        const links = Object.values(chain.links)
-
-        const m = links.filter(isMergeLink)
-        const c = findByPayload(chain, 'c')
-        expect(isPredecessor(chain, c, m[0])).toBe(true)
-        expect(isPredecessor(chain, c, m[1])).toBe(true)
-        expect(isPredecessor(chain, c, m[2])).toBe(true)
-
-        const l = findByPayload(chain, 'l')
-        expect(isPredecessor(chain, l, m[0])).toBe(false)
-        expect(isPredecessor(chain, l, m[1])).toBe(false)
-        expect(isPredecessor(chain, l, m[2])).toBe(true)
-
-        const i = findByPayload(chain, 'i')
-        expect(isPredecessor(chain, i, m[0])).toBe(false)
-        expect(isPredecessor(chain, i, m[1])).toBe(true)
-        expect(isPredecessor(chain, i, m[2])).toBe(true)
-
-        const n = findByPayload(chain, 'n')
-        expect(isPredecessor(chain, n, m[0])).toBe(false)
-        expect(isPredecessor(chain, n, m[1])).toBe(false)
-        expect(isPredecessor(chain, n, m[2])).toBe(false)
-
-        const a = findByPayload(chain, 'a')
-        expect(isPredecessor(chain, a, m[0])).toBe(true)
-        expect(isPredecessor(chain, a, m[1])).toBe(true)
-        expect(isPredecessor(chain, a, m[2])).toBe(true)
-      })
     })
 
     describe('getCommonPredecessor', () => {
