@@ -50,13 +50,21 @@ export const getSequence = <A extends Action, C>(options: {
   root?: Link<A, C>
 
   /** The link to use as the chain's head (used to process a subchain) */
-  head?: Link<A, C>
+  head?: Link<A, C>[]
 
   /** The resolver to use when merging concurrent branches into a single sequence. If no resolver is
    * provided, the concurrent branches will be concatenated in an arbitrary but deterministic order. */
   resolver?: Resolver<A, C>
 }): NonMergeLink<A, C>[] => {
-  const { chain, root = getRoot(chain), head = getHead(chain), resolver = baseResolver as Resolver<A, C> } = options
+  const {
+    chain, //
+    root = getRoot(chain),
+    resolver = baseResolver as Resolver<A, C>,
+  } = options
+
+  // TODO: this is a temporary workaround to get this working with multiple heads
+  const head = options.head ? options.head[0] : getHead(chain)[0]
+
   let result: Link<A, C>[]
 
   type Branch = Sequence<A, C>
@@ -68,10 +76,15 @@ export const getSequence = <A extends Action, C>(options: {
   } else if (!isMergeLink(head)) {
     // 1 parent (normal action link)
     // recurse our way backwards
-    const parent = chain.links[((head as ActionLink<A, C>).body as ActionLinkBody<A, C>).prev] as Link<A, C>
+    const body = (head as ActionLink<A, C>).body as ActionLinkBody<A, C>
+
+    // TODO: this is a temporary workaround to get this working with multiple parents
+    const prev = body.prev[0]
+
+    const parent = chain.links[prev] as Link<A, C>
     const predecessors = getSequence({
       ...options,
-      head: parent,
+      head: [parent],
     })
     result = [...predecessors, head]
   } else {
@@ -101,10 +114,10 @@ export const getSequence = <A extends Action, C>(options: {
 
       // Recursively resolve the branch containing the root into a sequence.
       const isOurBranchHead = (h: Link<A, C>) => root === h || isPredecessor(chain, root, h)
-      const ourBranchHead = branchHeads.find(isOurBranchHead)
+      const ourBranchHead = branchHeads.find(isOurBranchHead)! // definitely exists
       result = getSequence({
         ...options,
-        head: ourBranchHead,
+        head: [ourBranchHead], // TODO: workaround
       })
     } else {
       // The common predecessor is AFTER the root we've been given, so we have two branches to
@@ -118,7 +131,7 @@ export const getSequence = <A extends Action, C>(options: {
       // Get the sequence for each branch (recursively)
       const root = getCommonPredecessor(chain, ...branchHeads)
       const branches = <[Branch, Branch]>branchHeads
-        .map(head => getSequence({ chain, root, head })) // get the branch corresponding to each head
+        .map(head => getSequence({ chain, root, head: [head] })) // get the branch corresponding to each head
         .map(branch => branch.slice(1)) // omit the common predecessor itself
 
       // Apply the resolver to these two sequences
@@ -127,7 +140,7 @@ export const getSequence = <A extends Action, C>(options: {
       // Now we can resume making our way back from the common predecessor towards the root (also recursively)
       const predecessors = getSequence({
         ...options,
-        head: commonPredecessor,
+        head: [commonPredecessor],
       })
 
       result = [...predecessors, ...resolvedBranches, head] as Sequence<A, C>
