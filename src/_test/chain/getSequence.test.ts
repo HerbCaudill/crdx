@@ -39,7 +39,6 @@ describe('chains', () => {
          a─b┤   └─f─┤ ├n
             ├──h─i──┘ │ 
             └─j─k─l───┘           
-                 
     */
 
     describe('complex chain', () => {
