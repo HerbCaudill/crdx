@@ -27,12 +27,7 @@ export const getCommonPredecessorHash = memoize((chain: SignatureChain<any, any>
 export const getParents = (chain: SignatureChain<any, any>, link: Link<any, any>) =>
   getParentHashes(link).map(hash => chain.links[hash])
 
-export const getParentHashes = (link: Link<any, any>): string[] =>
-  isRootLink(link)
-    ? [] // root link = 0 parents
-    : isMergeLink(link)
-    ? [...link.body] // merge link = 2 parents
-    : [link.body.prev] // normal link = 1 parent
+export const getParentHashes = (link: Link<any, any>): string[] => (isRootLink(link) ? [] : link.body.prev)
 
 /** Returns true if `a` is a predecessor of `b` */
 export const isPredecessor = <A extends Action, C>(
