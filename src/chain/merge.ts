@@ -19,14 +19,14 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
 
-  // If one of the heads is a parent of an existing link, it is no longer a head
   const mergedHeads: Hash[] = uniq(a.head.concat(b.head))
   const existingLinks = Object.values(mergedLinks)
+  // If one of the heads is a parent of an existing link, it is no longer a head
   const newHeads = mergedHeads.filter(isNotParentOfAnyOf(existingLinks))
 
   const mergedChain: SignatureChain<A, C> = {
     root: a.root,
-    head: newHeads,
+    head: newHeads.sort(), // ensure consistent order
     links: mergedLinks,
   }
 
