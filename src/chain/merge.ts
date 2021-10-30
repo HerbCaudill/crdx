@@ -1,5 +1,6 @@
 ﻿import { uniq } from 'lodash'
-import { Action, isMergeLink, isRootLink, Link, SignatureChain } from './types'
+import { isPredecessor } from '.'
+import { Action, isRootLink, Link, SignatureChain } from './types'
 import { Hash } from '/util'
 import { assertIsValid } from '/validator'
 
@@ -12,23 +13,26 @@ import { assertIsValid } from '/validator'
 export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: SignatureChain<A, C>): SignatureChain<A, C> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
-  // Ensure that the chains are correctly formed, etc.
-  assertIsValid(a)
-  assertIsValid(b)
+  // TODO: Ensure that the chains are correctly formed, etc.
+  // assertIsValid(a)
+  // assertIsValid(b)
 
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
 
   const mergedHeads: Hash[] = uniq(a.head.concat(b.head))
   const existingLinks = Object.values(mergedLinks)
+
   // If one of the heads is a parent of an existing link, it is no longer a head
   const newHeads = mergedHeads.filter(isNotParentOfAnyOf(existingLinks))
 
   const mergedChain: SignatureChain<A, C> = {
     root: a.root,
-    head: newHeads.sort(), // ensure consistent order
+    head: newHeads,
     links: mergedLinks,
   }
+
+  mergedChain.head = mergedChain.head.sort()
 
   return mergedChain
 }
@@ -43,8 +47,16 @@ const isNotParentOfAnyOf = (links: Link<any, any>[]) => (h: Hash) => {
 
 // Returns true if h is the parent of the given link
 const isParent = (h: Hash) => (l: Link<any, any>) => {
-  // TODO: MergeLinks aren't a thing
-  if (isMergeLink(l)) return false
   if (isRootLink(l)) return false
   return l.body.prev.includes(h)
 }
+
+const byPayload = (a: Link<any, any>, b: Link<any, any>) => {
+  return a.body.payload < b.body.payload ? -1 : 1
+}
+
+const byDepth = (chain: SignatureChain<any, any>) => (a: Link<any, any>, b: Link<any, any>) => {
+  return isPredecessor(chain, a, b) ? -1 : 1
+}
+
+const allBranchPoints = (chain: SignatureChain<any, any>) => {}
