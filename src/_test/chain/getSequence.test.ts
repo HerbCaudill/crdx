@@ -1,9 +1,19 @@
 import { randomKey } from '@herbcaudill/crypto'
-import { append, arbitraryDeterministicSort, createChain, getSequence, Resolver } from '/chain'
-import { buildChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
+import { append, arbitraryDeterministicSort, createChain, getSequence, Resolver, Sequence } from '/chain'
+import { buildComplexChain, buildSimpleChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
 import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
+
+const byPayload = (a: Sequence<XAction, any>, b: Sequence<XAction, any>) => {
+  const [aPayload, bPayload] = [a, b].map(branch => getPayloads(branch))
+  return aPayload < bPayload ? -1 : aPayload > bPayload ? 1 : 0
+}
+
+const alphabeticalResolver: Resolver<XAction, any> = branches => {
+  const [a, b] = branches.sort(byPayload)
+  return a.concat(b)
+}
 
 const randomResolver: Resolver<any, any> = ([a, b]) => {
   // change the hash key on each run, to ensure our tests aren't bound to one arbitrary sort
@@ -33,42 +43,27 @@ describe('chains', () => {
       expect(getPayloads(sequence)).toEqual(split(expected))
     })
 
+    test('simple chain', () => {
+      var chain = buildSimpleChain()
+      const sequence = getSequence({ chain, resolver: alphabeticalResolver })
+      expect(getPayloads(sequence)).toEqual('abc')
+    })
+
     /*           
-                ┌e─g┐
-            ┌c─d┤   ├o┐
-         a─b┤   └─f─┤ ├n
-            ├──h─i──┘ │ 
-            └─j─k─l───┘           
+                
+                          ┌─ e ─ g ─┐
+                ┌─ c ─ d ─┤         ├─ o ─┐
+         a ─ b ─┤         └─── f ───┤     ├─ n
+                ├──── h ──── i ─────┘     │ 
+                └───── j ─── k ── l ──────┘           
     */
 
     describe('complex chain', () => {
-      const chain = buildChain()
+      const chain = buildComplexChain()
 
       test('full sequence', () => {
-        const sequence = getSequence({ chain, resolver: randomResolver })
-
-        // the resolved sequence will be one of these
-        const expected = [
-          'a b   j k l   c d f e g   h i   o n',
-          'a b   j k l   c d e g f   h i   o n',
-
-          'a b   j k l   h i   c d f e g   o n',
-          'a b   j k l   h i   c d e g f   o n',
-
-          'a b   h i   c d f e g   j k l   o n',
-          'a b   h i   c d e g f   j k l   o n',
-
-          'a b   h i   c d f e g  o  j k l   n',
-          'a b   h i   c d e g f  o  j k l   n',
-
-          'a b   c d f e g   h i  o  j k l   n',
-          'a b   c d e g f   h i  o  j k l   n',
-
-          'a b   c d f e g   h i   j k l   o n',
-          'a b   c d e g f   h i   j k l   o n',
-        ].map(split)
-
-        expect(expected).toContainEqual(getPayloads(sequence))
+        const sequence = getSequence({ chain, resolver: alphabeticalResolver })
+        expect(getPayloads(sequence)).toEqual('abcdegfhiojkln')
       })
 
       test('root', () => {
@@ -100,7 +95,7 @@ describe('chains', () => {
 
       test('head', () => {
         const d = findByPayload(chain, 'd')
-        const sequence = getSequence<any, any>({ chain, head: d, resolver: randomResolver })
+        const sequence = getSequence<any, any>({ chain, head: [d], resolver: randomResolver })
 
         const expected = 'a b c d'
 
@@ -110,7 +105,7 @@ describe('chains', () => {
       test('root & head', () => {
         const j = findByPayload(chain, 'j')
         const l = findByPayload(chain, 'l')
-        const sequence = getSequence<any, any>({ chain, root: j, head: l, resolver: randomResolver })
+        const sequence = getSequence<any, any>({ chain, root: j, head: [l], resolver: randomResolver })
 
         const expected = 'j k l'
 
@@ -159,7 +154,7 @@ describe('chains', () => {
       })
     })
   })
-})
 
-// split on whitespace
-const split = (s: string) => s.split(/\s*/)
+  // split on whitespace
+  const split = (s: string) => s.split(/\s*/)
+})
