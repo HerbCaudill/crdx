@@ -1,12 +1,12 @@
 ﻿import { getRoot, getSuccessors, isSuccessor } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
+import { buildComplexChain, findByPayload, getPayloads } from '/test/chain/utils'
 
 /*                          ┌─→ e ─→ g ─┐
          a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
                  ├─→ h ─→ i ─────────────────┘         │
                  └─→ j ─→ k ─→ l ──────────────────────┘           */
 
-const chain = buildChain()
+const chain = buildComplexChain()
 
 describe('chains', () => {
   describe('successors', () => {
