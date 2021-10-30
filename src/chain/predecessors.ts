@@ -1,4 +1,4 @@
-﻿import { Action, isMergeLink, isRootLink, Link, SignatureChain } from './types'
+﻿import { Action, isRootLink, Link, SignatureChain } from './types'
 import { memoize } from '/util'
 import uniq from 'lodash/uniq'
 
@@ -52,10 +52,14 @@ export const getPredecessors = <A extends Action, C>(chain: SignatureChain<A, C>
 
 export const getCommonPredecessor = <A extends Action, C = Action>(
   chain: SignatureChain<A, C>,
-  a: Link<A, C>,
-  b: Link<A, C>
-) => {
-  const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
-  if (!hash) throw new Error('no common predecessor was found')
-  return chain.links[hash]
+  links: Link<A, C>[]
+): Link<A, C> => {
+  if (links.length < 2) throw new Error('at least two links required')
+  if (links.length === 2) {
+    const [a, b] = links
+    const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
+    if (!hash) throw new Error('no common predecessor was found')
+    return chain.links[hash]
+  }
+  return links.reduce((result, link) => getCommonPredecessor(chain, [result, link]), links[0])
 }
