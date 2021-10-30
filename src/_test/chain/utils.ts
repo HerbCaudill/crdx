@@ -1,7 +1,7 @@
 ﻿import { append } from '/chain/append'
 import { createChain } from '/chain/createChain'
 import { merge } from '/chain/merge'
-import { Action, NonMergeLink, isMergeLink, Link, LinkBody, SignatureChain, isRootLink } from '/chain/types'
+import { Action, Link, LinkBody, SignatureChain, isRootLink } from '/chain/types'
 import clone from 'lodash/clone'
 import { setup } from '/test/util/setup'
 
@@ -9,28 +9,50 @@ const { alice } = setup('alice')
 
 export const getPayloads = (sequence: Link<XAction, any>[]) =>
   sequence //
-    .filter(link => !isRootLink(link) && !isMergeLink(link))
+    .filter(link => !isRootLink(link))
     .map(link => (link.body as LinkBody<XAction, any>).payload)
+    .join('')
 
 export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAction['payload']) => {
   const links = Object.values(chain.links)
-  return links.find(n => !isMergeLink(n) && n.body.payload === payload) as NonMergeLink<XAction, any>
+  return links.find(n => n.body.payload === payload) as Link<XAction, any>
 }
 
 /**
- * Returns a chain with these links and branches (`*` = merge link):
- *
+ * Returns this chain:
  *```
- *                   ┌─→ e ─→ g ─┐
- *a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
- *        ├─→ h ─→ i ─────────────────┘         │
- *        └─→ j ─→ k ─→ l ──────────────────────┘
+ *        ┌─ b
+ *     a ─┤
+ *        └─ c
  *```
  */
-export const buildChain = () => {
-  const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
-    append({ chain, action: { type: 'X', payload } as XAction, user: alice })
+export const buildSimpleChain = () => {
+  let root = createChain<XAction, any>({ user: alice, name: 'root' })
+  let a = appendLink(root, 'a')
 
+  let a1 = appendLink(clone(a), 'b')
+  let a2 = appendLink(clone(a), 'c')
+
+  return merge(a1, a2)
+}
+
+/**
+ * Returns this chain:
+ *```
+ *                      ┌─ e ─ g ─┐
+ *            ┌─ c ─ d ─┤         ├─ o ─┐
+ *     a ─ b ─┤         └─── f ───┤     ├─ n
+ *            ├──── h ──── i ─────┘     │
+ *            └───── j ─── k ── l ──────┘
+ *
+ *```
+
+
+ab((cd(eg|f)|hi)o|jkl)n
+
+ */
+
+export const buildComplexChain = () => {
   let root = createChain<XAction, any>({ user: alice, name: 'root' })
   let a = appendLink(root, 'a')
   let b = appendLink(a, 'b')
@@ -78,4 +100,7 @@ export interface XAction extends Action {
   type: 'X'
   payload: string
 }
-export type XLink = NonMergeLink<XAction, {}>
+export type XLink = Link<XAction, {}>
+
+const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
+  append({ chain, action: { type: 'X', payload } as XAction, user: alice })
