@@ -1,6 +1,6 @@
 ﻿import { getRoot } from '/chain/getRoot'
 import { hashLink } from '/chain/hashLink'
-import { isMergeLink, isRootLink } from '/chain/types'
+import { isRootLink } from '/chain/types'
 import { ROOT, VALID } from '/constants'
 import { assert, memoize } from '/util'
 import { signatures } from '@herbcaudill/crypto'
@@ -9,9 +9,6 @@ import { ValidationError, ValidatorSet } from './types'
 const _validators: ValidatorSet = {
   /** Do the previous link(s) referenced by this link exist?  */
   validatePrev: (link, chain) => {
-    // TODO: there are no merge links
-    assert(!isMergeLink(link))
-
     if (isRootLink(link)) return VALID // nothing to validate on first link
 
     for (const hash of link.body.prev)
@@ -31,9 +28,6 @@ const _validators: ValidatorSet = {
 
   /** If this is a root link, it should not have any predecessors, and should be the chain's root */
   validateRoot: (link, chain) => {
-    // TODO: there are no merge links
-    assert(!isMergeLink(link))
-
     const hasNoPrevLink = !('prev' in link.body) || (link.body as any).prev === undefined
     const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isTheChainRoot = getRoot(chain) === link
@@ -54,9 +48,6 @@ const _validators: ValidatorSet = {
 
   /** Does this link's signature check out? */
   validateSignatures: link => {
-    // TODO: there are no merge links
-    assert(!isMergeLink(link))
-
     const signedMessage = {
       payload: link.body,
       signature: link.signed.signature,
