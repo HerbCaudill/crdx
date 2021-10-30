@@ -1,5 +1,5 @@
-import { getCommonPredecessor, getHead, getPredecessors, isMergeLink, isPredecessor } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
+import { getCommonPredecessor, getHead, getPredecessors, isPredecessor } from '/chain'
+import { buildComplexChain, findByPayload, getPayloads } from '/test/chain/utils'
 
 /*
                      ┌─→ e ─→ g ─┐
@@ -8,27 +8,32 @@ import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
           └─→ j ─→ k ─→ l ──────────────────────┘
  */
 
-const chain = buildChain()
+const chain = buildComplexChain()
 
 describe('chains', () => {
   describe('predecessors', () => {
     describe('getPredecessors', () => {
       test('head', () => {
-        const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0])).sort() // ignore order
-        const expected = 'a b c d e f g h i j k l o'.split(' ')
-        expect(predecessors).toEqual(expected)
+        const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0]))
+          .split('')
+          .sort()
+          .join('') // ignore order
+        expect(predecessors).toEqual('abcdefghijklo')
       })
 
       test('d', () => {
         const d = findByPayload(chain, 'd')
         const predecessors = getPayloads(getPredecessors(chain, d))
-        expect(predecessors).toEqual('c b a'.split(' ')) // note correct order
+        expect(predecessors).toEqual('cba') // note correct order
       })
 
       test('o', () => {
         const o = findByPayload(chain, 'o')
-        const predecessors = getPayloads(getPredecessors(chain, o)).sort() // ignore order
-        expect(predecessors).toEqual('a b c d e f g h i'.split(' '))
+        const predecessors = getPayloads(getPredecessors(chain, o))
+          .split('')
+          .sort()
+          .join('') // ignore order
+        expect(predecessors).toEqual('abcdefghi')
       })
     })
 
@@ -56,11 +61,10 @@ describe('chains', () => {
 
     describe('getCommonPredecessor', () => {
       const testCase = (a: string, b: string) => {
-        const chain = buildChain()
+        const chain = buildComplexChain()
         const aLink = findByPayload(chain, a)
         const bLink = findByPayload(chain, b)
-        const result = getCommonPredecessor(chain, aLink, bLink)
-        if (isMergeLink(result)) return result.body.join()
+        const result = getCommonPredecessor(chain, [aLink, bLink])
         return result.body.payload
       }
 
