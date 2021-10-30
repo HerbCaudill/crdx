@@ -28,14 +28,13 @@ export interface SignatureChain<A extends Action, C> {
 /** A `LinkMap` is a hash table of links */
 export type LinkMap<A extends Action, C> = Record<Hash, Link<A, C>>
 
-/** There are three types of links:
- * - an `ActionLink` is a normal link
+// TODO: could we simplify this further by making the `prev` element for ROOT an empty array?
+
+/** There are two types of links:
  * - a `RootLink` is a special type of action link that has type 'ROOT' and no `prev` element
- * - a `MergeLink` is a special marker that has no content of its own and just points back to two parent links
- *
- * A `Link` could be any of these three.
+ * - an `ActionLink` is a normal link
  */
-export type Link<A extends Action, C> = ActionLink<A, C> | RootLink<C> | MergeLink
+export type Link<A extends Action, C> = RootLink<C> | ActionLink<A, C>
 
 /** The full link, consisting of a body and a signature block */
 export type SignedLink<A extends Action, C> = {
@@ -160,41 +159,10 @@ export type RootLinkBody = RootAction & {
   timestamp: UnixTimestamp
 }
 
-/////////////////// MERGE LINKS
-
-/** Merge links are analogous to a git merge commit; they have no content of their own. The body is
- *  just an array of the two heads being merged
- *
- * @example
- * ```ts
- * const example_merge: MergeLink = {
- *   type: 'MERGE',
- *   hash: 'W83AYab2n2NhWo4dEVDr4O4z',
- *   body: ['DdPwc9xhLgU6l5DZhunqxTXK', 'NuBx3niq9aQKM1AyB7f3Mlt7'],
- * }
- * ```
- */
-export type MergeLink = {
-  type: typeof MERGE
-
-  /** Hash of this link's body */
-  hash: Hash
-
-  /** Hashes of the two concurrent heads being merged */
-  body: Hash[]
-}
-
-/** A `NonMergeLink` is either a RootLink or an ActionLink. */
-export type NonMergeLink<A extends Action, C> = RootLink<C> | ActionLink<A, C> // excludes MergeLink
-
 // TYPE GUARDS
 
 export const isRootLink = (link: Link<any, any>): link is RootLink<any> => {
   return 'type' in link.body && link.body.type === ROOT
-}
-
-export const isMergeLink = (link: Link<any, any>): link is MergeLink => {
-  return 'type' in link && link.type === MERGE
 }
 
 export const isActionLink = <A extends Action, C>(link: Link<A, C>): link is ActionLink<A, C> => {
@@ -203,12 +171,25 @@ export const isActionLink = <A extends Action, C>(link: Link<A, C>): link is Act
 
 /////////////////// SEQUENCES
 
-/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). It has no merge
- *  links because all merges have been resolved. */
-export type Sequence<A extends Action, C> = NonMergeLink<A, C>[]
+/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). */
+export type Sequence<A extends Action, C> = Link<A, C>[]
 
-/** A resolver takes two sequences, and returns a single sequence combining the two
- *  while applying any logic regarding which links are included and what order they're in.
+/** A resolver takes two sequences, and returns a single sequence combining the two while applying
+ *  any logic regarding which links are included and what order they're in.
+ *
+ * Suppose you have two concurrent branches `[e, g]` and `[f]`. One resolver might just concatenate
+ * the two branches in arbitrary order, resulting in `[e,g,f]` or `[f,e,g]`. Another resolver might
+ * return the links in a different order, and/or omit some links; so these concurrent branches might
+ * also be resolved as:
+ * ```
+ *   [e, g, f]
+ *   [e, f, g]
+ *   [e, g]
+ *   [f, g]
+ *   [f]
+ * ```
+ * ... etc.
+ *
  */
 export type Resolver<A extends Action, C> = (
   branches: [Sequence<A, C>, Sequence<A, C>],
