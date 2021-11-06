@@ -1,5 +1,5 @@
 import { append, createChain, Link, topoSort } from '/chain'
-import { buildComplexChain, buildSimpleChain, getPayloads, XAction } from '/test/chain/utils'
+import { buildComplexChain, buildSimpleChain, buildTrickyChain, getPayloads, XAction } from '/test/chain/utils'
 import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
@@ -86,6 +86,31 @@ describe('chains', () => {
       expect(sequence.indexOf('a')).toBeLessThan(sequence.indexOf('n'))
       expect(sequence.indexOf('i')).toBeLessThan(sequence.indexOf('o'))
       expect(sequence.indexOf('f')).toBeLessThan(sequence.indexOf('o'))
+    })
+
+    /*
+                          ┌─ h ────────┐
+                ┌─ c ─ e ─┤            ├─ k
+         a ─ b ─┤         └──┐         │
+                │            ├─ g ─ j ─┘
+                └── d ───────┘
+    */
+    test('tricky chain sorted by payload', () => {
+      const chain = buildTrickyChain()
+      const sequence = topoSort(chain, { comparator: byPayload })
+      expect(getPayloads(sequence)).toEqual('abcedgjhk')
+    })
+
+    test('tricky chain sorted by hash', () => {
+      const chain = buildTrickyChain()
+      const sequence = getPayloads(topoSort(chain))
+      expect(sequence.startsWith('ab')).toBe(true)
+      expect(sequence.endsWith('k')).toBe(true)
+      expect(sequence.includes('ce')).toBe(true)
+      expect(sequence.includes('gj')).toBe(true)
+      expect(sequence.indexOf('d')).toBeLessThan(sequence.indexOf('g'))
+      expect(sequence.indexOf('e')).toBeLessThan(sequence.indexOf('h'))
+      expect(sequence.indexOf('e')).toBeLessThan(sequence.indexOf('g'))
     })
   })
 })
