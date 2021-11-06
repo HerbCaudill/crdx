@@ -13,20 +13,26 @@ describe('chains', () => {
     describe('getSuccessors', () => {
       test('root', () => {
         const root = getRoot(chain)
-        const successors = getPayloads(getSuccessors(chain, root)).sort()
+        const successors = getPayloads(getSuccessors(chain, root))
+          .split('')
+          .sort()
         const expected = 'a b c d e f g h i j k l n o'.split(' ')
         expect(successors).toEqual(expected)
       })
 
       test('d', () => {
         const d = findByPayload(chain, 'd')
-        const successors = getPayloads(getSuccessors(chain, d)).sort()
+        const successors = getPayloads(getSuccessors(chain, d))
+          .split('')
+          .sort()
         expect(successors).toEqual('e f g n o'.split(' '))
       })
 
       test('o', () => {
         const o = findByPayload(chain, 'o')
-        const successors = getPayloads(getSuccessors(chain, o)).sort()
+        const successors = getPayloads(getSuccessors(chain, o))
+          .split('')
+          .sort()
         expect(successors).toEqual('n'.split(' '))
       })
     })
