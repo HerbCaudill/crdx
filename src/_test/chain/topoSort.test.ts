@@ -68,13 +68,18 @@ describe('chains', () => {
     test('complex chain sorted by hash', () => {
       const chain = buildComplexChain()
       const sequence = getPayloads(topoSort(chain))
+
+      // we know how the sequence starts and ends
       expect(sequence.startsWith('ab')).toBe(true)
       expect(sequence.endsWith('n')).toBe(true)
-      // There are lots of possibilities; rather than list them all we'll make sure that certain sequences are kept intact...
+
+      // beyond that here are lots of possibilities;
+      // rather than list them all we'll make sure that certain sequences are kept intact...
       expect(sequence.includes('cd')).toBe(true)
       expect(sequence.includes('hi')).toBe(true)
       expect(sequence.includes('jkl')).toBe(true)
       expect(sequence.includes('eg')).toBe(true)
+
       // ...and links don't appear before links they depend on
       expect(sequence.indexOf('b')).toBeLessThan(sequence.indexOf('c'))
       expect(sequence.indexOf('a')).toBeLessThan(sequence.indexOf('e'))
