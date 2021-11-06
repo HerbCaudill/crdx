@@ -2,11 +2,7 @@
 import { Action, isRootLink, Link, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 
-/** By default,   */
-const byHash: LinkComparator = (a, b): -1 | 0 | 1 => {
-  return a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0
-}
-
+/** Flattens a signature chain into a sequence  */
 export const topoSort = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   options: TopoSortOptions = {}
@@ -34,7 +30,7 @@ export const topoSort = <A extends Action, C>(
     // find links that have no remaining parents
     const queue = links.filter(link => parentCount[link.hash] === 0)
 
-    // using the comparator to determine the order, add the first link in the queue to the sorted list
+    // using the comparator to determine the order, take the first link in the queue and add it to the sorted list
     const link = queue.sort(comparator).shift()!
     take(link)
   }
@@ -79,8 +75,12 @@ export const topoSort = <A extends Action, C>(
   }
 }
 
+/** By default, we use the links' hashes to order them in an arbitrary but predictable sequence. */
+export const byHash: LinkComparator = (a, b) => (a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0)
+
+/** Any function that takes two links and tells us which comes first can be used as a comparator. */
 export type LinkComparator = (a: Link<any, any>, b: Link<any, any>) => -1 | 0 | 1
 
-type TopoSortOptions = {
+export type TopoSortOptions = {
   comparator?: LinkComparator
 }
