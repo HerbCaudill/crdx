@@ -2,6 +2,9 @@ import { memoize } from 'lodash'
 import { Action, isRootLink, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 
+/**
+ * Returns the hashes of the children of the link with the given hash.
+ */
 export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash) => {
   const childrenLookup = calculateChildren(chain)
   return childrenLookup[hash] || []
