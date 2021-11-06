@@ -87,7 +87,5 @@ describe('chains', () => {
       expect(sequence.indexOf('i')).toBeLessThan(sequence.indexOf('o'))
       expect(sequence.indexOf('f')).toBeLessThan(sequence.indexOf('o'))
     })
-
-    const removeWhitespace = (s: string) => s.replace(/\s*/g, '')
   })
 })
