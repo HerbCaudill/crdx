@@ -1,7 +1,8 @@
 ﻿import { getChildren } from './getChildren'
 import { Action, isRootLink, Link, SignatureChain } from '/chain/types'
+import { Hash } from '/util'
 
-/** By default,  */
+/** By default,   */
 const byHash: LinkComparator = (a, b): -1 | 0 | 1 => {
   return a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0
 }
@@ -17,8 +18,12 @@ export const topoSort = <A extends Action, C>(
   var links = Object.values(chain.links)
 
   // Create a lookup table to keep track of how many remaining parents each link has
-  const parentCount: { [hash: string]: number } = links.reduce(
-    (dict, link) => ({ ...dict, [link.hash]: getParentCount(link) }),
+  const getParentCount = (link: Link<any, any>) => (isRootLink(link) ? 0 : link.body.prev.length)
+  const parentCount: Record<Hash, number> = links.reduce(
+    (dict, link) => ({
+      ...dict,
+      [link.hash]: getParentCount(link),
+    }),
     {}
   )
 
@@ -31,13 +36,13 @@ export const topoSort = <A extends Action, C>(
 
     // using the comparator to determine the order, add the first link in the queue to the sorted list
     const link = queue.sort(comparator).shift()!
-    add(link)
+    take(link)
   }
 
   return sorted
 
   /** Adds the given link to the sorted list, along with any direct children in an uininterrupted sequence */
-  function add(link: Link<A, C>) {
+  function take(link: Link<A, C>) {
     // add it to the sorted list
     sorted.push(link)
 
@@ -48,10 +53,10 @@ export const topoSort = <A extends Action, C>(
     getChildren(chain, link.hash).forEach(child => (parentCount[child] -= 1))
 
     /*  
-    The following isn't stricly necessary, but it seems cleaner to me. I want any links that are
-    part of an uninterrupted sequence of links (with no branching or merging) to stay together. For
-    example, in this chain, Kahn's algorithm will add `c h j` and then `d i k`. But I want the
-    sequences `c d`, `h i`, and `j k l` to stay together. 
+    The following change to the algorithm isn't stricly necessary, but it seems cleaner to me. 
+    I want any links that are part of an uninterrupted sequence of links (with no branching or
+    merging) to stay together. For example, in this chain, I want the sequences `c d`, `h i`, `j k
+    l`, and `e g` to stay together. But Kahn's algorithm will add `c h j`, then `d i k`, and so on.
 
                      ┌─ e ─ g ─┐
            ┌─ c ─ d ─┤         ├─ o ─┐
@@ -70,13 +75,11 @@ export const topoSort = <A extends Action, C>(
 
     // then recursively add it to the sorted list as well
     const child = chain.links[childHash]
-    add(child)
+    take(child)
   }
 }
 
 export type LinkComparator = (a: Link<any, any>, b: Link<any, any>) => -1 | 0 | 1
-
-const getParentCount = (link: Link<any, any>) => (isRootLink(link) ? 0 : link.body.prev.length)
 
 type TopoSortOptions = {
   comparator?: LinkComparator
