@@ -46,12 +46,7 @@ export const buildSimpleChain = () => {
  *            └───── j ─── k ── l ──────┘
  *
  *```
-
-
-ab((cd(eg|f)|hi)o|jkl)n
-
  */
-
 export const buildComplexChain = () => {
   let root = createChain<XAction, any>({ user: alice, name: 'root' })
   let a = appendLink(root, 'a')
@@ -90,6 +85,43 @@ export const buildComplexChain = () => {
   a = merge(b1, b3) // *ol
 
   a = appendLink(a, 'n')
+
+  return a
+}
+
+/**
+ * Returns this chain:
+ *```
+ *                      ┌─ h ────────┐
+ *            ┌─ c ─ e ─┤            ├─ k
+ *     a ─ b ─┤         └──┐         │
+ *            │            ├─ g ─ j ─┘
+ *            └── d ───────┘
+ *```
+ */
+export const buildTrickyChain = () => {
+  let root = createChain<XAction, any>({ user: alice, name: 'root' })
+  let a = appendLink(root, 'a')
+  let b = appendLink(a, 'b')
+
+  // 2 branches from b:
+  let b1 = clone(b)
+  let b2 = clone(b)
+
+  b1 = appendLink(b1, 'c')
+  b1 = appendLink(b1, 'e')
+
+  b2 = appendLink(b2, 'd')
+
+  let e1 = merge(b1, b2)
+
+  e1 = appendLink(e1, 'g')
+  e1 = appendLink(e1, 'j')
+
+  let e2 = appendLink(b2, 'h')
+
+  a = merge(e1, e2)
+  a = appendLink(a, 'k')
 
   return a
 }
