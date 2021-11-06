@@ -37,7 +37,7 @@ export const topoSort = <A extends Action, C>(
 
   return sorted
 
-  /** Adds the given link to the sorted list, along with any direct children in an uininterrupted sequence */
+  /** Takes the given link to be next in the sorted list, along with any direct children in an uininterrupted sequence */
   function take(link: Link<A, C>) {
     // add it to the sorted list
     sorted.push(link)
@@ -51,8 +51,8 @@ export const topoSort = <A extends Action, C>(
     /*  
     The following change to the algorithm isn't stricly necessary, but it seems cleaner to me. 
     I want any links that are part of an uninterrupted sequence of links (with no branching or
-    merging) to stay together. For example, in this chain, I want the sequences `c d`, `h i`, `j k
-    l`, and `e g` to stay together. But Kahn's algorithm will add `c h j`, then `d i k`, and so on.
+    merging) to stay together. For example, in this chain, I want the sequences `cd`, `hi`, 
+    `jkl`, and `eg` to stay together. But Kahn's algorithm will add `chj`, then `dik`, and so on.
 
                      ┌─ e ─ g ─┐
            ┌─ c ─ d ─┤         ├─ o ─┐
@@ -61,11 +61,11 @@ export const topoSort = <A extends Action, C>(
            └───── j ─── k ── l ──────┘           
     */
 
-    // if we have a single child ...
+    // if we have a single child
     var children = getChildren(chain, link.hash)
     if (children.length !== 1) return
 
-    // and it's not a merge point...
+    // and we are its only parent
     const childHash = children[0]
     if (parentCount[childHash] > 0) return
 
