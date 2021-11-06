@@ -15,13 +15,13 @@ export const topoSort = <A extends Action, C>(
 
   // Create a lookup table to keep track of how many remaining parents each link has
   const getParentCount = (link: Link<any, any>) => (isRootLink(link) ? 0 : link.body.prev.length)
-  const parentCount: Record<Hash, number> = links.reduce(
-    (dict, link) => ({
+  const parentCount: Record<Hash, number> = links.reduce((dict, link) => {
+    const count = getParentCount(link)
+    return {
       ...dict,
-      [link.hash]: getParentCount(link),
-    }),
-    {}
-  )
+      [link.hash]: count,
+    }
+  }, {})
 
   // This will be the final sorted list
   const sorted: Link<A, C>[] = []
@@ -46,7 +46,8 @@ export const topoSort = <A extends Action, C>(
     links = links.filter(l => l.hash !== link.hash)
 
     // any links that had it as a parent now have one less parent
-    getChildren(chain, link.hash).forEach(child => (parentCount[child] -= 1))
+    var children = getChildren(chain, link.hash)
+    children.forEach(child => parentCount[child]--)
 
     /*  
     The following change to the algorithm isn't stricly necessary, but it seems cleaner to me. 
@@ -62,7 +63,6 @@ export const topoSort = <A extends Action, C>(
     */
 
     // if we have a single child
-    var children = getChildren(chain, link.hash)
     if (children.length !== 1) return
 
     // and we are its only parent
