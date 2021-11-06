@@ -1,8 +1,8 @@
 import EventEmitter from 'events'
+import { StoreOptions } from './StoreOptions'
 import { Reducer } from './types'
 import {
   Action,
-  ActionLink,
   append,
   baseResolver,
   createChain,
@@ -17,7 +17,6 @@ import {
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
-import { StoreOptions } from './StoreOptions'
 
 /**
  * A CRDX `Store` is intended to work very much like a Redux store.
@@ -97,7 +96,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.chain = append({ chain: this.chain, action: actionWithPayload, user: this.user, context: this.context })
 
     // get the newly appended link
-    const head = getHead(this.chain) as ActionLink<A, C>
+    // TODO: handle multiple heads
+    const [head] = getHead(this.chain)
 
     // we don't need to pass the whole chain through the reducer, just the current state + the new head
     this.state = this.reducer(this.state, head)
