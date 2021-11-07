@@ -14,31 +14,35 @@ export const topoSort = <A extends Action, C>(
   var links = Object.values(chain.links)
 
   // Create a lookup table to keep track of how many remaining parents each link has
-  const getParentCount = (link: Link<any, any>) => (isRootLink(link) ? 0 : link.body.prev.length)
-  const parentCount: Record<Hash, number> = links.reduce((dict, link) => {
-    const count = getParentCount(link)
-    return {
-      ...dict,
-      [link.hash]: count,
-    }
-  }, {})
+  const parentCount: Record<Hash, number> = links.reduce(
+    (result, link) => ({
+      ...result,
+      [link.hash]: isRootLink(link) ? 0 : link.body.prev.length,
+    }),
+    {}
+  )
 
   // This will be the final sorted list
   const sorted: Link<A, C>[] = []
 
   while (links.length > 0) {
-    // find links that have no remaining parents
-    const queue = links.filter(link => parentCount[link.hash] === 0)
+    const queue = links
+      // find links that have no remaining parents
+      .filter(link => parentCount[link.hash] === 0)
+      // use the comparator to sort them (by hash, if none provided)
+      .sort(comparator)
 
-    // using the comparator to determine the order, take the first link in the queue and add it to the sorted list
-    const link = queue.sort(comparator).shift()!
-    take(link)
+    // take the first link in the queue and add it to the sorted list
+    const nextLink = queue.shift()
+    take(nextLink)
   }
 
   return sorted
 
   /** Takes the given link to be next in the sorted list, along with any direct children in an uininterrupted sequence */
-  function take(link: Link<A, C>) {
+  function take(link?: Link<A, C>) {
+    if (!link) return
+
     // add it to the sorted list
     sorted.push(link)
 
