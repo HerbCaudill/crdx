@@ -1,116 +1,128 @@
-import { append, createChain, Link, topoSort } from '/chain'
-import { buildComplexChain, buildSimpleChain, buildTrickyChain, getPayloads, XAction } from '/test/chain/utils'
-import { setup } from '/test/util/setup'
-
-const { alice } = setup('alice')
-
-const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
-  return a.body.payload < b.body.payload ? -1 : a.body.payload > b.body.payload ? 1 : 0
-}
+import { Link, topoSort } from '/chain'
+import { buildChain, getPayloads, XAction } from '/test/chain/utils'
 
 describe('chains', () => {
   describe('topoSort', () => {
-    /*           
-         a 
-    */
-    test('upon creation', () => {
-      var chain = createChain<XAction>({ user: alice, name: 'root' })
-      chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
+    test('one link', () => {
+      const chain = buildChain('a')
       const sequence = topoSort(chain)
-      expect(getPayloads(sequence)).toEqual('a')
+      const payloads = getPayloads(sequence)
+      expect(payloads).toEqual('a')
     })
 
-    /*           
-         a ─ b ─ c
-    */
     test('no branches', () => {
-      var chain = createChain<XAction>({ user: alice, name: 'root' })
-      chain = append({ chain, action: { type: 'X', payload: 'a' }, user: alice })
-      chain = append({ chain, action: { type: 'X', payload: 'b' }, user: alice })
-      chain = append({ chain, action: { type: 'X', payload: 'c' }, user: alice })
+      const chain = buildChain(`a ─ b ─ c`)
       const sequence = topoSort(chain)
+      const payloads = getPayloads(sequence)
 
-      expect(getPayloads(sequence)).toEqual('abc')
+      expect(payloads).toEqual('abc')
     })
 
-    /*
+    describe('simple chain', () => {
+      const chain = buildChain(` 
           ┌─ b
        a ─┤
           └─ c
-    */
-    test('simple chain sorted by payload', () => {
-      var chain = buildSimpleChain()
-      const sequence = topoSort(chain, { comparator: byPayload })
-      expect(getPayloads(sequence)).toEqual('abc')
+      `)
+
+      test('sorted by payload', () => {
+        const sequence = topoSort(chain, { comparator: byPayload })
+        const payloads = getPayloads(sequence)
+        expect(payloads).toEqual('abc')
+      })
+
+      test('sorted by hash', () => {
+        const sequence = topoSort(chain, { comparator: byPayload })
+        const payloads = getPayloads(sequence)
+        expect(['abc', 'acb']).toContain(payloads)
+      })
     })
 
-    test('simple chain sorted by hash', () => {
-      var chain = buildSimpleChain()
-      const sequence = topoSort(chain, { comparator: byPayload })
-      expect(['abc', 'acb']).toContain(getPayloads(sequence))
-    })
-
-    /*
-                
+    describe('complex chain', () => {
+      const chain = buildChain(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
                 ├──── h ──── i ─────┘     │ 
                 └───── j ─── k ── l ──────┘           
-    */
+      `)
+      test('sorted by payload', () => {
+        const sequence = topoSort(chain, { comparator: byPayload })
+        const payloads = getPayloads(sequence)
+        expect(payloads).toEqual('abcdegfhiojkln')
+      })
 
-    test('complex chain sorted by payload', () => {
-      const chain = buildComplexChain()
-      const sequence = topoSort(chain, { comparator: byPayload })
-      expect(getPayloads(sequence)).toEqual('abcdegfhiojkln')
+      test('sorted by hash', () => {
+        const sequence = topoSort(chain)
+        const payloads = getPayloads(sequence)
+
+        // we know how the sequence starts and ends
+        expect(payloads.startsWith('ab')).toBe(true)
+        expect(payloads.endsWith('n')).toBe(true)
+
+        // beyond that here are lots of possibilities;
+        // rather than list them all we'll make sure that certain sequences are kept intact...
+        expect(payloads.includes('cd')).toBe(true)
+        expect(payloads.includes('hi')).toBe(true)
+        expect(payloads.includes('jkl')).toBe(true)
+        expect(payloads.includes('eg')).toBe(true)
+
+        // ...and links don't appear before links they depend on
+        expect(payloads.indexOf('b')).toBeLessThan(payloads.indexOf('c'))
+        expect(payloads.indexOf('a')).toBeLessThan(payloads.indexOf('e'))
+        expect(payloads.indexOf('a')).toBeLessThan(payloads.indexOf('n'))
+        expect(payloads.indexOf('i')).toBeLessThan(payloads.indexOf('o'))
+        expect(payloads.indexOf('f')).toBeLessThan(payloads.indexOf('o'))
+      })
     })
 
-    test('complex chain sorted by hash', () => {
-      const chain = buildComplexChain()
-      const sequence = getPayloads(topoSort(chain))
+    describe('tricky chain', () => {
+      const chain = buildChain(`
+                          ┌─── h ────┐
+                ┌─ c ─ e ─┤          ├─ k
+         a ─ b ─┤         └── i ─ j ─┘
+                └── d ────────┘
+      `)
 
-      // we know how the sequence starts and ends
-      expect(sequence.startsWith('ab')).toBe(true)
-      expect(sequence.endsWith('n')).toBe(true)
+      test('sorted by payload', () => {
+        const sequence = topoSort(chain, { comparator: byPayload })
+        const payloads = getPayloads(sequence)
+        expect(payloads).toEqual('abcedijhk')
+      })
 
-      // beyond that here are lots of possibilities;
-      // rather than list them all we'll make sure that certain sequences are kept intact...
-      expect(sequence.includes('cd')).toBe(true)
-      expect(sequence.includes('hi')).toBe(true)
-      expect(sequence.includes('jkl')).toBe(true)
-      expect(sequence.includes('eg')).toBe(true)
+      test('sorted by hash', () => {
+        const sequence = topoSort(chain)
+        const payloads = getPayloads(sequence)
 
-      // ...and links don't appear before links they depend on
-      expect(sequence.indexOf('b')).toBeLessThan(sequence.indexOf('c'))
-      expect(sequence.indexOf('a')).toBeLessThan(sequence.indexOf('e'))
-      expect(sequence.indexOf('a')).toBeLessThan(sequence.indexOf('n'))
-      expect(sequence.indexOf('i')).toBeLessThan(sequence.indexOf('o'))
-      expect(sequence.indexOf('f')).toBeLessThan(sequence.indexOf('o'))
+        expect(payloads.startsWith('ab')).toBe(true)
+        expect(payloads.endsWith('k')).toBe(true)
+
+        expect(payloads.includes('ce')).toBe(true)
+        expect(payloads.includes('ij')).toBe(true)
+
+        expect(payloads.indexOf('d')).toBeLessThan(payloads.indexOf('i'))
+        expect(payloads.indexOf('e')).toBeLessThan(payloads.indexOf('h'))
+        expect(payloads.indexOf('e')).toBeLessThan(payloads.indexOf('i'))
+      })
     })
 
-    /*
-                          ┌─ h ────────┐
-                ┌─ c ─ e ─┤            ├─ k
-         a ─ b ─┤         └──┐         │
-                │            ├─ g ─ j ─┘
-                └── d ───────┘
-    */
-    test('tricky chain sorted by payload', () => {
-      const chain = buildTrickyChain()
-      const sequence = topoSort(chain, { comparator: byPayload })
-      expect(getPayloads(sequence)).toEqual('abcedgjhk')
-    })
-
-    test('tricky chain sorted by hash', () => {
-      const chain = buildTrickyChain()
-      const sequence = getPayloads(topoSort(chain))
-      expect(sequence.startsWith('ab')).toBe(true)
-      expect(sequence.endsWith('k')).toBe(true)
-      expect(sequence.includes('ce')).toBe(true)
-      expect(sequence.includes('gj')).toBe(true)
-      expect(sequence.indexOf('d')).toBeLessThan(sequence.indexOf('g'))
-      expect(sequence.indexOf('e')).toBeLessThan(sequence.indexOf('h'))
-      expect(sequence.indexOf('e')).toBeLessThan(sequence.indexOf('g'))
+    describe('multiple heads', () => {
+      const chain = buildChain(`
+                          ┌─ e ─ g ─┐
+                ┌─ c ─ d ─┤         ├─ o 
+         a ─ b ─┤         └─── f ───┘     
+                ├─ h ─ i  
+                └─ j 
+      `)
+      test('sorted by payload', () => {
+        const sequence = topoSort(chain, { comparator: byPayload })
+        const payloads = getPayloads(sequence)
+        expect(payloads).toEqual('abcdegfohij')
+      })
     })
   })
 })
+
+const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
+  return a.body.payload < b.body.payload ? -1 : a.body.payload > b.body.payload ? 1 : 0
+}
