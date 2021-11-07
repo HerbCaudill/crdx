@@ -5,7 +5,7 @@ import { Hash } from '/util'
 /**
  * Returns the hashes of the children of the link with the given hash.
  */
-export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash) => {
+export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash): string[] => {
   const childrenLookup = calculateChildren(chain)
   return childrenLookup[hash] || []
 }
