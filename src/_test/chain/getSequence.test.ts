@@ -1,6 +1,6 @@
 import { randomKey } from '@herbcaudill/crypto'
 import { append, arbitraryDeterministicSort, createChain, getSequence, Resolver, Sequence } from '/chain'
-import { buildComplexChain, buildSimpleChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
+import { buildChain, findByPayload, getPayloads, XAction, XLink } from '/test/chain/utils'
 import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
@@ -40,26 +40,27 @@ describe('chains', () => {
 
       const expected = 'a b c'
 
-      expect(getPayloads(sequence)).toEqual(split(expected))
+      expect(getPayloads(sequence)).toEqual(expected)
     })
 
     test('simple chain', () => {
-      var chain = buildSimpleChain()
+      const chain = buildChain(` 
+          ┌─ b
+       a ─┤
+          └─ c
+      `)
       const sequence = getSequence({ chain, resolver: alphabeticalResolver })
       expect(getPayloads(sequence)).toEqual('abc')
     })
 
-    /*           
-                
+    describe('complex chain', () => {
+      const chain = buildChain(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
                 ├──── h ──── i ─────┘     │ 
                 └───── j ─── k ── l ──────┘           
-    */
-
-    describe('complex chain', () => {
-      const chain = buildComplexChain()
+      `)
 
       test('full sequence', () => {
         const sequence = getSequence({ chain, resolver: alphabeticalResolver })
@@ -71,24 +72,24 @@ describe('chains', () => {
         const sequence = getSequence<any, any>({ chain, root: b, resolver: randomResolver })
 
         const expected = [
-          'b   j k l   c d f e g   h i   o n',
-          'b   j k l   c d e g f   h i   o n',
+          'b jkl cdfeg hi on',
+          'b jkl cdegf hi on',
 
-          'b   j k l   h i   c d f e g   o n',
-          'b   j k l   h i   c d e g f   o n',
+          'b jkl hi cdfeg on',
+          'b jkl hi cdegf on',
 
-          'b   h i   c d f e g   j k l   o n',
-          'b   h i   c d e g f   j k l   o n',
+          'b hi cdfeg jkl on',
+          'b hi cdegf jkl on',
 
-          'b   h i   c d f e g  o  j k l   n',
-          'b   h i   c d e g f  o  j k l   n',
+          'b hi cdfeg o jkl n',
+          'b hi cdegf o jkl n',
 
-          'b   c d f e g   h i  o  j k l   n',
-          'b   c d e g f   h i  o  j k l   n',
+          'b cdfeg hi o jkl n',
+          'b cdegf hi o jkl n',
 
-          'b   c d f e g   h i   j k l   o n',
-          'b   c d e g f   h i   j k l   o n',
-        ].map(split)
+          'b cdfeg hi jkl on',
+          'b cdegf hi jkl on',
+        ].map(trim)
 
         expect(expected).toContainEqual(getPayloads(sequence))
       })
@@ -97,9 +98,9 @@ describe('chains', () => {
         const d = findByPayload(chain, 'd')
         const sequence = getSequence<any, any>({ chain, head: [d], resolver: randomResolver })
 
-        const expected = 'a b c d'
+        const expected = 'abcd'
 
-        expect(getPayloads(sequence)).toEqual(split(expected))
+        expect(getPayloads(sequence)).toEqual(expected)
       })
 
       test('root & head', () => {
@@ -109,19 +110,14 @@ describe('chains', () => {
 
         const expected = 'j k l'
 
-        expect(getPayloads(sequence)).toEqual(split(expected))
+        expect(getPayloads(sequence)).toEqual(expected)
       })
 
       test('root within a branch', () => {
         const c = findByPayload(chain, 'c')
         const sequence = getSequence<any, any>({ chain, root: c, resolver: randomResolver })
 
-        const expected = [
-          'c d   e g   f   o n', //
-          'c d   f   e g   o n',
-        ].map(split)
-
-        expect(expected).toContainEqual(getPayloads(sequence))
+        expect(['cdegfon', 'cdfegon']).toContainEqual(getPayloads(sequence))
       })
 
       test('custom resolver', () => {
@@ -148,13 +144,12 @@ describe('chains', () => {
         const sequence = getSequence({ chain, resolver })
 
         // note that `i` comes first in the merged portion, and `e` is omitted
-        const expected = 'a b   i c d f g h j k l o    n'
+        const expected = 'abicdfghjklon'
 
-        expect(getPayloads(sequence)).toEqual(split(expected))
+        expect(getPayloads(sequence)).toEqual(expected)
       })
     })
   })
-
-  // split on whitespace
-  const split = (s: string) => s.split(/\s*/)
 })
+
+const trim = (s: string) => s.replace(/\s*/g, '')
