@@ -34,7 +34,7 @@ export const buildChain = (type: string) => {
       return c
     }
 
-    // simple
+    // simple open
     case trim(`
             ┌─ b
          a ─┤
@@ -44,6 +44,40 @@ export const buildChain = (type: string) => {
       let b = appendLink(a, 'b')
       let c = appendLink(a, 'c')
       return merge(b, c)
+    }
+
+    // simple closed
+    case trim(`
+            ┌─ b ─ c ─┐
+         a ─┤         ├─ e   
+            └─── d ───┘
+
+      `): {
+      let a = appendLink(root, 'a')
+      let b = appendLink(a, 'b')
+      let c = appendLink(b, 'c')
+      let d = appendLink(a, 'd')
+      let e = appendLink(merge(c, d), 'e')
+      return e
+    }
+
+    // double closed
+    case trim(`
+            ┌─ b ─ c ─┐     ┌─ f ─ g ─┐
+         a ─┤         ├─ e ─┤         ├─ i    
+            └─── d ───┘     └─── h ───┘
+
+      `): {
+      let a = appendLink(root, 'a')
+      let b = appendLink(a, 'b')
+      let c = appendLink(b, 'c')
+      let d = appendLink(a, 'd')
+      let e = appendLink(merge(c, d), 'e')
+      let f = appendLink(e, 'f')
+      let g = appendLink(f, 'g')
+      let h = appendLink(e, 'h')
+      let i = appendLink(merge(g, h), 'i')
+      return i
     }
 
     // complex
