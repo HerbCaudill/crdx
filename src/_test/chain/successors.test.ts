@@ -1,39 +1,38 @@
-﻿import { getRoot, getSuccessors, isSuccessor } from '/chain'
-import { buildComplexChain, findByPayload, getPayloads } from '/test/chain/utils'
-
-/*                          ┌─→ e ─→ g ─┐
-         a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
-                 ├─→ h ─→ i ─────────────────┘         │
-                 └─→ j ─→ k ─→ l ──────────────────────┘           */
-
-const chain = buildComplexChain()
+﻿import { getRoot, getSuccessors, isSuccessor, Link } from '/chain'
+import { buildChain, findByPayload, getPayloads, XLink } from '/test/chain/utils'
 
 describe('chains', () => {
   describe('successors', () => {
+    const chain = buildChain(`
+                         ┌─ e ─ g ─┐
+               ┌─ c ─ d ─┤         ├─ o ─┐
+        a ─ b ─┤         └─── f ───┤     ├─ n
+               ├──── h ──── i ─────┘     │ 
+               └───── j ─── k ── l ──────┘           
+    `)
+
     describe('getSuccessors', () => {
-      test('root', () => {
-        const root = getRoot(chain)
-        const successors = getPayloads(getSuccessors(chain, root))
+      const getSuccessorPayloads = (link: XLink): string => {
+        const successors = getSuccessors(chain, link)
+        return getPayloads(successors)
           .split('')
           .sort()
-        const expected = 'a b c d e f g h i j k l n o'.split(' ')
-        expect(successors).toEqual(expected)
+          .join('')
+      }
+
+      test('root', () => {
+        const root = getRoot(chain)
+        expect(getSuccessorPayloads(root)).toEqual('abcdefghijklno')
       })
 
       test('d', () => {
         const d = findByPayload(chain, 'd')
-        const successors = getPayloads(getSuccessors(chain, d))
-          .split('')
-          .sort()
-        expect(successors).toEqual('e f g n o'.split(' '))
+        expect(getSuccessorPayloads(d)).toEqual('efgno')
       })
 
       test('o', () => {
         const o = findByPayload(chain, 'o')
-        const successors = getPayloads(getSuccessors(chain, o))
-          .split('')
-          .sort()
-        expect(successors).toEqual('n'.split(' '))
+        expect(getSuccessorPayloads(o)).toEqual('n')
       })
     })
 
