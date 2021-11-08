@@ -3,8 +3,8 @@ import { StoreOptions } from './StoreOptions'
 import { Reducer } from './types'
 import {
   Action,
-  append,
   baseResolver,
+  append,
   createChain,
   deserialize,
   getHead,
@@ -95,8 +95,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     // append this action as a new link to the chain
     this.chain = append({ chain: this.chain, action: actionWithPayload, user: this.user, context: this.context })
 
-    // get the newly appended link
-    // TODO: handle multiple heads
+    // get the newly appended link (at this point we're guaranteed a single head, which is the one we appended)
     const [head] = getHead(this.chain)
 
     // we don't need to pass the whole chain through the reducer, just the current state + the new head
@@ -157,7 +156,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.validate()
 
     // Use the filter & sequencer to turn the graph into an ordered sequence
-    const sequence = getSequence<A, C>({ chain, resolver })
+    const sequence = getSequence<A, C>(chain, resolver)
 
     // Run the sequence through the reducer to calculate the current team state
     this.state = sequence.reduce(reducer, this.initialState)
