@@ -1,7 +1,5 @@
 ﻿export * from './append'
-export * from './baseResolver'
 export * from './createChain'
-export * from './getAllBranches'
 export * from './getConcurrentLinks'
 export * from './getHead'
 export * from './getRoot'
