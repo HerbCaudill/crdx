@@ -1,4 +1,4 @@
-﻿import { getRoot, getSuccessors, isSuccessor, Link } from '/chain'
+﻿import { getRoot, getSuccessors, isSuccessor } from '/chain'
 import { buildChain, findByPayload, getPayloads, XLink } from '/test/chain/utils'
 
 describe('chains', () => {

@@ -1,5 +1,5 @@
 ﻿import { getChildren } from './getChildren'
-import { Action, isRootLink, Link, SignatureChain } from '/chain/types'
+import { Action, Link, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 
 /** Flattens a signature chain into a sequence  */
@@ -17,7 +17,7 @@ export const topoSort = <A extends Action, C>(
   const parentCount: Record<Hash, number> = links.reduce(
     (result, link) => ({
       ...result,
-      [link.hash]: isRootLink(link) ? 0 : link.body.prev.length,
+      [link.hash]: 'prev' in link.body ? link.body.prev.length : 0,
     }),
     {}
   )

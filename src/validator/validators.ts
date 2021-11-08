@@ -1,16 +1,13 @@
-﻿import { getRoot } from '/chain/getRoot'
-import { hashLink } from '/chain/hashLink'
-import { isRootLink } from '/chain/types'
-import { ROOT, VALID } from '/constants'
-import { assert, memoize } from '/util'
-import { signatures } from '@herbcaudill/crypto'
+﻿import { signatures } from '@herbcaudill/crypto'
 import { ValidationError, ValidatorSet } from './types'
+import { getRoot } from '/chain/getRoot'
+import { hashLink } from '/chain/hashLink'
+import { ROOT, VALID } from '/constants'
+import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
   /** Do the previous link(s) referenced by this link exist?  */
   validatePrev: (link, chain) => {
-    if (isRootLink(link)) return VALID // nothing to validate on first link
-
     for (const hash of link.body.prev)
       if (!(hash in chain.links))
         return fail(`The link referenced by the hash in the \`prev\` property does not exist.`)
@@ -28,7 +25,7 @@ const _validators: ValidatorSet = {
 
   /** If this is a root link, it should not have any predecessors, and should be the chain's root */
   validateRoot: (link, chain) => {
-    const hasNoPrevLink = !('prev' in link.body) || (link.body as any).prev === undefined
+    const hasNoPrevLink = link.body.prev.length === 0
     const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isTheChainRoot = getRoot(chain) === link
     // all should be true, or all should be false

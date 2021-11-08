@@ -1,16 +1,16 @@
 ﻿import { append } from '/chain/append'
 import { createChain } from '/chain/createChain'
 import { merge } from '/chain/merge'
-import { Action, Link, LinkBody, SignatureChain, isRootLink } from '/chain/types'
+import { Link, LinkBody, SignatureChain } from '/chain/types'
 import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
 
 export const getPayloads = (sequence: Link<XAction, any>[]) =>
   sequence //
-    .filter(link => !isRootLink(link))
-    .map(link => (link.body as LinkBody<XAction, any>).payload)
-    .join('')
+    .filter(link => link.body.prev.length) // omit root link
+    .map(link => (link.body as LinkBody<XAction, any>).payload) // pull out payloads
+    .join('') // return as single string
 
 export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAction['payload']) => {
   const links = Object.values(chain.links)
@@ -164,7 +164,7 @@ export const buildChain = (type: string) => {
 
 export const getHashes = (chain: SignatureChain<any, any>) => Object.keys(chain.links)
 
-export interface XAction extends Action {
+export interface XAction {
   type: 'X'
   payload: string
 }

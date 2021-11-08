@@ -46,7 +46,6 @@ export const validate = <A extends Action, C>(
 
   const initialValue = VALID
   const v = composeValidators(validators, customValidators)
-  // TODO: pass resolver here?
   return getSequence(chain).reduce(v, initialValue)
 }
 

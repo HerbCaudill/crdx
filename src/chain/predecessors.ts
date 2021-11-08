@@ -1,33 +1,35 @@
-﻿import { Action, isRootLink, Link, SignatureChain } from './types'
+﻿import { Action, Link, SignatureChain } from './types'
 import { memoize } from '/util'
 import uniq from 'lodash/uniq'
 
-export const getPredecessorHashes = memoize((chain: SignatureChain<any, any>, hash: string): string[] => {
-  if (!(hash in chain.links)) return []
-  const parents = getParentHashes(chain.links[hash])
-  const predecessors = parents.flatMap(parent => getPredecessorHashes(chain, parent))
-  return uniq(parents.concat(predecessors))
-})
+export const getPredecessorHashes = memoize(
+  <A extends Action, C>(chain: SignatureChain<A, C>, hash: string): string[] => {
+    if (!(hash in chain.links)) return []
+    const parents = chain.links[hash].body.prev
+    const predecessors = parents.flatMap(parent => getPredecessorHashes(chain, parent))
+    return uniq(parents.concat(predecessors))
+  }
+)
 
-export const isPredecessorHash = (chain: SignatureChain<any, any>, a: string, b: string) =>
+export const isPredecessorHash = <A extends Action, C>(chain: SignatureChain<A, C>, a: string, b: string) =>
   getPredecessorHashes(chain, b).includes(a)
 
-export const getCommonPredecessorHash = memoize((chain: SignatureChain<any, any>, a: string, b: string) => {
-  if (a === b) return a
+export const getCommonPredecessorHash = memoize(
+  <A extends Action, C>(chain: SignatureChain<A, C>, a: string, b: string) => {
+    if (a === b) return a
 
-  // does one precede the other?
-  if (isPredecessorHash(chain, a, b)) return a
-  if (isPredecessorHash(chain, b, a)) return b
+    // does one precede the other?
+    if (isPredecessorHash(chain, a, b)) return a
+    if (isPredecessorHash(chain, b, a)) return b
 
-  const aPredecessors = getPredecessorHashes(chain, a)
-  const bPredecessors = getPredecessorHashes(chain, b)
-  return aPredecessors.find(link => bPredecessors.includes(link))
-})
+    const aPredecessors = getPredecessorHashes(chain, a)
+    const bPredecessors = getPredecessorHashes(chain, b)
+    return aPredecessors.find(link => bPredecessors.includes(link))
+  }
+)
 
-export const getParents = (chain: SignatureChain<any, any>, link: Link<any, any>) =>
-  getParentHashes(link).map(hash => chain.links[hash])
-
-export const getParentHashes = (link: Link<any, any>): string[] => (isRootLink(link) ? [] : link.body.prev)
+export const getParents = <A extends Action, C>(chain: SignatureChain<A, C>, link: Link<A, C>) =>
+  link.body.prev.map(hash => chain.links[hash])
 
 /** Returns true if `a` is a predecessor of `b` */
 export const isPredecessor = <A extends Action, C>(
@@ -50,7 +52,7 @@ export const getPredecessors = <A extends Action, C>(chain: SignatureChain<A, C>
     .map(h => chain.links[h])
     .filter(link => link !== undefined)
 
-export const getCommonPredecessor = <A extends Action, C = Action>(
+export const getCommonPredecessor = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   links: Link<A, C>[]
 ): Link<A, C> => {

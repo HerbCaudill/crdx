@@ -1,17 +1,16 @@
 import { getCommonPredecessor, getHead, getPredecessors, isPredecessor } from '/chain'
-import { buildComplexChain, findByPayload, getPayloads } from '/test/chain/utils'
-
-/*
-                     ┌─→ e ─→ g ─┐
-  a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
-          ├─→ h ─→ i ─────────────────┘         │
-          └─→ j ─→ k ─→ l ──────────────────────┘
- */
-
-const chain = buildComplexChain()
+import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
 
 describe('chains', () => {
   describe('predecessors', () => {
+    const chain = buildChain(`
+                          ┌─ e ─ g ─┐
+                ┌─ c ─ d ─┤         ├─ o ─┐
+         a ─ b ─┤         └─── f ───┤     ├─ n
+                ├──── h ──── i ─────┘     │ 
+                └───── j ─── k ── l ──────┘           
+      `)
+
     describe('getPredecessors', () => {
       test('head', () => {
         const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0]))
@@ -61,7 +60,6 @@ describe('chains', () => {
 
     describe('getCommonPredecessor', () => {
       const testCase = (a: string, b: string) => {
-        const chain = buildComplexChain()
         const aLink = findByPayload(chain, a)
         const bLink = findByPayload(chain, b)
         const result = getCommonPredecessor(chain, [aLink, bLink])

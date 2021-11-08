@@ -1,5 +1,5 @@
 import { memoize } from 'lodash'
-import { Action, isRootLink, SignatureChain } from '/chain/types'
+import { Action, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 
 /**
@@ -24,10 +24,6 @@ const calculateChildren = memoize(<A extends Action, C>(chain: SignatureChain<A,
 
   // find the parents of each link, and add them to a dictionary lookup
   for (const link of Object.values(chain.links)) {
-    // the root link has no parents
-    if (isRootLink(link)) continue
-
-    // every other link has one or more parents
     const parents = link.body.prev
     for (const parent of parents) {
       // add this link's hash to each parent's list of children

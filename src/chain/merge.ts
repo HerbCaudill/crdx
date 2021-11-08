@@ -1,8 +1,6 @@
 ﻿import { uniq } from 'lodash'
-import { isPredecessor } from '.'
-import { Action, isRootLink, Link, SignatureChain } from './types'
+import { Action, Link, SignatureChain } from './types'
 import { Hash } from '/util'
-import { assertIsValid } from '/validator'
 
 /**
  * Returns a new chain that contains all the information in the two chains provided.
@@ -46,17 +44,4 @@ const isNotParentOfAnyOf = (links: Link<any, any>[]) => (h: Hash) => {
 }
 
 // Returns true if h is the parent of the given link
-const isParent = (h: Hash) => (l: Link<any, any>) => {
-  if (isRootLink(l)) return false
-  return l.body.prev.includes(h)
-}
-
-const byPayload = (a: Link<any, any>, b: Link<any, any>) => {
-  return a.body.payload < b.body.payload ? -1 : 1
-}
-
-const byDepth = (chain: SignatureChain<any, any>) => (a: Link<any, any>, b: Link<any, any>) => {
-  return isPredecessor(chain, a, b) ? -1 : 1
-}
-
-const allBranchPoints = (chain: SignatureChain<any, any>) => {}
+const isParent = (h: Hash) => (l: Link<any, any>) => l.body.prev.includes(h)
