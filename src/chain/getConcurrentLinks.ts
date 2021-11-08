@@ -25,7 +25,7 @@ export const getConcurrentLinks = <A extends Action, C>(
  * }
  * ```
  */
-const calculateConcurrency = memoize(<A extends Action, C>(chain: SignatureChain<A, C>) => {
+export const calculateConcurrency = memoize(<A extends Action, C>(chain: SignatureChain<A, C>) => {
   const concurrencyLookup = {} as Record<Hash, Hash[]>
 
   // for each link, find all links that are neither successors nor predecessors
