@@ -4,10 +4,8 @@ import { Reducer } from '/store/types'
 import { createUser } from '/user'
 
 /*
-
 This is intended to be the simplest possible proof of concept: An increment-only counter. There is
 no custom resolver because there are no conflicts possible. 
-
 */
 
 const alice = createUser('alice')
@@ -116,5 +114,8 @@ const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
         value: state.value + step,
       }
     }
+
+    default:
+      return state
   }
 }
