@@ -1,5 +1,5 @@
 import { getCommonPredecessor, getHead, getPredecessors, isPredecessor } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
+import { buildChain, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
   describe('predecessors', () => {

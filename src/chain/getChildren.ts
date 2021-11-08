@@ -1,4 +1,4 @@
-import { memoize } from 'lodash'
+import memoize from 'lodash/memoize'
 import { Action, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 

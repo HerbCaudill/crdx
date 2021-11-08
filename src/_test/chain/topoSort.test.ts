@@ -1,5 +1,5 @@
 import { Link, topoSort } from '/chain'
-import { buildChain, getPayloads, XAction } from '/test/chain/utils'
+import { buildChain, getPayloads, XAction } from '../util/chain'
 
 describe('chains', () => {
   describe('topoSort', () => {

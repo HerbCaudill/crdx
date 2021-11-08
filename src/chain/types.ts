@@ -89,7 +89,25 @@ export type LinkBody<A extends Action, C> = {
 /** A `Sequence` is a topological sort of a signature chain (or a portion thereof). */
 export type Sequence<A extends Action, C> = Link<A, C>[]
 
-/** TODO */
+/**
+ * A resolver encapsulates the logic for merging concurrent branches. It takes the chain as an
+ * argument, and returns two functions:
+ * - `sort` is a comparator function that indicates how concurrent branches are to be ordered.
+ * - `filter` is a predicate function that indicates which links to include in the resulting
+ *   sequence.
+ *
+ * Suppose you have two concurrent branches `[e, g]` and `[f]`. One resolver might just concatenate
+ * the two branches in arbitrary order, resulting in `[e,g,f]` or `[f,e,g]`. Another resolver might
+ * return the links in a different order, and/or omit some links; so these concurrent branches might
+ * also be resolved as:
+ * ```
+ *   [e, g, f]
+ *   [e, f, g]
+ *   [e, g]
+ *   [f, g]
+ *   [f]
+ * ```
+ */
 export type Resolver<A extends Action, C> = (
   chain: SignatureChain<A, C>
 ) => {

@@ -1,8 +1,7 @@
-import { append, createChain, merge, SignatureChain } from '/chain'
 import clone from 'lodash/clone'
-import { setup } from '/test/util/setup'
+import { append, createChain, merge } from '/chain'
 import '/test/util/expect/toBeValid'
-import { getPayloads, XAction } from './utils'
+import { setup } from '/test/util/setup'
 
 const { alice, bob } = setup('alice', 'bob')
 const defaultUser = alice
@@ -72,7 +71,7 @@ describe('chains', () => {
       // but they're in sync with each other now
       expect(aliceMerged).toEqual(bobMerged)
 
-      // The merged chains have five links: ROOT, bob's change, and alice's two changes
+      // The merged chains have 4 links: ROOT, bob's change, and alice's two changes
       expect(Object.keys(aliceMerged.links)).toHaveLength(4)
     })
 
@@ -84,49 +83,5 @@ describe('chains', () => {
       const tryToMerge = () => merge(aliceChain, bobChain)
       expect(tryToMerge).toThrow()
     })
-
-    describe('head order', () => {
-      it('1', () => {
-        /*
-                          ┌─ e ─ g 
-                ┌─ c ─ d ─┤         
-         a ─ b ─┤         └─ f      
-                └─ h ─ i 
-        */
-
-        let root = createChain<XAction, any>({ user: alice, name: 'root' })
-        let a = appendLink(root, 'a')
-        let b = appendLink(a, 'b')
-
-        // 2 branches from b
-        let b1 = clone(b)
-        let b2 = clone(b)
-
-        b1 = appendLink(b1, 'c')
-        b1 = appendLink(b1, 'd')
-
-        // 2 branches from d
-        let d1 = clone(b1)
-        let d2 = clone(b1)
-
-        d1 = appendLink(d1, 'e')
-        d1 = appendLink(d1, 'g')
-
-        d2 = appendLink(d2, 'f')
-
-        a = merge(d1, d2)
-
-        b2 = appendLink(b2, 'h')
-        b2 = appendLink(b2, 'i')
-
-        a = merge(a, b2)
-
-        const heads = getPayloads(a.head.map(h => a.links[h]))
-        expect(heads).toEqual('fgi')
-      })
-    })
   })
 })
-
-const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
-  append({ chain, action: { type: 'X', payload } as XAction, user: alice })

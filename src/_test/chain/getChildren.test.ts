@@ -1,4 +1,4 @@
-import { buildChain, findByPayload } from './utils'
+import { buildChain, findByPayload } from '../util/chain'
 import { getChildren } from '/chain/getChildren'
 
 describe('getChildren', () => {

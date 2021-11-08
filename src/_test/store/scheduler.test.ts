@@ -1,4 +1,4 @@
-import { Action, createChain, Link, Resolver, Sequence } from '/chain'
+import { createChain, Link, Resolver, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -215,12 +215,12 @@ describe('scheduler', () => {
 
 // action types
 
-interface MakeReservation extends Action {
+interface MakeReservation {
   type: 'MAKE_RESERVATION'
   payload: Reservation
 }
 
-type SchedulerAction = MakeReservation
+type SchedulerAction = RootAction | MakeReservation
 type SchedulerLink = Link<SchedulerAction, SchedulerState>
 
 // state
@@ -241,5 +241,3 @@ interface Conflict {
   loser: Reservation
   winner: Reservation
 }
-
-type SchedulerSequence = Sequence<SchedulerAction, SchedulerState>

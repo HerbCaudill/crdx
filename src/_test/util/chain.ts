@@ -170,7 +170,7 @@ export interface XAction {
 }
 export type XLink = Link<XAction, {}>
 
-const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
+export const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
   append({ chain, action: { type: 'X', payload } as XAction, user: alice })
 
-const trim = (s: string) => s.replace(/\s*/g, '')
+export const trim = (s: string) => s.replace(/\s*/g, '')

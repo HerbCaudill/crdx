@@ -1,5 +1,5 @@
+import { buildChain, getPayloads, XAction } from '../util/chain'
 import { getConcurrentLinks, getSequence, Resolver } from '/chain'
-import { buildChain, getPayloads, XAction } from '/test/chain/utils'
 import { Hash } from '/util'
 
 /**

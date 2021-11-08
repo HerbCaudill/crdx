@@ -1,4 +1,4 @@
-import { Action, createChain } from '/chain'
+import { Action, createChain, RootAction } from '/chain'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -412,22 +412,22 @@ export const alphabet = Object.keys(letterMap) as Letter[]
 
 // action types
 
-interface AddPlayer extends Action {
+interface AddPlayer {
   type: 'ADD_PLAYER'
   payload: { userName: string }
 }
 
-interface FlipTileAction extends Action {
+interface FlipTileAction {
   type: 'FLIP_TILE'
   payload: { id: number }
 }
 
-interface ClaimWordAction extends Action {
+interface ClaimWordAction {
   type: 'CLAIM_WORD'
   payload: { word: string }
 }
 
-type ScrabbleAttacksAction = AddPlayer | FlipTileAction | ClaimWordAction
+type ScrabbleAttacksAction = RootAction | AddPlayer | FlipTileAction | ClaimWordAction
 
 // state & related types
 

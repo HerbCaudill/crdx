@@ -1,4 +1,4 @@
-import { memoize } from 'lodash'
+import memoize from 'lodash/memoize'
 import { isPredecessorHash } from '/chain/predecessors'
 import { isSuccessorHash } from '/chain/successors'
 import { Action, Link, SignatureChain } from '/chain/types'

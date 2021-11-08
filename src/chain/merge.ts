@@ -1,6 +1,7 @@
-﻿import { uniq } from 'lodash'
+﻿import uniq from 'lodash/uniq'
 import { Action, Link, SignatureChain } from './types'
 import { Hash } from '/util'
+import { assertIsValid } from '/validator'
 
 /**
  * Returns a new chain that contains all the information in the two chains provided.
@@ -11,9 +12,8 @@ import { Hash } from '/util'
 export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: SignatureChain<A, C>): SignatureChain<A, C> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
-  // TODO: Ensure that the chains are correctly formed, etc.
-  // assertIsValid(a)
-  // assertIsValid(b)
+  assertIsValid(a)
+  assertIsValid(b)
 
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }

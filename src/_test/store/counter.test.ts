@@ -1,4 +1,4 @@
-import { Action, createChain, getRoot } from '/chain'
+import { Action, createChain, getRoot, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -50,7 +50,7 @@ describe('counter', () => {
       const chain = store.getChain()
 
       // 🦹‍♂️ Mallory tampers with the root link
-      const payload = getRoot(chain).body.payload
+      const payload = getRoot(chain).body.payload as any
       payload.name = 'Mallory RAWKS'
 
       // 👩🏾 Alice is not fooled
@@ -87,10 +87,12 @@ describe('counter', () => {
 
 type CounterAction = IncrementAction
 
-interface IncrementAction extends Action {
-  type: 'INCREMENT'
-  payload: number
-}
+type IncrementAction =
+  | RootAction
+  | {
+      type: 'INCREMENT'
+      payload: number
+    }
 
 // state
 
