@@ -83,7 +83,7 @@ export const topoSort = <A extends Action, C>(
 export const byHash: LinkComparator = (a, b) => (a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0)
 
 /** Any function that takes two links and tells us which comes first can be used as a comparator. */
-export type LinkComparator = (a: Link<any, any>, b: Link<any, any>) => -1 | 0 | 1
+export type LinkComparator = (a: Link<any, any>, b: Link<any, any>) => number
 
 export type TopoSortOptions = {
   comparator?: LinkComparator
