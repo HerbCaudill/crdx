@@ -1,6 +1,7 @@
 ﻿import { User } from '/user'
 import { Base58, Hash, UnixTimestamp } from '/util/types'
 import { ROOT, MERGE } from '/constants'
+import { LinkComparator } from './topoSort'
 
 /////////////////// SIGNATURE CHAIN, LINKS, ACTIONS
 
@@ -174,24 +175,9 @@ export const isActionLink = <A extends Action, C>(link: Link<A, C>): link is Act
 /** A `Sequence` is a topological sort of a signature chain (or a portion thereof). */
 export type Sequence<A extends Action, C> = Link<A, C>[]
 
-/** A resolver takes two sequences, and returns a single sequence combining the two while applying
- *  any logic regarding which links are included and what order they're in.
- *
- * Suppose you have two concurrent branches `[e, g]` and `[f]`. One resolver might just concatenate
- * the two branches in arbitrary order, resulting in `[e,g,f]` or `[f,e,g]`. Another resolver might
- * return the links in a different order, and/or omit some links; so these concurrent branches might
- * also be resolved as:
- * ```
- *   [e, g, f]
- *   [e, f, g]
- *   [e, g]
- *   [f, g]
- *   [f]
- * ```
- * ... etc.
- *
- */
 export type Resolver<A extends Action, C> = (
-  branches: [Sequence<A, C>, Sequence<A, C>],
   chain: SignatureChain<A, C>
-) => Sequence<A, C>
+) => {
+  sort?: LinkComparator
+  filter?: (link: Link<A, C>) => boolean
+}
