@@ -46,7 +46,8 @@ export const validate = <A extends Action, C>(
 
   const initialValue = VALID
   const v = composeValidators(validators, customValidators)
-  return getSequence({ chain }).reduce(v, initialValue)
+  // TODO: pass resolver here?
+  return getSequence(chain).reduce(v, initialValue)
 }
 
 export const assertIsValid = (chain: SignatureChain<any, any>) => {
