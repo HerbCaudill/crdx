@@ -1,5 +1,5 @@
-import { Link, getConcurrentLinks, SignatureChain } from '/chain'
-import { buildChain, findByPayload, getPayloads, XAction } from '/test/chain/utils'
+import { getConcurrentLinks, SignatureChain } from '/chain'
+import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
 
 describe('chains', () => {
   describe('getConcurrentLinks', () => {
