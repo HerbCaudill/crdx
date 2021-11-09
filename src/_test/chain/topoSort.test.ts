@@ -1,5 +1,5 @@
-import { Link, topoSort } from '/chain'
-import { buildChain, getPayloads, XAction } from '../util/chain'
+import { buildChain, getPayloads, byPayload } from '../util/chain'
+import { topoSort } from '/chain'
 
 describe('chains', () => {
   describe('topoSort', () => {
@@ -122,7 +122,3 @@ describe('chains', () => {
     })
   })
 })
-
-const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
-  return a.body.payload < b.body.payload ? -1 : a.body.payload > b.body.payload ? 1 : 0
-}

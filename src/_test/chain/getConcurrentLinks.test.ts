@@ -1,28 +1,38 @@
-import { getConcurrentLinks, SignatureChain } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '../util/chain'
+import { getConcurrentBubbles, getConcurrentLinks, SignatureChain } from '/chain'
+import { buildChain, byPayload, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
   describe('getConcurrentLinks', () => {
-    const testCase = (chain: SignatureChain<any, any>, payload: string, expected: string) => {
+    const testConcurrentLinks = (chain: SignatureChain<any, any>, payload: string, expected: string) => {
       const link = findByPayload(chain, payload)
       const result = getConcurrentLinks(chain, link)
       const payloads = getPayloads(result)
         .split('')
         .sort()
         .join('')
-      test(payload, () => expect(payloads).toEqual(expected))
+      test(`${payload}: ${expected.length ? expected : '-'}`, () => expect(payloads).toEqual(expected))
+    }
+
+    const testBubbles = (chain: SignatureChain<any, any>, expected: string) => {
+      const bubbles = getConcurrentBubbles(chain)
+        .map(b => getPayloads(b.map(h => chain.links[h]).sort(byPayload)))
+        .join(',')
+
+      test(expected.length ? `bubbles: ${expected}` : 'no bubbles', () => expect(bubbles).toEqual(expected))
     }
 
     describe('one link', () => {
       const chain = buildChain('a')
-      testCase(chain, 'a', '')
+      testConcurrentLinks(chain, 'a', '')
+      testBubbles(chain, '')
     })
 
     describe('no branches', () => {
       const chain = buildChain(`a ─ b ─ c`)
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', '')
-      testCase(chain, 'c', '')
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', '')
+      testConcurrentLinks(chain, 'c', '')
+      testBubbles(chain, '')
     })
 
     describe('simple open chain', () => {
@@ -31,9 +41,12 @@ describe('chains', () => {
        a ─┤
           └─ c
       `)
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', 'c')
-      testCase(chain, 'c', 'b')
+      // b | c
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', 'c')
+      testConcurrentLinks(chain, 'c', 'b')
+
+      testBubbles(chain, 'bc')
     })
 
     describe('simple closed chain', () => {
@@ -42,12 +55,15 @@ describe('chains', () => {
          a ─┤         ├─ e
             └─── d ───┘
       `)
+      // branch pairs:
+      // bc | d
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', 'd')
+      testConcurrentLinks(chain, 'c', 'd')
+      testConcurrentLinks(chain, 'd', 'bc')
+      testConcurrentLinks(chain, 'e', '')
 
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', 'd')
-      testCase(chain, 'c', 'd')
-      testCase(chain, 'd', 'bc')
-      testCase(chain, 'e', '')
+      testBubbles(chain, 'bcd')
     })
 
     describe('double closed chain', () => {
@@ -56,16 +72,20 @@ describe('chains', () => {
          a ─┤         ├─ e ─┤         ├─ i
             └─── d ───┘     └─── h ───┘
       `)
+      // branch pairs:
+      // bc | d
+      // fg | h
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', 'd')
+      testConcurrentLinks(chain, 'c', 'd')
+      testConcurrentLinks(chain, 'd', 'bc')
+      testConcurrentLinks(chain, 'e', '')
+      testConcurrentLinks(chain, 'f', 'h')
+      testConcurrentLinks(chain, 'g', 'h')
+      testConcurrentLinks(chain, 'h', 'fg')
+      testConcurrentLinks(chain, 'i', '')
 
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', 'd')
-      testCase(chain, 'c', 'd')
-      testCase(chain, 'd', 'bc')
-      testCase(chain, 'e', '')
-      testCase(chain, 'f', 'h')
-      testCase(chain, 'g', 'h')
-      testCase(chain, 'h', 'fg')
-      testCase(chain, 'i', '')
+      testBubbles(chain, 'bcd,fgh')
     })
 
     describe('complex chain', () => {
@@ -76,18 +96,25 @@ describe('chains', () => {
                 ├──── h ──── i ─────┘     │
                 └───── j ─── k ── l ──────┘
       `)
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', '')
-      testCase(chain, 'c', 'hijkl')
-      testCase(chain, 'd', 'hijkl')
-      testCase(chain, 'e', 'fhijkl')
-      testCase(chain, 'g', 'fhijkl')
-      testCase(chain, 'f', 'eghijkl')
-      testCase(chain, 'j', 'cdefghio')
-      testCase(chain, 'k', 'cdefghio')
-      testCase(chain, 'l', 'cdefghio')
-      testCase(chain, 'o', 'jkl')
-      testCase(chain, 'n', '')
+      // branch pairs:
+      // hijkl | cd
+      // fhijkl | eg
+      // eghijkl | f
+      // cdefghio | jkl
+      // o | jkl
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', '')
+      testConcurrentLinks(chain, 'c', 'hijkl')
+      testConcurrentLinks(chain, 'd', 'hijkl')
+      testConcurrentLinks(chain, 'e', 'fhijkl')
+      testConcurrentLinks(chain, 'g', 'fhijkl')
+      testConcurrentLinks(chain, 'f', 'eghijkl')
+      testConcurrentLinks(chain, 'j', 'cdefghio')
+      testConcurrentLinks(chain, 'k', 'cdefghio')
+      testConcurrentLinks(chain, 'l', 'cdefghio')
+      testConcurrentLinks(chain, 'o', 'jkl')
+      testConcurrentLinks(chain, 'n', '')
+      testBubbles(chain, 'cdefghijklo')
     })
 
     describe('tricky chain', () => {
@@ -96,17 +123,20 @@ describe('chains', () => {
               ┌─ c ─ e ─┤          ├─ k
        a ─ b ─┤         └── i ─ j ─┘
               └── d ────────┘
-    `)
-
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', '')
-      testCase(chain, 'c', 'd')
-      testCase(chain, 'e', 'd')
-      testCase(chain, 'd', 'ceh')
-      testCase(chain, 'h', 'dij')
-      testCase(chain, 'i', 'h')
-      testCase(chain, 'j', 'h')
-      testCase(chain, 'k', '')
+      `)
+      // branch pairs:
+      // d | ceh
+      // h | dij
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', '')
+      testConcurrentLinks(chain, 'c', 'd')
+      testConcurrentLinks(chain, 'e', 'd')
+      testConcurrentLinks(chain, 'd', 'ceh')
+      testConcurrentLinks(chain, 'h', 'dij')
+      testConcurrentLinks(chain, 'i', 'h')
+      testConcurrentLinks(chain, 'j', 'h')
+      testConcurrentLinks(chain, 'k', '')
+      testBubbles(chain, 'cdehij')
     })
 
     describe('multiple heads', () => {
@@ -117,16 +147,23 @@ describe('chains', () => {
                 ├─ h ─ i
                 └─ j
       `)
-      testCase(chain, 'a', '')
-      testCase(chain, 'b', '')
-      testCase(chain, 'c', 'hij')
-      testCase(chain, 'd', 'hij')
-      testCase(chain, 'e', 'fhij')
-      testCase(chain, 'g', 'fhij')
-      testCase(chain, 'f', 'eghij')
-      testCase(chain, 'h', 'cdefgjo')
-      testCase(chain, 'i', 'cdefgjo')
-      testCase(chain, 'j', 'cdefghio')
+      // branch pairs:
+      // cd | hij
+      // eg | fhij
+      // f | eghij
+      // hi | cdefgjo
+      // j | cdefghio
+      testConcurrentLinks(chain, 'a', '')
+      testConcurrentLinks(chain, 'b', '')
+      testConcurrentLinks(chain, 'c', 'hij')
+      testConcurrentLinks(chain, 'd', 'hij')
+      testConcurrentLinks(chain, 'e', 'fhij')
+      testConcurrentLinks(chain, 'g', 'fhij')
+      testConcurrentLinks(chain, 'f', 'eghij')
+      testConcurrentLinks(chain, 'h', 'cdefgjo')
+      testConcurrentLinks(chain, 'i', 'cdefgjo')
+      testConcurrentLinks(chain, 'j', 'cdefghio')
+      testBubbles(chain, 'cdefghijo')
     })
   })
 })

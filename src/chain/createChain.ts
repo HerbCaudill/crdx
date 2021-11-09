@@ -1,8 +1,8 @@
-﻿import { ROOT } from '/constants'
-import { UserWithSecrets } from '/user'
-import cuid from 'cuid'
+﻿import cuid from 'cuid'
 import { append } from './append'
-import { Action, Link, SignatureChain } from './types'
+import { Action, SignatureChain } from './types'
+import { ROOT } from '/constants'
+import { UserWithSecrets } from '/user'
 
 export const EMPTY_CHAIN = {
   root: undefined,

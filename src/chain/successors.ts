@@ -1,11 +1,11 @@
 ﻿import uniq from 'lodash/uniq'
-import { getChildren } from './getChildren'
+import { getChildrenHashes } from './children'
 import { Action, Link, SignatureChain } from './types'
 import { memoize } from '/util'
 
 export const getSuccessorHashes = memoize((chain: SignatureChain<any, any>, hash: string): string[] => {
   if (!(hash in chain.links)) return []
-  const children = getChildren(chain, hash)
+  const children = getChildrenHashes(chain, hash)
   const successors = children.flatMap(parent => getSuccessorHashes(chain, parent))
   return uniq(children.concat(successors))
 })

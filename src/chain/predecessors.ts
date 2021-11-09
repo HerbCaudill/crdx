@@ -1,11 +1,12 @@
 ﻿import { Action, Link, SignatureChain } from './types'
 import { memoize } from '/util'
 import uniq from 'lodash/uniq'
+import { getLink } from './chain'
 
 export const getPredecessorHashes = memoize(
   <A extends Action, C>(chain: SignatureChain<A, C>, hash: string): string[] => {
     if (!(hash in chain.links)) return []
-    const parents = chain.links[hash].body.prev
+    const parents = getLink(chain, hash).body.prev
     const predecessors = parents.flatMap(parent => getPredecessorHashes(chain, parent))
     return uniq(parents.concat(predecessors))
   }
@@ -29,7 +30,7 @@ export const getCommonPredecessorHash = memoize(
 )
 
 export const getParents = <A extends Action, C>(chain: SignatureChain<A, C>, link: Link<A, C>) =>
-  link.body.prev.map(hash => chain.links[hash])
+  link.body.prev.map(hash => getLink(chain, hash))
 
 /** Returns true if `a` is a predecessor of `b` */
 export const isPredecessor = <A extends Action, C>(
@@ -61,7 +62,7 @@ export const getCommonPredecessor = <A extends Action, C>(
     const [a, b] = links
     const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
     if (!hash) throw new Error('no common predecessor was found')
-    return chain.links[hash]
+    return getLink(chain, hash)
   }
   return links.reduce((result, link) => getCommonPredecessor(chain, [result, link]), links[0])
 }

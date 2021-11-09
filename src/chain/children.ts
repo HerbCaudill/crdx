@@ -1,13 +1,18 @@
 import memoize from 'lodash/memoize'
-import { Action, SignatureChain } from '/chain/types'
+import { getLink } from './chain'
+import { Action, Link, SignatureChain } from '/chain/types'
 import { Hash } from '/util'
 
 /**
  * Returns the hashes of the children of the link with the given hash.
  */
-export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash): string[] => {
+export const getChildrenHashes = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash): string[] => {
   const childrenLookup = calculateChildren(chain)
   return childrenLookup[hash] || []
+}
+
+export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, link: Link<A, C>): Link<A, C>[] => {
+  return getChildrenHashes(chain, link.hash).map(hash => getLink(chain, hash))
 }
 
 /**

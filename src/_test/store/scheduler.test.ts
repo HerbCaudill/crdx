@@ -1,4 +1,4 @@
-import { createChain, Link, Resolver, RootAction } from '/chain'
+import { Action, createChain, Link, Resolver, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -220,8 +220,8 @@ interface MakeReservation {
   payload: Reservation
 }
 
-type SchedulerAction = RootAction | MakeReservation
-type SchedulerLink = Link<SchedulerAction, SchedulerState>
+type SchedulerAction = Action | MakeReservation
+type SchedulerLink = Link<SchedulerAction, {}>
 
 // state
 

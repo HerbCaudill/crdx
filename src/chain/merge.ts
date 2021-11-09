@@ -1,7 +1,7 @@
 ﻿import uniq from 'lodash/uniq'
 import { Action, Link, SignatureChain } from './types'
 import { Hash } from '/util'
-import { assertIsValid } from '/validator'
+import { assertIsValid } from '/validator/validate'
 
 /**
  * Returns a new chain that contains all the information in the two chains provided.

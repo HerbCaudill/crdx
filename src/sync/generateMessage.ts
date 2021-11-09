@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual'
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getPredecessorHashes, SignatureChain } from '/chain'
+import { Action, getHashes, getLink, getPredecessorHashes, SignatureChain } from '/chain'
 import { arrayToMap, unique } from '/util'
 
 export const generateMessage = <A extends Action, C>(
@@ -31,10 +31,10 @@ export const generateMessage = <A extends Action, C>(
     const theyAreBehind = theirHead.length && theirHead.every(h => h in chain.links)
     if (theyAreBehind) {
       // figure out what they have & what they're missing
-      const hashesTheyNeed = Object.keys(chain.links).filter(hash => !hashesTheyAlreadyHave.includes(hash))
+      const hashesTheyNeed = getHashes(chain).filter(hash => !hashesTheyAlreadyHave.includes(hash))
 
       message.links = hashesTheyNeed
-        .map(hash => chain.links[hash]) // look the links corresponding to each hash
+        .map(hash => getLink(chain, hash)) // look the links corresponding to each hash
         .reduce(arrayToMap('hash'), {}) // turn into map
     } else {
       // CASE 3: we have divergent chains
@@ -43,7 +43,7 @@ export const generateMessage = <A extends Action, C>(
 
       // build a probabilistic filter representing the hashes we have that we think they may need
       // (omitting anything we know they already have)
-      const hashesTheyMightNeed = Object.keys(chain.links).filter(hash => !hashesTheyAlreadyHave.includes(hash))
+      const hashesTheyMightNeed = getHashes(chain).filter(hash => !hashesTheyAlreadyHave.includes(hash))
       const filter = new TruncatedHashFilter()
       filter.addHashes(hashesTheyMightNeed)
       message.encodedFilter = filter.save() // send compact representation of the filter
@@ -54,7 +54,7 @@ export const generateMessage = <A extends Action, C>(
 
     // Send them anything they've requested
     const linksTheyRequested = theirNeed
-      .map(hash => chain.links[hash]) // look up each link
+      .map(hash => getLink(chain, hash)) // look up each link
       .reduce(arrayToMap('hash'), {}) // put links in a map
 
     message.links = {

@@ -1,5 +1,4 @@
-﻿import { LinkComparator } from './topoSort'
-import { User } from '/user'
+﻿import { User } from '/user'
 import { Base58, Hash, UnixTimestamp } from '/util/types'
 
 /**
@@ -88,6 +87,9 @@ export type LinkBody<A extends Action, C> = {
 
 /** A `Sequence` is a topological sort of a signature chain (or a portion thereof). */
 export type Sequence<A extends Action, C> = Link<A, C>[]
+
+/** Any function that takes two links and tells us which comes first can be used as a comparator. */
+export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>) => number
 
 /**
  * A resolver encapsulates the logic for merging concurrent branches. It takes the chain as an

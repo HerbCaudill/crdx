@@ -1,6 +1,6 @@
 ﻿import { signatures } from '@herbcaudill/crypto'
 import { ValidationError, ValidatorSet } from './types'
-import { getRoot } from '/chain/getRoot'
+import { getRoot } from '/chain/chain'
 import { hashLink } from '/chain/hashLink'
 import { ROOT, VALID } from '/constants'
 import { memoize } from '/util'
@@ -10,7 +10,7 @@ const _validators: ValidatorSet = {
   validatePrev: (link, chain) => {
     for (const hash of link.body.prev)
       if (!(hash in chain.links))
-        return fail(`The link referenced by the hash in the \`prev\` property does not exist.`)
+        return fail(`The link referenced by one of the hashes in the \`prev\` property does not exist.`)
 
     return VALID
   },

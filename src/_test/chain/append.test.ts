@@ -1,8 +1,6 @@
-import { append, createChain } from '/chain'
-import { getHead } from '/chain/getHead'
-import { getRoot } from '/chain/getRoot'
-import { setup } from '/test/util/setup'
+import { append, createChain, getHead, getRoot } from '/chain'
 import '/test/util/expect/toBeValid'
+import { setup } from '/test/util/setup'
 import { validate } from '/validator'
 
 const { alice } = setup('alice')
