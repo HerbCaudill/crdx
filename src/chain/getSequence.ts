@@ -1,5 +1,4 @@
-﻿import { byHash } from '.'
-import { topoSort } from './topoSort'
+﻿import { byHash, topoSort } from './topoSort'
 import { Action, Link, Resolver, SignatureChain } from './types'
 
 /**
