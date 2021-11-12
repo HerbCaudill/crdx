@@ -1,34 +1,38 @@
-import { getCommonPredecessor, getHead, getPredecessors, isMergeLink, isPredecessor } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '/test/chain/utils'
-
-/*
-                     ┌─→ e ─→ g ─┐
-  a ─→ b ─┬─→ c ─→ d ┴─→ f ───── * ── * ─→ o ── * ─→ n
-          ├─→ h ─→ i ─────────────────┘         │
-          └─→ j ─→ k ─→ l ──────────────────────┘
- */
-
-const chain = buildChain()
+import { getCommonPredecessor, getHead, getPredecessors, isPredecessor } from '/chain'
+import { buildChain, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
   describe('predecessors', () => {
+    const chain = buildChain(`
+                          ┌─ e ─ g ─┐
+                ┌─ c ─ d ─┤         ├─ o ─┐
+         a ─ b ─┤         └─── f ───┤     ├─ n
+                ├──── h ──── i ─────┘     │ 
+                └───── j ─── k ── l ──────┘           
+      `)
+
     describe('getPredecessors', () => {
       test('head', () => {
-        const predecessors = getPayloads(getPredecessors(chain, getHead(chain))).sort() // ignore order
-        const expected = 'a b c d e f g h i j k l o'.split(' ')
-        expect(predecessors).toEqual(expected)
+        const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0]))
+          .split('')
+          .sort()
+          .join('') // ignore order
+        expect(predecessors).toEqual('abcdefghijklo')
       })
 
       test('d', () => {
         const d = findByPayload(chain, 'd')
         const predecessors = getPayloads(getPredecessors(chain, d))
-        expect(predecessors).toEqual('c b a'.split(' ')) // note correct order
+        expect(predecessors).toEqual('cba') // note correct order
       })
 
       test('o', () => {
         const o = findByPayload(chain, 'o')
-        const predecessors = getPayloads(getPredecessors(chain, o)).sort() // ignore order
-        expect(predecessors).toEqual('a b c d e f g h i'.split(' '))
+        const predecessors = getPayloads(getPredecessors(chain, o))
+          .split('')
+          .sort()
+          .join('') // ignore order
+        expect(predecessors).toEqual('abcdefghi')
       })
     })
 
@@ -52,45 +56,13 @@ describe('chains', () => {
       test(`c doesn't precede l`, () => expect(testCase('c', 'l')).toBe(false))
 
       test(`nonexistent nodes don't precede anything`, () => expect(testCase('nope', 'c')).toBe(false))
-
-      test('merge nodes', () => {
-        const links = Object.values(chain.links)
-
-        const m = links.filter(isMergeLink)
-        const c = findByPayload(chain, 'c')
-        expect(isPredecessor(chain, c, m[0])).toBe(true)
-        expect(isPredecessor(chain, c, m[1])).toBe(true)
-        expect(isPredecessor(chain, c, m[2])).toBe(true)
-
-        const l = findByPayload(chain, 'l')
-        expect(isPredecessor(chain, l, m[0])).toBe(false)
-        expect(isPredecessor(chain, l, m[1])).toBe(false)
-        expect(isPredecessor(chain, l, m[2])).toBe(true)
-
-        const i = findByPayload(chain, 'i')
-        expect(isPredecessor(chain, i, m[0])).toBe(false)
-        expect(isPredecessor(chain, i, m[1])).toBe(true)
-        expect(isPredecessor(chain, i, m[2])).toBe(true)
-
-        const n = findByPayload(chain, 'n')
-        expect(isPredecessor(chain, n, m[0])).toBe(false)
-        expect(isPredecessor(chain, n, m[1])).toBe(false)
-        expect(isPredecessor(chain, n, m[2])).toBe(false)
-
-        const a = findByPayload(chain, 'a')
-        expect(isPredecessor(chain, a, m[0])).toBe(true)
-        expect(isPredecessor(chain, a, m[1])).toBe(true)
-        expect(isPredecessor(chain, a, m[2])).toBe(true)
-      })
     })
 
     describe('getCommonPredecessor', () => {
       const testCase = (a: string, b: string) => {
-        const chain = buildChain()
         const aLink = findByPayload(chain, a)
         const bLink = findByPayload(chain, b)
-        const result = getCommonPredecessor(chain, aLink, bLink)
-        if (isMergeLink(result)) return result.body.join()
+        const result = getCommonPredecessor(chain, [aLink, bLink])
         return result.body.payload
       }
 

@@ -1,42 +1,47 @@
-﻿import { hashLink } from './hashLink'
-import { isPredecessor } from './predecessors'
-import { Action, MergeLink, SignatureChain } from './types'
+﻿import uniq from 'lodash/uniq'
+import { Action, Link, SignatureChain } from './types'
 import { Hash } from '/util'
-import { getHead } from './getHead'
+import { assertIsValid } from '/validator/validate'
 
+/**
+ * Returns a new chain that contains all the information in the two chains provided.
+ * @param a one chain to be merged
+ * @param b the other chain to be merged
+ * @returns the merged chain
+ */
 export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: SignatureChain<A, C>): SignatureChain<A, C> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
-  const root = a.root
-  const links = { ...a.links, ...b.links }
+  assertIsValid(a)
+  assertIsValid(b)
 
-  let head: string
+  // The new chain will contain all the links from either chain
+  const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
 
-  if (a.head === b.head) {
-    // they're the same
-    head = a.head
-  } else if (b.head in a.links && isPredecessor(a, a.links[b.head], getHead(a))) {
-    // a is ahead of b; fast forward
-    head = a.head
-  } else if (a.head in b.links && isPredecessor(b, b.links[a.head], getHead(b))) {
-    // b is ahead of a; fast forward
-    head = b.head
-  } else {
-    const mergeLink = createMergeLink(a.head, b.head)
+  const mergedHeads: Hash[] = uniq(a.head.concat(b.head))
+  const existingLinks = Object.values(mergedLinks)
 
-    // add this link as the new head
-    head = mergeLink.hash
+  // If one of the heads is a parent of an existing link, it is no longer a head
+  const newHeads = mergedHeads.filter(isNotParentOfAnyOf(existingLinks))
 
-    links[mergeLink.hash] = mergeLink
+  const mergedChain: SignatureChain<A, C> = {
+    root: a.root,
+    head: newHeads,
+    links: mergedLinks,
   }
-  const merged: SignatureChain<A, C> = { root, head, links }
 
-  return merged
+  mergedChain.head = mergedChain.head.sort()
+
+  return mergedChain
 }
 
-/** Returns a merge link, which has no content other than a pointer to each of the two heads */
-export const createMergeLink = (a: Hash, b: Hash) => {
-  const body = [a, b].sort() // ensure deterministic order
-  const hash = hashLink(body)
-  return { type: 'MERGE', hash, body: body } as MergeLink
+/**
+ * @param links
+ * @returns true if the given hash is not a parent of any of those links
+ */
+const isNotParentOfAnyOf = (links: Link<any, any>[]) => (h: Hash) => {
+  return !links.some(isParent(h))
 }
+
+// Returns true if h is the parent of the given link
+const isParent = (h: Hash) => (l: Link<any, any>) => l.body.prev.includes(h)

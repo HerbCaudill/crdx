@@ -1,5 +1,4 @@
-import { base58, hash } from '@herbcaudill/crypto'
-import { Action, baseResolver, createChain, Resolver, Sequence } from '/chain'
+import { Action, createChain, Link, Resolver, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
@@ -24,25 +23,15 @@ describe('scheduler', () => {
   }
 
   const setup = () => {
-    // resolver
-
-    const sum = (arr: number[]) => arr.reduce((total, n) => total + n, 0)
-    const average = (arr: number[]) => sum(arr) / arr.length
-
-    const averageSeniority = (sequence: SchedulerSequence) =>
-      average(sequence.map(link => seniorityLookup[link.signed.userName]))
-
-    const bySeniority = (a: SchedulerSequence, b: SchedulerSequence) => averageSeniority(b) - averageSeniority(a)
-
-    /** The resolver is given two sequences of reservation actions made concurrently. (In practice each
-     *  sequence is likely to consist of a single action.) It returns a single sequence that prioritizes
-     *  actions made by the person with the most seniority. */
-    const resolver: Resolver<SchedulerAction, SchedulerState> = sequences =>
-      sequences
-        .sort(bySeniority) // choose one of the two sequences to go first
-        .flat() // join the two sequences into a single one
-
-    // reducer
+    /**
+     * The resolver enforces the rule that the most senior person wins in cases of conflict.
+     */
+    const resolver: Resolver<SchedulerAction, SchedulerState> = _ => {
+      const seniority = (link: SchedulerLink) => seniorityLookup[link.signed.userName]
+      return {
+        sort: (a: SchedulerLink, b: SchedulerLink) => seniority(b) - seniority(a),
+      }
+    }
 
     /**
      * The reducer goes through the reservation actions one by one, building up the current state.
@@ -79,6 +68,9 @@ describe('scheduler', () => {
             reservations: reservations.concat(newReservation),
           }
         }
+
+        default:
+          return state
       }
     }
 
@@ -173,20 +165,20 @@ describe('scheduler', () => {
     for (let i = 0; i < 5; i++) {
       const { aliceStore, bobStore, sync } = setup()
 
-      aliceStore.dispatch({
+      bobStore.dispatch({
         type: 'MAKE_RESERVATION',
         payload: {
-          reservedBy: 'alice',
+          reservedBy: 'bob',
           room: '101',
           start: new Date('2021-09-12T15:00Z').getTime(),
           end: new Date('2021-09-12T17:00Z').getTime(),
         },
       })
 
-      bobStore.dispatch({
+      aliceStore.dispatch({
         type: 'MAKE_RESERVATION',
         payload: {
-          reservedBy: 'bob',
+          reservedBy: 'alice',
           room: '101',
           start: new Date('2021-09-12T15:00Z').getTime(),
           end: new Date('2021-09-12T17:00Z').getTime(),
@@ -223,12 +215,13 @@ describe('scheduler', () => {
 
 // action types
 
-interface MakeReservation extends Action {
+interface MakeReservation {
   type: 'MAKE_RESERVATION'
   payload: Reservation
 }
 
-type SchedulerAction = MakeReservation
+type SchedulerAction = Action | MakeReservation
+type SchedulerLink = Link<SchedulerAction, {}>
 
 // state
 
@@ -248,5 +241,3 @@ interface Conflict {
   loser: Reservation
   winner: Reservation
 }
-
-type SchedulerSequence = Sequence<SchedulerAction, SchedulerState>

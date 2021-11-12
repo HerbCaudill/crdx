@@ -46,5 +46,10 @@ export const validate = <A extends Action, C>(
 
   const initialValue = VALID
   const v = composeValidators(validators, customValidators)
-  return getSequence({ chain }).reduce(v, initialValue)
+  return getSequence(chain).reduce(v, initialValue)
+}
+
+export const assertIsValid = (chain: SignatureChain<any, any>) => {
+  const validationResult = validate(chain)
+  if (!validationResult.isValid) throw new Error(`Invalid chain: ${validationResult.error.message}`)
 }

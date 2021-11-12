@@ -1,13 +1,11 @@
-import { Action, createChain, getRoot } from '/chain'
+import { Action, createChain, getRoot, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
 
 /*
-
 This is intended to be the simplest possible proof of concept: An increment-only counter. There is
 no custom resolver because there are no conflicts possible. 
-
 */
 
 const alice = createUser('alice')
@@ -52,7 +50,7 @@ describe('counter', () => {
       const chain = store.getChain()
 
       // 🦹‍♂️ Mallory tampers with the root link
-      const payload = getRoot(chain).body.payload
+      const payload = getRoot(chain).body.payload as any
       payload.name = 'Mallory RAWKS'
 
       // 👩🏾 Alice is not fooled
@@ -89,10 +87,12 @@ describe('counter', () => {
 
 type CounterAction = IncrementAction
 
-interface IncrementAction extends Action {
-  type: 'INCREMENT'
-  payload: number
-}
+type IncrementAction =
+  | RootAction
+  | {
+      type: 'INCREMENT'
+      payload: number
+    }
 
 // state
 
@@ -116,5 +116,8 @@ const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
         value: state.value + step,
       }
     }
+
+    default:
+      return state
   }
 }

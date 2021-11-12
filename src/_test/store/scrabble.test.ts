@@ -1,18 +1,16 @@
-import { Action, createChain } from '/chain'
+import { makeRandom } from '@herbcaudill/random'
+import { createChain, RootAction } from '/chain'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
 import { createUser } from '/user'
 import { arrayToMap } from '/util'
-import { makeRandom } from '@herbcaudill/random'
 
 /*
-
 This is a somewhat more complicated example, modeling the game Scrabble Attacks (created by Nancy
 Hawa). See https://github.com/HerbCaudill/scrabbleattacks for rules. 
 
 This store doesn't have a custom resolver; any conflicting actions (e.g. concurrent attempts to take
 the same letter) are ordered arbitrarily and dealt with in the reducer. 
-
 */
 
 const alice = createUser('alice')
@@ -230,6 +228,42 @@ describe('scrabble attacks', () => {
       // only one person got the word
       expect(alice.words.includes('CAT') && bob.words.includes('CAT')).toBe(false)
     })
+
+    test('claim words using common letters', () => {
+      const { aliceStore, bobStore, sync } = setupScrabbleAttacks()
+      const flip = omniscientlyFlipTileByLetter(aliceStore)
+
+      // a couple different words are available: CAT, BAT, TAB, CAB; but only one can be claimed
+
+      flip('C')
+      flip('A')
+      flip('T')
+      flip('B')
+
+      sync()
+
+      // alice claims CAT
+      aliceStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'CAT' } })
+
+      // bob claims CAB
+      bobStore.dispatch({ type: 'CLAIM_WORD', payload: { word: 'CAB' } })
+
+      sync()
+
+      // alice and bob converge on the same state
+      expect(aliceStore.getState()).toEqual(bobStore.getState())
+
+      const { players, messages } = aliceStore.getState()
+      const [alice, bob] = players
+
+      // there is one error message
+      expect(messages).toHaveLength(1)
+
+      // somebody got the word
+      expect(alice.words.includes('CAT') || bob.words.includes('CAB')).toBe(true)
+      // only one person got the word
+      expect(alice.words.includes('CAT') && bob.words.includes('CAB')).toBe(false)
+    })
   })
 })
 
@@ -412,22 +446,22 @@ export const alphabet = Object.keys(letterMap) as Letter[]
 
 // action types
 
-interface AddPlayer extends Action {
+interface AddPlayer {
   type: 'ADD_PLAYER'
   payload: { userName: string }
 }
 
-interface FlipTileAction extends Action {
+interface FlipTileAction {
   type: 'FLIP_TILE'
   payload: { id: number }
 }
 
-interface ClaimWordAction extends Action {
+interface ClaimWordAction {
   type: 'CLAIM_WORD'
   payload: { word: string }
 }
 
-type ScrabbleAttacksAction = AddPlayer | FlipTileAction | ClaimWordAction
+type ScrabbleAttacksAction = RootAction | AddPlayer | FlipTileAction | ClaimWordAction
 
 // state & related types
 

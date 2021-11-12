@@ -1,6 +1,8 @@
+import isEqual from 'lodash/isEqual'
+import { getMissingLinks } from './getMissingLinks'
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getMissingLinks, merge, SignatureChain } from '/chain'
+import { Action, merge, SignatureChain } from '/chain'
 import { assert, Hash, unique } from '/util'
 
 export const receiveMessage = <A extends Action, C>(
@@ -26,16 +28,17 @@ export const receiveMessage = <A extends Action, C>(
   // store the new links in state, in case we can't merge yet
   state.pendingLinks = { ...state.pendingLinks, ...newLinks }
 
+  // try to reconstruct their chain
   const theirChain = {
     root: theirRoot,
-    head: theirHead,
+    head: [...theirHead],
     links: { ...chain.links, ...state.pendingLinks },
   }
 
-  // check if we are missing any dependencies
+  // check if our reconstruction of their chain is missing any dependencies
   state.ourNeed = getMissingLinks(theirChain)
 
-  // if we have everything we need, reconstruct their chain and merge with it
+  // if we have everything we need, assume our reconstructed chain is good and merge with it
   if (!state.ourNeed.length) {
     state.pendingLinks = {} // we've used all the pending links, clear that out
     chain = merge(chain, theirChain)
@@ -49,7 +52,7 @@ export const receiveMessage = <A extends Action, C>(
     const theyMightNotHave = (hash: Hash) =>
       !filter.hasHash(hash) &&
       theirRoot !== hash &&
-      theirHead !== hash &&
+      !theirHead.includes(hash) &&
       !state.weHaveSent.includes(hash) &&
       !state.theyHaveSent.includes(hash)
 
@@ -61,7 +64,7 @@ export const receiveMessage = <A extends Action, C>(
   state.ourHead = chain.head
   state.theirHead = theirHead
 
-  if (state.ourHead === state.theirHead) state.lastCommonHead = state.ourHead
+  if (isEqual(state.ourHead, state.theirHead)) state.lastCommonHead = state.ourHead
 
   return [chain, state]
 }

@@ -1,8 +1,8 @@
-﻿import { ROOT } from '/constants'
-import { UserWithSecrets } from '/user'
-import cuid from 'cuid'
+﻿import cuid from 'cuid'
 import { append } from './append'
 import { Action, SignatureChain } from './types'
+import { ROOT } from '/constants'
+import { UserWithSecrets } from '/user'
 
 export const EMPTY_CHAIN = {
   root: undefined,
@@ -31,13 +31,19 @@ export const createChain = <A extends Action, C = {}>({
 
   context?: C
 }) => {
-  const link = {
+  const rootAction = {
     type: ROOT,
+    prev: [],
     payload: {
       name,
       id,
       ...rootPayload, // the root payload may override name or id
     },
-  }
-  return append({ chain: EMPTY_CHAIN, action: link, user, context }) as SignatureChain<A, C>
+  } as Action
+  return append({
+    chain: EMPTY_CHAIN,
+    action: rootAction,
+    user,
+    context,
+  }) as SignatureChain<A, C>
 }

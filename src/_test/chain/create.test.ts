@@ -13,7 +13,7 @@ describe('chains', () => {
     const chain = createChain({ user: defaultUser, name: 'a' })
     const expected = __({ body: __({ payload: __({ name: 'a' }) }) })
     expect(getRoot(chain)).toEqual(expected)
-    expect(getHead(chain)).toEqual(expected)
+    expect(getHead(chain)[0]).toEqual(expected)
   })
 
   test('serialize/deserialize', () => {
