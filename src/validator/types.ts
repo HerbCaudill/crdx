@@ -22,7 +22,10 @@ export class ValidationError extends Error {
 
 export type ValidationResult = ValidResult | InvalidResult
 
-export type Validator = <A extends Action, C>(currentLink: Link<A, C>, chain: SignatureChain<A, C>) => ValidationResult
+export type Validator = <A extends Action, C>(
+  currentLink: Link<A, C>,
+  chain: SignatureChain<A, C>
+) => Promise<ValidationResult>
 
 export type ValidatorSet = {
   [key: string]: Validator

@@ -1,6 +1,5 @@
-﻿import { randomKey } from '@herbcaudill/crypto'
+﻿import { createKeyset, KeyType, randomKey } from '/keyset'
 import { UserWithSecrets } from '/user/types'
-import { createKeyset, KeyType } from '/keyset'
 
 /**
  * Creates a new local user, with randomly-generated keys.
@@ -9,7 +8,10 @@ import { createKeyset, KeyType } from '/keyset'
  * @param seed (optional) A seed for generating keys. This is typically only used for testing
  * purposes, to ensure predictable data.
  */
-export const createUser = (userName: string, seed: string = randomKey()): UserWithSecrets => ({
-  userName,
-  keys: createKeyset({ type: KeyType.USER, name: userName }, seed),
-})
+export const createUser = async (userName: string, seed: string): Promise<UserWithSecrets> => {
+  seed = seed ?? (await randomKey())
+  return {
+    userName,
+    keys: await createKeyset({ type: KeyType.USER, name: userName }, seed),
+  }
+}

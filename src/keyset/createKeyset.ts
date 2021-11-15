@@ -1,47 +1,34 @@
-﻿import { HashPurpose } from '/constants'
+﻿import { initCrypto } from '@herbcaudill/crypto'
 import { randomKey } from './randomKey'
-import { KeyScope, KeyType, KeysetWithSecrets } from './types'
+import { KeyScope, KeysetWithSecrets } from './types'
+import { HashPurpose } from '/constants'
 import { Optional } from '/util'
-import { asymmetric, base58, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
 
 const { SIGNATURE, ENCRYPTION, SYMMETRIC } = HashPurpose
 
 /** Generates a full set of per-user keys from a single 32-byte secret, roughly following the
  *  procedure outlined in the [Keybase docs on Per-User Keys](http://keybase.io/docs/teams/puk).
  * */
-export const createKeyset = (
+export const createKeyset = async (
   /** The scope associated with the new keys - e.g. `{ type: TEAM }` or `{type: ROLE, name: ADMIN}`.  */
   scope: Optional<KeyScope, 'name'>,
 
   /** A strong secret key used to derive the other keys. This key should be randomly generated to
    *  begin with and never stored. If not provided, a 32-byte random key will be generated and used. */
-  seed: string = randomKey()
-): KeysetWithSecrets => {
+  seed: string
+): Promise<KeysetWithSecrets> => {
+  const { hash, asymmetric, signatures, stretch } = await initCrypto()
   const { type, name = type } = scope
+  seed = seed ?? (await randomKey())
   const stretchedSeed = stretch(`${name}:${type}:${seed}`)
   return {
     type,
     name,
     generation: 0,
-    signature: deriveSignatureKeys(stretchedSeed),
-    encryption: deriveEncryptionKeys(stretchedSeed),
-    secretKey: deriveSymmetricKey(stretchedSeed),
+    signature: signatures.keyPair(hash(SIGNATURE, stretchedSeed).slice(0, 32)),
+    encryption: asymmetric.keyPair(hash(ENCRYPTION, stretchedSeed).slice(0, 32)),
+    secretKey: hash(SYMMETRIC, stretchedSeed),
   }
 }
 
 // private
-
-const deriveSignatureKeys = (secretKey: Key) => {
-  const derivedSeed = base58.encode(hash(SIGNATURE, secretKey).slice(0, 32))
-  return signatures.keyPair(derivedSeed)
-}
-
-const deriveEncryptionKeys = (secretKey: Key) => {
-  const derivedSecretKey = base58.encode(hash(ENCRYPTION, secretKey).slice(0, 32))
-  return asymmetric.keyPair(derivedSecretKey)
-}
-
-const deriveSymmetricKey = (secretKey: Key) => {
-  const derivedKey = hash(SYMMETRIC, secretKey)
-  return base58.encode(derivedKey)
-}

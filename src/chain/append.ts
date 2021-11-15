@@ -1,10 +1,10 @@
 ﻿import { redactUser, UserWithSecrets } from '/user'
-import { signatures } from '@herbcaudill/crypto'
+import { initCrypto } from '@herbcaudill/crypto'
 import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
 import { Action, LinkBody, SignatureChain, Link } from './types'
 
-export const append = <A extends Action, C>({
+export const append = async <A extends Action, C>({
   chain,
   action,
   user,
@@ -14,7 +14,9 @@ export const append = <A extends Action, C>({
   action: A
   user: UserWithSecrets
   context?: C
-}): SignatureChain<A, C> => {
+}): Promise<SignatureChain<A, C>> => {
+  const { signatures } = await initCrypto()
+
   const body = {
     ...action,
     user: redactUser(user),
@@ -26,7 +28,7 @@ export const append = <A extends Action, C>({
   if (chain.head) body.prev = chain.head
 
   // attach the hash and signature to create a new link
-  const hash = hashLink(body)
+  const hash = await hashLink(body)
   const { userName, keys } = user
   const signed = {
     userName,

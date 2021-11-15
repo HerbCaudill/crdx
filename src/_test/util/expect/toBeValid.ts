@@ -2,7 +2,8 @@
 
 // ignore coverage
 expect.extend({
-  toBeValid(validation: ValidationResult) {
+  async toBeValid(_validation: Promise<ValidationResult>) {
+    const validation = await _validation
     if (validation.isValid)
       return {
         message: () => 'expected validation not to pass',

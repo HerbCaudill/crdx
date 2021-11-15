@@ -10,7 +10,7 @@ export const EMPTY_CHAIN = {
   links: {},
 }
 
-export const createChain = <A extends Action, C = {}>({
+export const createChain = async <A extends Action, C = {}>({
   user,
   id = cuid(),
   name = id,
@@ -40,10 +40,11 @@ export const createChain = <A extends Action, C = {}>({
       ...rootPayload, // the root payload may override name or id
     },
   } as Action
-  return append({
+  const chain = await append({
     chain: EMPTY_CHAIN,
     action: rootAction,
     user,
     context,
-  }) as SignatureChain<A, C>
+  })
+  return chain as SignatureChain<A, C>
 }

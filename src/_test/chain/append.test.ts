@@ -9,9 +9,9 @@ const defaultUser = alice
 const __ = expect.objectContaining
 
 describe('chains', () => {
-  test('append', () => {
-    const chain1 = createChain({ user: defaultUser, name: 'a' })
-    const chain2 = append({ chain: chain1, action: { type: 'FOO', payload: 'b' }, user: defaultUser })
+  test('append', async () => {
+    const chain1 = await createChain({ user: defaultUser, name: 'a' })
+    const chain2 = await append({ chain: chain1, action: { type: 'FOO', payload: 'b' }, user: defaultUser })
 
     expect(validate(chain2)).toBeValid()
 

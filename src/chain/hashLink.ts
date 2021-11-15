@@ -1,6 +1,9 @@
-import { base58, hash } from '@herbcaudill/crypto'
+import { initCrypto } from '@herbcaudill/crypto'
 import { HashPurpose } from '/constants'
 
 const { LINK_TO_PREVIOUS } = HashPurpose
 
-export const hashLink = (body: any) => base58.encode(hash(LINK_TO_PREVIOUS, body))
+export const hashLink = async (body: any) => {
+  const { hash } = await initCrypto()
+  return hash(LINK_TO_PREVIOUS, body)
+}

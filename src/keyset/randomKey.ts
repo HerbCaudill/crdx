@@ -1,4 +1,4 @@
-﻿import { base58, randomKey as _randomKey } from '@herbcaudill/crypto'
+﻿import { initCrypto } from '@herbcaudill/crypto'
 
 /**
  * Returns a cryptographically random 32-byte secret key, as a base58-encoded string.
@@ -8,4 +8,7 @@
  *  const seed = randomKey() // qI7WZR+BGTAJD30JJRqRCVOLWL7iGxIHlbBmq80bjLg=
  * ```
  */
-export const randomKey = (length: number = 32) => _randomKey(length, base58.encode)
+export const randomKey = async (length: number = 32) => {
+  const crypto = await initCrypto()
+  return crypto.randomKey(length)
+}
