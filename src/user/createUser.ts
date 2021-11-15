@@ -8,7 +8,7 @@ import { UserWithSecrets } from '/user/types'
  * @param seed (optional) A seed for generating keys. This is typically only used for testing
  * purposes, to ensure predictable data.
  */
-export const createUser = async (userName: string, seed: string): Promise<UserWithSecrets> => {
+export const createUser = async (userName: string, seed?: string): Promise<UserWithSecrets> => {
   seed = seed ?? (await randomKey())
   return {
     userName,

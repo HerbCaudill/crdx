@@ -15,7 +15,7 @@ export const createKeyset = async (
 
   /** A strong secret key used to derive the other keys. This key should be randomly generated to
    *  begin with and never stored. If not provided, a 32-byte random key will be generated and used. */
-  seed: string
+  seed?: string
 ): Promise<KeysetWithSecrets> => {
   const { hash, asymmetric, signatures, stretch } = await initCrypto()
   const { type, name = type } = scope
