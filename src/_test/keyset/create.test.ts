@@ -1,4 +1,4 @@
-import { initCrypto, keyToBytes } from '@herbcaudill/crypto'
+import { signatures, asymmetric, keyToBytes } from '@herbcaudill/crypto'
 import { createKeyset } from '/keyset/createKeyset'
 import { KeyType } from '/keyset/types'
 import { EPHEMERAL_SCOPE } from '/constants'
@@ -6,10 +6,10 @@ import { EPHEMERAL_SCOPE } from '/constants'
 const { USER } = KeyType
 
 describe('create', () => {
-  it('returns keys with the expected lengths', async () => {
-    const keys = await createKeyset(EPHEMERAL_SCOPE)
+  it('returns keys with the expected lengths', () => {
+    const keys = createKeyset(EPHEMERAL_SCOPE)
 
-    const { signature, encryption: encryption } = keys
+    const { signature, encryption } = keys
 
     // signature keys look right
     expect(keyToBytes(signature.publicKey)).toHaveLength(32)
@@ -20,16 +20,15 @@ describe('create', () => {
     expect(keyToBytes(encryption.secretKey)).toHaveLength(32)
   })
 
-  it('returns keys with the expected metadata', async () => {
-    const keys = await createKeyset({ type: USER, name: 'alice' })
+  it('returns keys with the expected metadata', () => {
+    const keys = createKeyset({ type: USER, name: 'alice' })
 
     expect(keys.type).toEqual(USER)
     expect(keys.name).toEqual('alice')
   })
 
-  it('produces working signature keys', async () => {
-    const keys = await createKeyset(EPHEMERAL_SCOPE)
-    const { signatures } = await initCrypto()
+  it('produces working signature keys', () => {
+    const keys = createKeyset(EPHEMERAL_SCOPE)
     const { secretKey, publicKey } = keys.signature
 
     // Alice signs a message
@@ -41,11 +40,9 @@ describe('create', () => {
     expect(isLegit).toBe(true)
   })
 
-  it('produces working keys for asymmetric encryption', async () => {
-    const { asymmetric } = await initCrypto()
-
-    const alice = (await createKeyset({ type: USER, name: 'alice' })).encryption
-    const bob = (await createKeyset({ type: USER, name: 'bob' })).encryption
+  it('produces working keys for asymmetric encryption', () => {
+    const alice = createKeyset({ type: USER, name: 'alice' }).encryption
+    const bob = createKeyset({ type: USER, name: 'bob' }).encryption
 
     const message = 'The dolphin leaps at twilight'
 

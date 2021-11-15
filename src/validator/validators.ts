@@ -1,4 +1,4 @@
-﻿import { initCrypto } from '@herbcaudill/crypto'
+﻿import { signatures } from '@herbcaudill/crypto'
 import { ValidationError, ValidatorSet } from './types'
 import { getRoot } from '/chain/chain'
 import { hashLink } from '/chain/hashLink'
@@ -7,7 +7,7 @@ import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
   /** Do the previous link(s) referenced by this link exist?  */
-  validatePrev: async (link, chain) => {
+  validatePrev: (link, chain) => {
     for (const hash of link.body.prev)
       if (!(hash in chain.links))
         return fail(`The link referenced by one of the hashes in the \`prev\` property does not exist.`)
@@ -16,15 +16,15 @@ const _validators: ValidatorSet = {
   },
 
   /** Does this link's hash check out? */
-  validateHash: async (link, chain) => {
+  validateHash: (link, chain) => {
     const { hash, body } = link
-    const expected = await hashLink(body)
+    const expected = hashLink(body)
     if (hash === expected) return VALID
     else return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
   },
 
   /** If this is a root link, it should not have any predecessors, and should be the chain's root */
-  validateRoot: async (link, chain) => {
+  validateRoot: (link, chain) => {
     const hasNoPrevLink = link.body.prev.length === 0
     const hasRootType = 'type' in link.body && link.body.type === ROOT
     const isTheChainRoot = getRoot(chain) === link
@@ -44,8 +44,7 @@ const _validators: ValidatorSet = {
   },
 
   /** Does this link's signature check out? */
-  validateSignatures: async link => {
-    const { signatures } = await initCrypto()
+  validateSignatures: link => {
     const signedMessage = {
       payload: link.body,
       signature: link.signed.signature,

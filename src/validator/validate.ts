@@ -11,18 +11,15 @@ import { VALID } from '/constants'
  * @customValidators Any additional validators (besides the base validators that test the chain's
  * integrity)
  */
-export const validate = async <A extends Action, C>(
+export const validate = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   customValidators: ValidatorSet = {}
-): Promise<ValidationResult> => {
+): ValidationResult => {
   /**
    * Returns a single reducer function that runs all validators.
    * @param validators A map of validators
    */
-  const composeValidators = (...validators: ValidatorSet[]) => async (
-    result: ValidationResult,
-    currentLink: Link<A, C>
-  ) => {
+  const composeValidators = (...validators: ValidatorSet[]) => (result: ValidationResult, currentLink: Link<A, C>) => {
     const mergedValidators = merge(validators)
     // short-circuit validation if any previous validation has failed
     if (result.isValid === false) return result as InvalidResult
@@ -30,7 +27,7 @@ export const validate = async <A extends Action, C>(
     for (const key in mergedValidators) {
       const validator = mergedValidators[key]
       try {
-        const result = await validator(currentLink, chain)
+        const result = validator(currentLink, chain)
         if (result.isValid === false) return result
       } catch (e) {
         // any errors thrown cause validation to fail and are returned with the validation result
@@ -51,13 +48,13 @@ export const validate = async <A extends Action, C>(
 
   var isValid: ValidationResult = VALID
   for (const link of getSequence(chain)) {
-    isValid = await v(isValid, link)
+    isValid = v(isValid, link)
     if (isValid.isValid === false) break
   }
   return isValid
 }
 
-export const assertIsValid = async (chain: SignatureChain<any, any>) => {
-  const validationResult = await validate(chain)
+export const assertIsValid = (chain: SignatureChain<any, any>) => {
+  const validationResult = validate(chain)
   if (!validationResult.isValid) throw new Error(`Invalid chain: ${validationResult.error.message}`)
 }

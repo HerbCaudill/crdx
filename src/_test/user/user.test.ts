@@ -1,10 +1,10 @@
-import { initCrypto } from '@herbcaudill/crypto'
+import { signatures, symmetric, asymmetric } from '@herbcaudill/crypto'
 import { createUser } from '/user/createUser'
 import '/test/util/expect/toLookLikeKeyset'
 
 describe('user', () => {
-  it('creates a new user', async () => {
-    const bob = await createUser('bob')
+  it('creates a new user', () => {
+    const bob = createUser('bob')
     expect(bob.userName).toBe('bob')
     expect(bob).toHaveProperty('keys')
   })
@@ -12,9 +12,8 @@ describe('user', () => {
   describe('working keys', () => {
     const message = 'the crocodile lunges at dawn'
 
-    it('provides a working keypair for signatures', async () => {
-      const { signatures } = await initCrypto()
-      const bob = await createUser('bob')
+    it('provides a working keypair for signatures', () => {
+      const bob = createUser('bob')
       const keypair = bob.keys.signature
       const { secretKey, publicKey } = keypair
       const signature = signatures.sign(message, secretKey)
@@ -22,10 +21,8 @@ describe('user', () => {
       expect(signatures.verify(signedMessage)).toBe(true)
     })
 
-    it('provides a working keyset for asymmetric encryption', async () => {
-      const { asymmetric } = await initCrypto()
-
-      const charlie = await createUser('charlie')
+    it('provides a working keyset for asymmetric encryption', () => {
+      const charlie = createUser('charlie')
       const charlieKeys = charlie.keys.encryption
       const bobKeys = asymmetric.keyPair()
 
@@ -45,9 +42,8 @@ describe('user', () => {
       expect(decrypted).toEqual(message)
     })
 
-    it('provides a working keyset for symmetric encryption', async () => {
-      const { symmetric } = await initCrypto()
-      const bob = await createUser('bob')
+    it('provides a working keyset for symmetric encryption', () => {
+      const bob = createUser('bob')
       const { secretKey } = bob.keys
       const cipher = symmetric.encrypt(message, secretKey)
       const decrypted = symmetric.decrypt(cipher, secretKey)

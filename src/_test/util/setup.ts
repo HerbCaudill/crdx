@@ -2,7 +2,6 @@
 import { UserWithSecrets } from '/user'
 import { assert } from '/util'
 import { arrayToMap } from './arrayToMap'
-import { cache } from './cache'
 
 /**
 Usage: 
@@ -14,18 +13,12 @@ const {alice, bob} = setup(['alice', 'bob'])
 export const setup = (...userNames: string[]) => {
   assert(userNames.length > 0)
 
-  const cacheKey = 'setup-' + JSON.stringify(userNames)
-  const { testUsers } = cache(cacheKey, () => {
-    // Create users
-    const testUsers: Record<string, UserWithSecrets> = userNames
-      .map((userName: string) => {
-        const randomSeed = userName // make these predictable
-        return users.createUser(userName, randomSeed)
-      })
-      .reduce(arrayToMap('userName'), {})
-
-    return { testUsers }
-  })
+  const testUsers: Record<string, UserWithSecrets> = userNames
+    .map((userName: string) => {
+      const randomSeed = userName // make these predictable
+      return users.createUser(userName, randomSeed)
+    })
+    .reduce(arrayToMap('userName'), {})
 
   const makeUserStuff = (userName: string): UserWithSecrets => {
     return testUsers[userName]

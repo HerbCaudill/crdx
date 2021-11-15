@@ -1,5 +1,5 @@
+import { hash } from '@herbcaudill/crypto'
 import { Hash } from '/util'
-import { base58, hash } from '@herbcaudill/crypto'
 
 export abstract class ProbabilisticFilter {
   constructor() {}
@@ -22,4 +22,6 @@ export abstract class ProbabilisticFilter {
   abstract load(encodedValue: Uint8Array): ProbabilisticFilter
 }
 
-export const makeHash = (s: string) => base58.encode(hash('ProbabilisticFilter', s))
+export const makeHash = (s: string) => {
+  return hash('ProbabilisticFilter', s)
+}

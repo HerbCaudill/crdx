@@ -1,4 +1,4 @@
-﻿import { initCrypto } from '@herbcaudill/crypto'
+﻿import { signatures } from '@herbcaudill/crypto'
 import { append, createChain, getRoot } from '/chain'
 import { ROOT } from '/constants'
 import '/test/util/expect/toBeValid'
@@ -11,28 +11,28 @@ const { alice } = setup('alice')
 
 describe('chains', () => {
   describe('validation', () => {
-    test(`Bob validates Alice's new chain`, async () => {
+    test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
-      const chain = await createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).toBeValid()
     })
 
-    test(`Bob validates Alice's chain with a couple of links`, async () => {
+    test(`Bob validates Alice's chain with a couple of links`, () => {
       // 👩🏾 Alice
-      const chain = await createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
-      const newChain = await append({ chain, action: newLink, user: alice })
+      const newChain = append({ chain, action: newLink, user: alice })
 
       // 👨🏻‍🦲 Bob
       const isValid = validate(newChain)
       expect(isValid).toBeValid()
     })
 
-    test('Mallory tampers with the payload; Bob is not fooled', async () => {
+    test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
-      const chain = await createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       // 🦹‍♂️ Mallory
       const payload = getRoot(chain).body.payload
@@ -42,11 +42,9 @@ describe('chains', () => {
       expect(validate(chain)).not.toBeValid()
     })
 
-    test('Alice, for reasons only she understands, munges the type of the first link; validation fails', async () => {
-      const { signatures } = await initCrypto()
-
+    test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
-      const chain = await createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       const root = getRoot(chain)
       // @ts-ignore
@@ -69,9 +67,9 @@ describe('chains', () => {
       expect(validate(chain)).not.toBeValid()
     })
 
-    test('Alice gets high and tries to add another ROOT link', async () => {
+    test('Alice gets high and tries to add another ROOT link', () => {
       // 👩🏾 Alice
-      const chain = await createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
 
       const link = {
         type: ROOT,
@@ -79,7 +77,7 @@ describe('chains', () => {
       }
 
       // add it to an empty chain
-      const newChain = await append({ chain, action: link, user: alice })
+      const newChain = append({ chain, action: link, user: alice })
 
       // nope
       expect(validate(newChain)).not.toBeValid()
