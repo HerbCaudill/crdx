@@ -51,6 +51,21 @@
     },
     "testEnvironment": "node"
   },
+  "wallaby": {
+    "autoDetect": true,
+    "runMode": "onsave",
+    "slowTestThreshold": 1000,
+    "lowCoverageThreshold": 99,
+    "hints": {
+      "ignoreCoverageForFile": "/ignore file coverage/"
+    },
+    "env": {
+      "type": "node",
+      "params": {
+        "runner": "--experimental-vm-modules"
+      }
+    }
+  },
   "prettier": {
     "printWidth": 120,
     "semi": false,
