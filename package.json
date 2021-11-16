@@ -18,7 +18,7 @@
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@herbcaudill/crypto": "1",
+    "@herbcaudill/crypto": "2",
     "@herbcaudill/random": "0",
     "cuid": "2",
     "debug": "4",
