@@ -29,7 +29,7 @@
   "devDependencies": {
     "@herbcaudill/tscpaths": "0",
     "@types/debug": "4",
-    "@types/jest": "^27.0.2",
+    "@types/jest": "27",
     "@types/lodash": "4",
     "cross-env": "6",
     "esbuild": "0",
