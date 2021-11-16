@@ -11,7 +11,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "esbuild ./src/index.ts --bundle --format=esm --outdir=/dist --sourcemap",
+    "build": "tsc ",
     "postbuild": "tscpaths -p tsconfig.json -s ./src -o ./dist --silent",
     "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:log": "cross-env DEBUG='crdx*' DEBUG_COLORS=1 yarn test",
@@ -32,7 +32,6 @@
     "@types/jest": "27",
     "@types/lodash": "4",
     "cross-env": "6",
-    "esbuild": "0",
     "jest": "27",
     "ts-jest": "27",
     "typescript": "4"
