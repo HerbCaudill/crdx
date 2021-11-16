@@ -10,15 +10,15 @@
     "lib": ["dom", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",
-    "noEmit": true,
+    "noEmit": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "outDir": "./dist",
+    "outDir": "dist",
     "paths": {
-      "/*": ["src/*"],
-      "/test/*": ["src/_test/*"]
+      "/test/*": ["src/_test/*"],
+      "/*": ["src/*"]
     },
     "rootDir": "./src",
     "skipLibCheck": true,
