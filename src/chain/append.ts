@@ -1,5 +1,5 @@
 ﻿import { redactUser, UserWithSecrets } from '/user'
-import { signatures } from '@herbcaudill/crypto'
+import { signatures, hash } from '@herbcaudill/crypto'
 import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
 import { Action, LinkBody, SignatureChain, Link } from './types'

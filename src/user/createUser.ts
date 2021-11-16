@@ -1,6 +1,6 @@
 ﻿import { randomKey } from '@herbcaudill/crypto'
-import { UserWithSecrets } from '/user/types'
 import { createKeyset, KeyType } from '/keyset'
+import { UserWithSecrets } from '/user/types'
 
 /**
  * Creates a new local user, with randomly-generated keys.

@@ -1,15 +1,15 @@
-import { asymmetric, signatures, keyToBytes } from '@herbcaudill/crypto'
+import { signatures, asymmetric, keyToBytes } from '@herbcaudill/crypto'
 import { createKeyset } from '/keyset/createKeyset'
 import { KeyType } from '/keyset/types'
 import { EPHEMERAL_SCOPE } from '/constants'
 
-const { USER, EPHEMERAL } = KeyType
+const { USER } = KeyType
 
 describe('create', () => {
   it('returns keys with the expected lengths', () => {
     const keys = createKeyset(EPHEMERAL_SCOPE)
 
-    const { signature, encryption: encryption } = keys
+    const { signature, encryption } = keys
 
     // signature keys look right
     expect(keyToBytes(signature.publicKey)).toHaveLength(32)
@@ -41,10 +41,10 @@ describe('create', () => {
   })
 
   it('produces working keys for asymmetric encryption', () => {
-    const message = 'The dolphin leaps at twilight'
-
     const alice = createKeyset({ type: USER, name: 'alice' }).encryption
     const bob = createKeyset({ type: USER, name: 'bob' }).encryption
+
+    const message = 'The dolphin leaps at twilight'
 
     // Alice encrypts a message for Bob
     const encrypted = asymmetric.encrypt({

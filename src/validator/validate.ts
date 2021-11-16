@@ -44,9 +44,14 @@ export const validate = <A extends Action, C>(
   // merges multiple validator sets into one object
   const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
 
-  const initialValue = VALID
   const v = composeValidators(validators, customValidators)
-  return getSequence(chain).reduce(v, initialValue)
+
+  var isValid: ValidationResult = VALID
+  for (const link of getSequence(chain)) {
+    isValid = v(isValid, link)
+    if (isValid.isValid === false) break
+  }
+  return isValid
 }
 
 export const assertIsValid = (chain: SignatureChain<any, any>) => {

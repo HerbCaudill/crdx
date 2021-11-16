@@ -1,4 +1,4 @@
-import { asymmetric, signatures, symmetric } from '@herbcaudill/crypto'
+import { signatures, symmetric, asymmetric } from '@herbcaudill/crypto'
 import { createUser } from '/user/createUser'
 import '/test/util/expect/toLookLikeKeyset'
 
@@ -13,7 +13,8 @@ describe('user', () => {
     const message = 'the crocodile lunges at dawn'
 
     it('provides a working keypair for signatures', () => {
-      const keypair = createUser('bob').keys.signature
+      const bob = createUser('bob')
+      const keypair = bob.keys.signature
       const { secretKey, publicKey } = keypair
       const signature = signatures.sign(message, secretKey)
       const signedMessage = { payload: message, signature, publicKey }
@@ -21,27 +22,29 @@ describe('user', () => {
     })
 
     it('provides a working keyset for asymmetric encryption', () => {
-      const charlie = createUser('charlie').keys.encryption
-      const bob = asymmetric.keyPair()
+      const charlie = createUser('charlie')
+      const charlieKeys = charlie.keys.encryption
+      const bobKeys = asymmetric.keyPair()
 
       // Charlie encrypts a message for Bob
       const cipher = asymmetric.encrypt({
         secret: message,
-        recipientPublicKey: bob.publicKey,
-        senderSecretKey: charlie.secretKey,
+        recipientPublicKey: bobKeys.publicKey,
+        senderSecretKey: charlieKeys.secretKey,
       })
 
       // Bob decrypts the message
       const decrypted = asymmetric.decrypt({
         cipher: cipher,
-        senderPublicKey: charlie.publicKey,
-        recipientSecretKey: bob.secretKey,
+        senderPublicKey: charlieKeys.publicKey,
+        recipientSecretKey: bobKeys.secretKey,
       })
       expect(decrypted).toEqual(message)
     })
 
     it('provides a working keyset for symmetric encryption', () => {
-      const { secretKey } = createUser('bob').keys
+      const bob = createUser('bob')
+      const { secretKey } = bob.keys
       const cipher = symmetric.encrypt(message, secretKey)
       const decrypted = symmetric.decrypt(cipher, secretKey)
       expect(decrypted).toEqual(message)

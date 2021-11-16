@@ -260,13 +260,11 @@ describe('sync', () => {
       }
     })
 
-    // commented out some variations to speed up
-
-    // describePeers('a', 'b')
+    describePeers('a', 'b')
     describePeers('a', 'b', 'c')
-    // describePeers('a', 'b', 'c', 'd')
+    describePeers('a', 'b', 'c', 'd')
     // describePeers('a', 'b', 'c', 'd', 'e')
-    describePeers('a', 'b', 'c', 'd', 'e', 'f')
+    // describePeers('a', 'b', 'c', 'd', 'e', 'f')
 
     function describePeers(...userNames: string[]) {
       describe(`${userNames.length} peers`, () => {
@@ -274,7 +272,7 @@ describe('sync', () => {
           const peers = Object.values(network.peers)
           peers.forEach((a, i) => {
             const followingPeers = peers.slice(i + 1)
-            followingPeers.forEach(b => {
+            followingPeers.forEach((b) => {
               network.connect(a, b)
             })
           })
@@ -368,7 +366,7 @@ describe('sync', () => {
           assertAllEqual(network)
         })
 
-        it('syncs divergent changes (indirect connections)', function() {
+        it('syncs divergent changes (indirect connections)', function () {
           const [userRecords, network] = setupWithNetwork(...userNames)
           connectDaisyChain(network)
 
@@ -391,7 +389,7 @@ describe('sync', () => {
           assertAllEqual(network)
         })
 
-        it('syncs divergent changes (direct connections)', function() {
+        it('syncs divergent changes (direct connections)', function () {
           const [userRecords, network] = setupWithNetwork(...userNames)
           connectAll(network)
 

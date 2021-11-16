@@ -4,46 +4,67 @@
   "version": "0.1.5",
   "license": "MIT",
   "repository": "https://github.com/herbcaudill/crdx",
+  "type": "module",
   "main": "dist/index.js",
-  "module": "dist/crdx.esm.js",
-  "typings": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "dev": "tsdx watch",
-    "build": "tsdx build",
+    "build": "esbuild ./src/index.ts --bundle --format=esm --outdir=/dist --sourcemap",
     "postbuild": "tscpaths -p tsconfig.json -s ./src -o ./dist --silent",
-    "test": "tsdx test",
+    "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:log": "cross-env DEBUG='crdx*' DEBUG_COLORS=1 yarn test",
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@herbcaudill/crypto": "1",
+    "@herbcaudill/crypto": "2",
     "@herbcaudill/random": "0",
     "cuid": "2",
     "debug": "4",
     "events": "3",
     "fast-memoize": "2",
-    "lodash": "4",
-    "typescript": "4"
+    "lodash": "4"
   },
   "devDependencies": {
     "@herbcaudill/tscpaths": "0",
     "@types/debug": "4",
+    "@types/jest": "27",
     "@types/lodash": "4",
     "cross-env": "6",
-    "tsdx": "0"
-  },
-  "resolutions": {
+    "esbuild": "0",
     "jest": "27",
-    "tslib": "2",
     "ts-jest": "27",
     "typescript": "4"
+  },
+  "jest": {
+    "transform": {},
+    "preset": "ts-jest/presets/default-esm",
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    },
+    "moduleNameMapper": {
+      "^/test/(.*)$": "<rootDir>/src/_test/$1",
+      "^/(.*)$": "<rootDir>/src/$1"
+    },
+    "testEnvironment": "node"
+  },
+  "wallaby": {
+    "autoDetect": true,
+    "runMode": "onsave",
+    "slowTestThreshold": 1000,
+    "lowCoverageThreshold": 99,
+    "hints": {
+      "ignoreCoverageForFile": "/ignore file coverage/"
+    },
+    "env": {
+      "type": "node",
+      "params": {
+        "runner": "--experimental-vm-modules"
+      }
+    }
   },
   "prettier": {
     "printWidth": 120,

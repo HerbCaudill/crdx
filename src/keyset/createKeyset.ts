@@ -1,8 +1,7 @@
-﻿import { HashPurpose } from '/constants'
-import { randomKey } from './randomKey'
-import { KeyScope, KeyType, KeysetWithSecrets } from './types'
+﻿import { hash, asymmetric, signatures, stretch, randomKey } from '@herbcaudill/crypto'
+import { KeyScope, KeysetWithSecrets } from './types'
+import { HashPurpose } from '/constants'
 import { Optional } from '/util'
-import { asymmetric, base58, hash, Key, signatures, stretch } from '@herbcaudill/crypto'
 
 const { SIGNATURE, ENCRYPTION, SYMMETRIC } = HashPurpose
 
@@ -23,25 +22,8 @@ export const createKeyset = (
     type,
     name,
     generation: 0,
-    signature: deriveSignatureKeys(stretchedSeed),
-    encryption: deriveEncryptionKeys(stretchedSeed),
-    secretKey: deriveSymmetricKey(stretchedSeed),
+    signature: signatures.keyPair(hash(SIGNATURE, stretchedSeed).slice(0, 32)),
+    encryption: asymmetric.keyPair(hash(ENCRYPTION, stretchedSeed).slice(0, 32)),
+    secretKey: hash(SYMMETRIC, stretchedSeed),
   }
-}
-
-// private
-
-const deriveSignatureKeys = (secretKey: Key) => {
-  const derivedSeed = base58.encode(hash(SIGNATURE, secretKey).slice(0, 32))
-  return signatures.keyPair(derivedSeed)
-}
-
-const deriveEncryptionKeys = (secretKey: Key) => {
-  const derivedSecretKey = base58.encode(hash(ENCRYPTION, secretKey).slice(0, 32))
-  return asymmetric.keyPair(derivedSecretKey)
-}
-
-const deriveSymmetricKey = (secretKey: Key) => {
-  const derivedKey = hash(SYMMETRIC, secretKey)
-  return base58.encode(derivedKey)
 }

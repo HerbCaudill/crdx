@@ -25,7 +25,7 @@
     "sourceMap": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "target": "ES6",
+    "target": "esnext",
     "useUnknownInCatchVariables": false
   },
   "include": ["src", "@types"]
