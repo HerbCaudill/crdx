@@ -1,7 +1,7 @@
 ﻿import { append } from '/chain/append'
 import { createChain } from '/chain/createChain'
 import { merge } from '/chain/merge'
-import { Action, Link, LinkBody, RootAction, SignatureChain } from '/chain/types'
+import { Action, Link, LinkBody, SignatureChain } from '/chain/types'
 import { setup } from '/test/util/setup'
 
 const { alice } = setup('alice')
@@ -163,6 +163,7 @@ export const buildChain = (type: string) => {
     }
 
     default:
+      // ignore coverage
       throw new Error('unknown chain')
   }
 }
