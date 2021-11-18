@@ -1,11 +1,9 @@
 import { Hash } from '/util'
-import { base58 } from '@herbcaudill/crypto'
+import { base58, hash } from '@herbcaudill/crypto'
 import { ProbabilisticFilter } from './ProbabilisticFilter'
 import { Buffer } from 'buffer'
 
-interface TruncatedHashFilterOptions {
-  resolution?: number
-}
+// TODO: using this instead of a Bloom filter for now just because I understand it better
 
 export class TruncatedHashFilter extends ProbabilisticFilter {
   resolution: number = 4
@@ -17,11 +15,21 @@ export class TruncatedHashFilter extends ProbabilisticFilter {
     this.hashes = new Set()
   }
 
+  add(values: string[]) {
+    const hashes = values.map((value: string) => makeHash(value))
+    this.addHashes(hashes)
+    return this
+  }
+
   addHashes(hashes: Hash[]) {
     for (const hash of hashes) {
       this.hashes.add(this.truncateHash(hash))
     }
     return this
+  }
+
+  has(value: string): boolean {
+    return this.hasHash(makeHash(value))
   }
 
   hasHash(hash: string) {
@@ -66,4 +74,11 @@ export class TruncatedHashFilter extends ProbabilisticFilter {
     const bytes = Buffer.from(base58.decode(hash))
     return bytes.slice(0, this.resolution).toString('hex')
   }
+}
+export const makeHash = (s: string) => {
+  return hash('ProbabilisticFilter', s)
+}
+
+interface TruncatedHashFilterOptions {
+  resolution?: number
 }
