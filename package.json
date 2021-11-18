@@ -48,6 +48,9 @@
       "^/test/(.*)$": "<rootDir>/src/_test/$1",
       "^/(.*)$": "<rootDir>/src/$1"
     },
+    "testMatch": [
+      "<rootDir>/src/**/*.test.ts"
+    ],
     "testEnvironment": "node"
   },
   "wallaby": {
