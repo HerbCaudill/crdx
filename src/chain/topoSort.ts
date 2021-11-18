@@ -17,7 +17,7 @@ export const topoSort = <A extends Action, C>(
   const remainingParents: Record<Hash, number> = links.reduce(
     (result, link) => ({
       ...result,
-      [link.hash]: 'prev' in link.body ? link.body.prev.length : 0,
+      [link.hash]: link.body.prev.length,
     }),
     {}
   )
@@ -26,9 +26,7 @@ export const topoSort = <A extends Action, C>(
   const sorted: Link<A, C>[] = []
 
   /** Takes the given link to be next in the sorted list, along with any direct children in an uininterrupted sequence */
-  const take = (link?: Link<A, C>) => {
-    if (!link) return
-
+  const take = (link: Link<A, C>) => {
     // add it to the sorted list
     sorted.push(link)
 
@@ -70,16 +68,22 @@ export const topoSort = <A extends Action, C>(
       .sort(comparator)
 
     // take the first link in the queue and add it to the sorted list
-    const nextLink = queue.shift()
+    const nextLink = queue.shift()!
     take(nextLink)
   }
 
   return sorted
 }
 
-/** By default, we use the links' hashes to order them in an arbitrary but predictable sequence. */
-export const byHash: LinkComparator = (a, b) => (a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0)
-
 interface TopoSortOptions {
   comparator?: LinkComparator
 }
+
+/** By default, we use the links' hashes to order them in an arbitrary but predictable sequence. */
+export const byHash: LinkComparator = (a, b) =>
+  a.hash < b.hash
+    ? -1 //
+    : a.hash > b.hash
+    ? 1
+    : // ignore coverage - never happens
+      0
