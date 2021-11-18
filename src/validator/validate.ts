@@ -21,11 +21,8 @@ export const validate = <A extends Action, C>(
    */
   const composeValidators =
     (...validators: ValidatorSet[]) =>
-    (result: ValidationResult, currentLink: Link<A, C>) => {
+    (currentLink: Link<A, C>) => {
       const mergedValidators = merge(validators)
-      // short-circuit validation if any previous validation has failed
-      if (result.isValid === false) return result as InvalidResult
-
       for (const key in mergedValidators) {
         const validator = mergedValidators[key]
         try {
@@ -33,6 +30,7 @@ export const validate = <A extends Action, C>(
           if (result.isValid === false) return result
         } catch (e) {
           // any errors thrown cause validation to fail and are returned with the validation result
+          // ignore coverage
           return {
             isValid: false,
             error: { message: e.message, details: e },
@@ -43,20 +41,19 @@ export const validate = <A extends Action, C>(
       return VALID
     }
 
-  // merges multiple validator sets into one object
-  const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
+  const compositeValidator = composeValidators(validators, customValidators)
 
-  const v = composeValidators(validators, customValidators)
-
-  var isValid: ValidationResult = VALID
   for (const link of getSequence(chain)) {
-    isValid = v(isValid, link)
-    if (isValid.isValid === false) break
+    const result = compositeValidator(link)
+    if (!result.isValid) return result
   }
-  return isValid
+  return VALID
 }
 
 export const assertIsValid = (chain: SignatureChain<any, any>) => {
   const validationResult = validate(chain)
   if (!validationResult.isValid) throw new Error(`Invalid chain: ${validationResult.error.message}`)
 }
+
+// merges multiple validator sets into one object
+const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
