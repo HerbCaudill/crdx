@@ -17,6 +17,7 @@ export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAct
   return links.find(n => n.body.payload === payload) as Link<XAction, any>
 }
 
+// ignore coverage
 export const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
   return a.body.payload < b.body.payload ? -1 : a.body.payload > b.body.payload ? 1 : 0
 }
