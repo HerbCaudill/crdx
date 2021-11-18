@@ -1,5 +1,7 @@
 ﻿import { signatures } from '@herbcaudill/crypto'
+import { buildChain, findByPayload } from '../util/chain'
 import { append, createChain, getRoot } from '/chain'
+import { hashLink } from '/chain/hashLink'
 import { ROOT } from '/constants'
 import '/test/util/expect/toBeValid'
 import { setup } from '/test/util/setup'
@@ -13,7 +15,7 @@ describe('chains', () => {
   describe('validation', () => {
     test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).toBeValid()
@@ -21,30 +23,69 @@ describe('chains', () => {
 
     test(`Bob validates Alice's chain with a couple of links`, () => {
       // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
       const newLink = { type: 'add-user', payload: { name: 'charlie' } }
       const newChain = append({ chain, action: newLink, user: alice })
 
       // 👨🏻‍🦲 Bob
-      const isValid = validate(newChain)
-      expect(isValid).toBeValid()
+      expect(validate(newChain)).toBeValid()
     })
 
     test('Mallory tampers with the payload; Bob is not fooled', () => {
       // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
 
       // 🦹‍♂️ Mallory
       const payload = getRoot(chain).body.payload
       payload.name = payload.name.replace('Spies', 'Dorks')
 
-      // 👨🏻‍🦲 Bob
+      // 👨🏻‍🦲 Bob is not fooled because the link's hash is no longer correct
+      expect(validate(chain)).not.toBeValid()
+      expect(() => assertIsValid(chain)).toThrow()
+    })
+
+    test('Mallory removes a link from the chain; Bob is not fooled', () => {
+      // 👩🏾 Alice
+      const chain = buildChain(`
+                          ┌─ e ─ g ─┐
+                ┌─ c ─ d ─┤         ├─ o ─┐
+         a ─ b ─┤         └─── f ───┤     ├─ n
+                ├──── h ──── i ─────┘     │ 
+                └───── j ─── k ── l ──────┘           
+      `)
+
+      // 🦹‍♂️ Mallory
+      const h = findByPayload(chain, 'h')
+      delete chain.links[h.hash]
+
+      // 👨🏻‍🦲 Bob is not fooled because there are links that depended on that link
+      expect(validate(chain)).not.toBeValid()
+    })
+
+    test('Mallory tampers with the payload and even updates the hash; Bob is still not fooled', () => {
+      // 👩🏾 Alice
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
+
+      // 🦹‍♂️ Mallory
+      const root = getRoot(chain)
+
+      const payload = root.body.payload
+      payload.name = payload.name.replace('Spies', 'Dorks')
+
+      // Mallory covers her tracks by recalculating the hash
+      const hash = hashLink(root.body)
+      root.hash = hash
+      chain.head = [hash]
+      chain.root = hash
+      chain.links = { [hash]: root }
+
+      // 👨🏻‍🦲 Bob is not fooled because the signature doesn't validate
       expect(validate(chain)).not.toBeValid()
     })
 
     test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
 
       const root = getRoot(chain)
       // @ts-ignore
@@ -65,13 +106,11 @@ describe('chains', () => {
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).not.toBeValid()
-
-      expect(() => assertIsValid(chain)).toThrow()
     })
 
     test('Alice gets high and tries to add another ROOT link', () => {
       // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', id: 'e2A3ps5uaG68IA2kZu5HsR6A' })
+      const chain = createChain({ user: alice, name: 'Spies Я Us' })
 
       const link = {
         type: ROOT,
