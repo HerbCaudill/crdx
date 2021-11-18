@@ -6,6 +6,14 @@ import { ROOT, VALID } from '/constants'
 import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
+  /** Does this link's hash check out? */
+  validateHash: (link, chain) => {
+    const { hash, body } = link
+    const expected = hashLink(body)
+    if (hash === expected) return VALID
+    else return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
+  },
+
   /** Do the previous link(s) referenced by this link exist?  */
   validatePrev: (link, chain) => {
     for (const hash of link.body.prev)
@@ -13,14 +21,6 @@ const _validators: ValidatorSet = {
         return fail(`The link referenced by one of the hashes in the \`prev\` property does not exist.`)
 
     return VALID
-  },
-
-  /** Does this link's hash check out? */
-  validateHash: (link, chain) => {
-    const { hash, body } = link
-    const expected = hashLink(body)
-    if (hash === expected) return VALID
-    else return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
   },
 
   /** If this is a root link, it should not have any predecessors, and should be the chain's root */
@@ -31,6 +31,7 @@ const _validators: ValidatorSet = {
     // all should be true, or all should be false
     if (hasNoPrevLink === isTheChainRoot && isTheChainRoot === hasRootType) return VALID
 
+    // ignore coverage
     const message = hasRootType
       ? // ROOT
         hasNoPrevLink
@@ -44,7 +45,7 @@ const _validators: ValidatorSet = {
   },
 
   /** Does this link's signature check out? */
-  validateSignatures: (link) => {
+  validateSignatures: link => {
     const signedMessage = {
       payload: link.body,
       signature: link.signed.signature,
