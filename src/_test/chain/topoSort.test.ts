@@ -32,7 +32,7 @@ describe('chains', () => {
       })
 
       test('sorted by hash', () => {
-        const sequence = topoSort(chain, { comparator: byPayload })
+        const sequence = topoSort(chain)
         const payloads = getPayloads(sequence)
         expect(['abc', 'acb']).toContain(payloads)
       })
