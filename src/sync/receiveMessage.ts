@@ -38,7 +38,7 @@ export const receiveMessage = <A extends Action, C>(
   state.ourNeed = getMissingLinks(theirChain)
 
   // if we have everything we need, assume our reconstructed chain is good and merge with it
-  if (!state.ourNeed.length) {
+  if (state.ourNeed.length === 0) {
     state.pendingLinks = {} // we've used all the pending links, clear that out
     chain = merge(chain, theirChain)
   }
@@ -64,12 +64,4 @@ export const receiveMessage = <A extends Action, C>(
   state.theirHead = theirHead
 
   return [chain, state]
-}
-
-export const headsAreEqual = (a: Hash[], b: Hash[]) => {
-  if (a.length !== b.length) return false
-
-  a.sort()
-  b.sort()
-  return a.every((hash, i) => hash === b[i])
 }
