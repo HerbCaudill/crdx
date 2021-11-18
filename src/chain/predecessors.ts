@@ -39,6 +39,8 @@ export const isPredecessor = <A extends Action, C>(
   )
 }
 
+// TODO: getCommonPredecessor is not being used any more?
+
 export const getCommonPredecessorHash = memoize(
   <A extends Action, C>(chain: SignatureChain<A, C>, a: string, b: string) => {
     if (a === b) return a
