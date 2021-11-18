@@ -1,4 +1,3 @@
-import isEqual from 'lodash/isEqual'
 import { getMissingLinks } from './getMissingLinks'
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
@@ -64,7 +63,13 @@ export const receiveMessage = <A extends Action, C>(
   state.ourHead = chain.head
   state.theirHead = theirHead
 
-  if (isEqual(state.ourHead, state.theirHead)) state.lastCommonHead = state.ourHead
-
   return [chain, state]
+}
+
+export const headsAreEqual = (a: Hash[], b: Hash[]) => {
+  if (a.length !== b.length) return false
+
+  a.sort()
+  b.sort()
+  return a.every((hash, i) => hash === b[i])
 }

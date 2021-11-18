@@ -1,6 +1,6 @@
 import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
 import { append, createChain } from '/chain'
-import { generateMessage, initSyncState, receiveMessage } from '/sync'
+import { generateMessage, headsAreEqual, initSyncState, receiveMessage } from '/sync'
 import { createUser } from '/user'
 import { assert } from '/util'
 
@@ -23,8 +23,20 @@ describe('sync', () => {
       assert(msg)
       ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
 
-      // 👨🏻‍🦲 Bob is caught up, nothing to send
+      // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      assert(msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+
+      // 👩🏾 Alice is caught up, so she lets Bob know
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      assert(msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+
+      // Neither one has anything further to say
+      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      expect(msg).toBeUndefined()
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       expect(msg).toBeUndefined()
     })
 
@@ -58,9 +70,26 @@ describe('sync', () => {
       assert(msg)
       ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
 
-      // 👨🏻‍🦲 Bob is caught up, nothing to send
+      // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
+      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      assert(msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+
+      // 👩🏾 Alice is caught up, so she lets Bob know
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      assert(msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+
+      // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       expect(msg).toBeUndefined()
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      expect(msg).toBeUndefined()
+
+      // Bob knows that he is caught up with Alice
+      expect(headsAreEqual(bobSyncState.theirHead, aliceChain.head)).toBe(true)
+      // Alice knows that Bob is caught up with her
+      expect(headsAreEqual(aliceSyncState.theirHead, bobChain.head)).toBe(true)
     })
 
     it('Alice and Bob have diverged', () => {
@@ -99,8 +128,20 @@ describe('sync', () => {
       assert(msg)
       ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
 
-      // 👨🏻‍🦲 Bob is caught up, nothing to send
+      // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      assert(msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+
+      // 👩🏾 Alice is caught up, so she lets Bob know
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      assert(msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+
+      // Neither one has anything further to say
+      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      expect(msg).toBeUndefined()
+      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       expect(msg).toBeUndefined()
     })
   })

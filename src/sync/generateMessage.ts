@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual'
+import { headsAreEqual } from '.'
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
 import { Action, getHashes, getLink, getPredecessorHashes, SignatureChain } from '/chain'
@@ -16,10 +16,13 @@ export const generateMessage = <A extends Action, C>(
   let message: SyncMessage<A, C> | undefined
 
   // CASE 1: We're synced up, no more information to exchange
-  if (isEqual(ourHead, lastCommonHead)) {
+  if (headsAreEqual(ourHead, lastCommonHead)) {
     message = undefined
   } else {
     message = { root, head }
+
+    // If we've just now synced up, note that; we'll send one last message so they know we're caught up
+    if (headsAreEqual(state.ourHead, state.theirHead)) state.lastCommonHead = state.ourHead
 
     const hashesTheyAlreadyHave = [
       // we know they have their heads and everything preceding them
