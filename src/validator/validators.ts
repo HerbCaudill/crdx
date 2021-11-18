@@ -34,17 +34,17 @@ const _validators: ValidatorSet = {
     const message = hasRootType
       ? // ROOT
         hasNoPrevLink
-        ? `The ROOT link cannot have a predecessor (\`prev\` property)` // ROOT but has prev link
+        ? `The ROOT link cannot have any predecessors` // ROOT but has prev link
         : `The ROOT link has to be the link referenced by the chain \`root\` property` // ROOT but isn't chain root
       : // not ROOT
       hasNoPrevLink
-      ? `Non-ROOT links must have a predecessor (\`prev\` property)` // not ROOT but has no prev link
+      ? `Non-ROOT links must have predecessors` // not ROOT but has no prev link
       : `The link referenced by the chain \`root\` property must be a ROOT link` // not ROOT but is the chain root
     return fail(message, { link, chain })
   },
 
   /** Does this link's signature check out? */
-  validateSignatures: link => {
+  validateSignatures: (link) => {
     const signedMessage = {
       payload: link.body,
       signature: link.signed.signature,
