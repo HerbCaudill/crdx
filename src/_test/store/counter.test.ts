@@ -85,9 +85,9 @@ describe('counter', () => {
 
 // action types
 
-type CounterAction = IncrementAction
+export type CounterAction = IncrementAction
 
-type IncrementAction =
+export type IncrementAction =
   | RootAction
   | {
       type: 'INCREMENT'
@@ -96,13 +96,13 @@ type IncrementAction =
 
 // state
 
-interface CounterState {
+export interface CounterState {
   value: number
 }
 
 // reducer
 
-const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
+export const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
   const action = link.body
   switch (action.type) {
     case 'ROOT': {
@@ -118,6 +118,7 @@ const counterReducer: Reducer<CounterState, CounterAction> = (state, link) => {
     }
 
     default:
+      // ignore coverage
       return state
   }
 }
