@@ -61,7 +61,7 @@
     "env": {
       "type": "node",
       "params": {
-        "runner": "--experimental-vm-modules"
+        "runner": "--no-warnings --experimental-vm-modules"
       }
     }
   },
