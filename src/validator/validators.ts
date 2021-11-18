@@ -6,7 +6,7 @@ import { ROOT, VALID } from '/constants'
 import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
-  /** Does this link's check out? */
+  /** Does this link's hash check out? */
   validateHash: (link, chain) => {
     const { hash, body } = link
     const expected = hashLink(body)
