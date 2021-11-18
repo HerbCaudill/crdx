@@ -19,27 +19,29 @@ export const validate = <A extends Action, C>(
    * Returns a single reducer function that runs all validators.
    * @param validators A map of validators
    */
-  const composeValidators = (...validators: ValidatorSet[]) => (result: ValidationResult, currentLink: Link<A, C>) => {
-    const mergedValidators = merge(validators)
-    // short-circuit validation if any previous validation has failed
-    if (result.isValid === false) return result as InvalidResult
+  const composeValidators =
+    (...validators: ValidatorSet[]) =>
+    (result: ValidationResult, currentLink: Link<A, C>) => {
+      const mergedValidators = merge(validators)
+      // short-circuit validation if any previous validation has failed
+      if (result.isValid === false) return result as InvalidResult
 
-    for (const key in mergedValidators) {
-      const validator = mergedValidators[key]
-      try {
-        const result = validator(currentLink, chain)
-        if (result.isValid === false) return result
-      } catch (e) {
-        // any errors thrown cause validation to fail and are returned with the validation result
-        return {
-          isValid: false,
-          error: { message: e.message, details: e },
-        } as InvalidResult
+      for (const key in mergedValidators) {
+        const validator = mergedValidators[key]
+        try {
+          const result = validator(currentLink, chain)
+          if (result.isValid === false) return result
+        } catch (e) {
+          // any errors thrown cause validation to fail and are returned with the validation result
+          return {
+            isValid: false,
+            error: { message: e.message, details: e },
+          } as InvalidResult
+        }
       }
+      // no validators failed
+      return VALID
     }
-    // no validators failed
-    return VALID
-  }
 
   // merges multiple validator sets into one object
   const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})
