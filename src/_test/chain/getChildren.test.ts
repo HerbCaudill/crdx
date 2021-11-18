@@ -1,6 +1,5 @@
 import { buildChain, findByPayload } from '../util/chain'
-import { getRoot } from '/chain'
-import { getChildren } from '../../chain/children'
+import { getRoot, getChildren } from '/chain'
 
 describe('getChildren', () => {
   const chain = buildChain(`
