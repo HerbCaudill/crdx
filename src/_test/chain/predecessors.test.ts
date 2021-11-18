@@ -66,11 +66,18 @@ describe('chains', () => {
         return result.body.payload
       }
 
+      test('f g', () => expect(testCase('a', 'b')).toBe('a'))
+      test('f g', () => expect(testCase('b', 'a')).toBe('a'))
       test('f g', () => expect(testCase('f', 'g')).toBe('d'))
       test('l o', () => expect(testCase('l', 'o')).toBe('b'))
       test('f f', () => expect(testCase('f', 'f')).toBe('f'))
       test('d f', () => expect(testCase('d', 'f')).toBe('d'))
       test('k l', () => expect(testCase('k', 'n')).toBe('k'))
+
+      test('require two links', () => {
+        const a = findByPayload(chain, 'a')
+        expect(() => getCommonPredecessor(chain, [a])).toThrow()
+      }
     })
   })
 })
