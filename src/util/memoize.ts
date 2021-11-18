@@ -1,7 +1,6 @@
-﻿import _memoize from 'fast-memoize'
+﻿// ignore file coverage
+import _memoize from 'fast-memoize'
 import { MemoizeFunc } from 'fast-memoize/typings/fast-memoize'
-
-// ignore file coverage
 
 const BYPASS = false
 
