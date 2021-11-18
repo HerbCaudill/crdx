@@ -1,3 +1,4 @@
+// ignore file coverage
 import { setup } from './setup'
 import { createChain, SignatureChain } from '/chain'
 import { generateMessage } from '/sync/generateMessage'
