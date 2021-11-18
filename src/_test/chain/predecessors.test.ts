@@ -15,10 +15,16 @@ describe('chains', () => {
       const testCase = (payload: string) => {
         const link = findByPayload(chain, payload)
         const result = getParents(chain, link)
-        return result.map(l => l.body.payload).join('')
+        return result
+          .sort(byPayload)
+          .map(l => l.body.payload)
+          .join('')
       }
 
       test('b', () => expect(testCase('b')).toBe('a'))
+      test('e', () => expect(testCase('e')).toBe('d'))
+      test('o', () => expect(testCase('o')).toBe('fgi'))
+      test('n', () => expect(testCase('n')).toBe('lo'))
     })
 
     describe('getPredecessors', () => {
