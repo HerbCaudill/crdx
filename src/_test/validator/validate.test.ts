@@ -3,7 +3,7 @@ import { append, createChain, getRoot } from '/chain'
 import { ROOT } from '/constants'
 import '/test/util/expect/toBeValid'
 import { setup } from '/test/util/setup'
-import { validate } from '/validator/validate'
+import { assertIsValid, validate } from '/validator/validate'
 
 const __ = expect.objectContaining
 
@@ -65,6 +65,8 @@ describe('chains', () => {
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).not.toBeValid()
+
+      expect(() => assertIsValid(chain)).toThrow()
     })
 
     test('Alice gets high and tries to add another ROOT link', () => {
