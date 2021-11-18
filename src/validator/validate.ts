@@ -1,5 +1,4 @@
-﻿import { getSequence } from '/chain/getSequence'
-import { Action, Link, SignatureChain } from '/chain/types'
+﻿import { Action, Link, SignatureChain } from '/chain/types'
 import { validators } from './validators'
 import { InvalidResult, ValidatorSet, ValidationResult } from './types'
 import { VALID } from '/constants'
@@ -43,7 +42,7 @@ export const validate = <A extends Action, C>(
 
   const compositeValidator = composeValidators(validators, customValidators)
 
-  for (const link of getSequence(chain)) {
+  for (const link of Object.values(chain.links)) {
     const result = compositeValidator(link)
     if (!result.isValid) return result
   }
