@@ -1,5 +1,5 @@
-import { getCommonPredecessor, getHead, getPredecessors, isPredecessor } from '/chain'
-import { buildChain, findByPayload, getPayloads } from '../util/chain'
+import { getCommonPredecessor, getHead, getParents, getPredecessors, isPredecessor } from '/chain'
+import { buildChain, byPayload, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
   describe('predecessors', () => {
@@ -10,6 +10,16 @@ describe('chains', () => {
                 ├──── h ──── i ─────┘     │ 
                 └───── j ─── k ── l ──────┘           
       `)
+
+    describe('getParents', () => {
+      const testCase = (payload: string) => {
+        const link = findByPayload(chain, payload)
+        const result = getParents(chain, link)
+        return result.map(l => l.body.payload).join('')
+      }
+
+      test('b', () => expect(testCase('b')).toBe('a'))
+    })
 
     describe('getPredecessors', () => {
       test('head', () => {
@@ -28,10 +38,7 @@ describe('chains', () => {
 
       test('o', () => {
         const o = findByPayload(chain, 'o')
-        const predecessors = getPayloads(getPredecessors(chain, o))
-          .split('')
-          .sort()
-          .join('') // ignore order
+        const predecessors = getPayloads(getPredecessors(chain, o)).split('').sort().join('') // ignore order
         expect(predecessors).toEqual('abcdefghi')
       })
     })
@@ -77,7 +84,7 @@ describe('chains', () => {
       test('require two links', () => {
         const a = findByPayload(chain, 'a')
         expect(() => getCommonPredecessor(chain, [a])).toThrow()
-      }
+      })
     })
   })
 })
