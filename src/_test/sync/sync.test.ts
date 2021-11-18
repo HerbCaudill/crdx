@@ -1,8 +1,8 @@
 import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
 import { append, createChain } from '/chain'
-import { generateMessage, headsAreEqual, initSyncState, receiveMessage } from '/sync'
+import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { createUser } from '/user'
-import { assert } from '/util'
+import { assert, headsAreEqual } from '/util'
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
@@ -313,7 +313,7 @@ describe('sync', () => {
           const peers = Object.values(network.peers)
           peers.forEach((a, i) => {
             const followingPeers = peers.slice(i + 1)
-            followingPeers.forEach((b) => {
+            followingPeers.forEach(b => {
               network.connect(a, b)
             })
           })
