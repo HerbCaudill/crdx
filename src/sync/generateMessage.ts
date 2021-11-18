@@ -65,7 +65,7 @@ export const generateMessage = <A extends Action, C>(
     }
     state.theirNeed = []
 
-    const sendingNow = Object.keys(message.links ?? {})
+    const sendingNow = Object.keys(message.links)
     state.weHaveSent = unique([...state.weHaveSent, ...sendingNow])
   }
 
