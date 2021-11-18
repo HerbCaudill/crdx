@@ -56,7 +56,7 @@
     "slowTestThreshold": 1000,
     "lowCoverageThreshold": 99,
     "hints": {
-      "ignoreCoverageForFile": "/ignore file coverage/"
+      "ignoreCoverageForFile": "ignore file coverage"
     },
     "env": {
       "type": "node",
