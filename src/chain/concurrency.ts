@@ -15,7 +15,7 @@ export const getConcurrentLinks = <A extends Action, C>(
 
 export const getConcurrentHashes = (chain: SignatureChain<any, any>, hash: Hash): Hash[] => {
   const concurrencyLookup = calculateConcurrency(chain)
-  return concurrencyLookup[hash] || []
+  return concurrencyLookup[hash]
 }
 
 /**
@@ -64,7 +64,9 @@ export const getConcurrentBubbles = <A extends Action, C>(chain: SignatureChain<
     if (!seen[hash]) {
       seen[hash] = true
       const bubble = getBubble(hash)
-      if (bubble.length > 1) bubbles.push(bubble)
+      if (bubble.length > 1) {
+        bubbles.push(bubble)
+      }
     }
 
   return bubbles
