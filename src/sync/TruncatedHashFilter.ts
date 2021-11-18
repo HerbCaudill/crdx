@@ -17,8 +17,7 @@ export class TruncatedHashFilter extends ProbabilisticFilter {
     this.hashes = new Set()
   }
 
-  addHashes(hashes: Hash | Hash[]) {
-    if (!Array.isArray(hashes)) hashes = [hashes]
+  addHashes(hashes: Hash[]) {
     for (const hash of hashes) {
       this.hashes.add(this.truncateHash(hash))
     }
