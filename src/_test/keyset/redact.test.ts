@@ -19,23 +19,29 @@ describe('redact', () => {
       ...EPHEMERAL_SCOPE,
       generation: 0,
       signature: {
-        publicKey: 'xvIoa0SjV7C+tIwVLaGAXSWLH/H8KwC3BVMsQO68Er4=',
-        secretKey: 'Fv/HjgaQxrYTP+a5r0G20QppX2OD7tVFuXs...L60jBUtoYBdJYsf8fwrALcFUyxA7rwSvg==',
+        publicKey: 'EayujXHRETFxkKDoZCx3SaTdE3Rv0zxQ9YAaPI3eoPVxEWUL',
+        secretKey: '2JRZSRcbUNOsTAH0FafvUd9PmaiVqUKXA8skc6KWvGotuAHM',
       },
       encryption: {
-        publicKey: 'Yxb5B79mNvtDg9kjvDHIlFK4pu8XvXT0to9TtILijig=',
-        secretKey: 'P2rSWEUUInw/ZwkbVwV8/W6+2n2JCNeiV2S5rtyRa5I=',
+        publicKey: '0b1wMd4ZbapbUUKEP3WdZmvtuF9bge71OXsPJT0KbrcGPgVw',
+        secretKey: 'k3a1DlPrnsd3V4fnc34gN60pV8qieqQccwvqJbqFKj1WMZ5h',
       },
-      secretKey: 'j2KNRYXtlmRDwfLqynNJKnpQUuGlKcdUqJU7fgqbkjvBbulH',
+      secretKey: 'ewjn7ELEjW8S1qYuKI9MDizUkD7d5FWG6c65cleud7xkFxoy',
     }
 
     const publicKeyset = redactKeys(secretKeyset)
 
     expect(publicKeyset).toEqual({
       ...EPHEMERAL_SCOPE,
-      encryption: 'Yxb5B79mNvtDg9kjvDHIlFK4pu8XvXT0to9TtILijig=',
-      signature: 'xvIoa0SjV7C+tIwVLaGAXSWLH/H8KwC3BVMsQO68Er4=',
+      encryption: '0b1wMd4ZbapbUUKEP3WdZmvtuF9bge71OXsPJT0KbrcGPgVw',
+      signature: 'EayujXHRETFxkKDoZCx3SaTdE3Rv0zxQ9YAaPI3eoPVxEWUL',
       generation: 0,
     })
+  })
+
+  it('passes a public keyset back unchanged', () => {
+    const secretKeyset = createKeyset({ type: KeyType.USER, name: 'foo' })
+    const publicKeyset = redactKeys(secretKeyset)
+    expect(redactKeys(publicKeyset)).toEqual(publicKeyset)
   })
 })
