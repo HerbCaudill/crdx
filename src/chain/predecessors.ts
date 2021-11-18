@@ -57,11 +57,8 @@ export const getCommonPredecessor = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   links: Link<A, C>[]
 ): Link<A, C> => {
-  if (links.length < 2) throw new Error('at least two links required')
-  if (links.length === 2) {
-    const [a, b] = links
-    const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
-    return getLink(chain, hash)
-  }
-  return links.reduce((result, link) => getCommonPredecessor(chain, [result, link]), links[0])
+  if (links.length !== 2) throw new Error('exactly two links required')
+  const [a, b] = links
+  const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
+  return getLink(chain, hash)
 }
