@@ -1,5 +1,4 @@
-import { makeHash } from './ProbabilisticFilter'
-import { TruncatedHashFilter } from './TruncatedHashFilter'
+import { makeHash, TruncatedHashFilter } from './TruncatedHashFilter'
 
 describe('Truncated hash filter', () => {
   it('2 values', () => {
@@ -32,7 +31,7 @@ describe('Truncated hash filter', () => {
   })
 
   it('many consecutive items', () => {
-    const N = 10000
+    const N = 1000
     const numbers = range(N)
 
     const filter = new TruncatedHashFilter().add(numbers)
@@ -49,8 +48,8 @@ describe('Truncated hash filter', () => {
   })
 
   it('many random items', () => {
-    const N = 10000
-    const numbers = range(N)
+    const N = 1000
+    const numbers = range(N).map(n => Math.random().toString())
 
     const filter = new TruncatedHashFilter().add(numbers)
 
