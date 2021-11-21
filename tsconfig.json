@@ -5,7 +5,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
-    "incremental": true,
     "jsx": "react",
     "lib": ["dom", "esnext"],
     "module": "esnext",
