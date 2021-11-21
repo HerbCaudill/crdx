@@ -1,7 +1,7 @@
 {
   "name": "crdx",
   "author": "HerbCaudill",
-  "version": "0.1.5",
+  "version": "1.0.1",
   "license": "MIT",
   "repository": "https://github.com/herbcaudill/crdx",
   "type": "module",
@@ -11,8 +11,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "tsc ",
-    "postbuild": "tscpaths -p tsconfig.json -s ./src -o ./dist --silent",
+    "build": "tsc -p tsconfig.build.json",
+    "postbuild": "tscpaths -p tsconfig.build.json -s ./src -o ./dist --silent",
     "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:log": "cross-env DEBUG='crdx*' DEBUG_COLORS=1 yarn test",
     "prepublish": "yarn build"
