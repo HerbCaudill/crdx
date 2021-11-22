@@ -21,7 +21,7 @@
     "prepublish": "yarn build"
   },
   "dependencies": {
-    "@herbcaudill/crypto": "2",
+    "@herbcaudill/crypto": "2.1.5",
     "@herbcaudill/random": "0",
     "cuid": "2",
     "debug": "4",

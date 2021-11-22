@@ -307,7 +307,7 @@
   resolved "https://registry.yarnpkg.com/@herbcaudill/base-x/-/base-x-4.0.6.tgz#681a5921ea55b61a431c49ade9955322b02337cd"
   integrity sha512-9BaPxLhtOGn5Os1gnG223StA8BvOm2vm8Unatj6nLoEV1lL8PVDyhsZV1yJXSSWEc8aHnQAJG5+NbvGMveaqeQ==
 
-"@herbcaudill/crypto@2":
+"@herbcaudill/crypto@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.1.5.tgz#5c92ef23fd6f978949318d01988cb89deec37ac1"
   integrity sha512-h/BACqLfvI5AmW7A3htPdGzKDTSKv6quTefuo1dYVGWIPvTzOntPXj5sABX3zAx+r6cLXG160zwVBd0xebcoQA==
