@@ -302,13 +302,19 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@herbcaudill/base-x@4":
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/base-x/-/base-x-4.0.6.tgz#681a5921ea55b61a431c49ade9955322b02337cd"
+  integrity sha512-9BaPxLhtOGn5Os1gnG223StA8BvOm2vm8Unatj6nLoEV1lL8PVDyhsZV1yJXSSWEc8aHnQAJG5+NbvGMveaqeQ==
+
 "@herbcaudill/crypto@2":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.0.1.tgz#0d20cbc05028b71e429816e9538f2d9d9e86bfb9"
-  integrity sha512-7hoM4pNHJ9EojJyNg4YNC5aiBRbQftwelyKtDojYLuHuzP/a14HfD0EMuyEzI5WTrJ1ETNNkcAbnMdOeDmixzg==
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.1.2.tgz#c2757e50ce099c385272f66cd706f96e8da273e8"
+  integrity sha512-3DaDNl5yxTf2W5DFwow7z8LcSrWuuxC9SWqpLdCYDB3HLcvk+9gOlogDkjSDA+pJEYrkgkjomvPzHSNiqQASpg==
   dependencies:
+    "@herbcaudill/base-x" "4"
     "@stablelib/utf8" "1"
-    base-x "3"
+    fast-memoize "2"
     json-stable-stringify "1"
     libsodium-wrappers "0"
     msgpack-lite "0"
@@ -878,13 +884,6 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
-
-base-x@3:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/base-x/-/base-x-3.0.9.tgz#6349aaabb58526332de9f60995e548a53fe21320"
-  integrity sha512-H7JU6iBHTal1gp56aKoaa//YUxEaAOUiydvrV/pILqIHXTtqxSkATOnDA2u+jZ/61sD+L/412+7kzXRtWukhpQ==
-  dependencies:
-    safe-buffer "^5.0.1"
 
 base@^0.11.1:
   version "0.11.2"
@@ -2929,11 +2928,6 @@ rimraf@^3.0.0:
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
   dependencies:
     glob "^7.1.3"
-
-safe-buffer@^5.0.1:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
-  integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==
 
 safe-buffer@~5.1.1:
   version "5.1.2"
