@@ -308,9 +308,9 @@
   integrity sha512-9BaPxLhtOGn5Os1gnG223StA8BvOm2vm8Unatj6nLoEV1lL8PVDyhsZV1yJXSSWEc8aHnQAJG5+NbvGMveaqeQ==
 
 "@herbcaudill/crypto@2":
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.1.3.tgz#212d5c35a710ea80310b09603430bb9b76983dbf"
-  integrity sha512-+NFdwhUWAzTS8z7uhATkye2okJSEncKQvrhCSTolPE+skVtn9eaU+cs6fAms0LtRqhmwtMEAa4X7IvXd0y2sNw==
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.1.5.tgz#5c92ef23fd6f978949318d01988cb89deec37ac1"
+  integrity sha512-h/BACqLfvI5AmW7A3htPdGzKDTSKv6quTefuo1dYVGWIPvTzOntPXj5sABX3zAx+r6cLXG160zwVBd0xebcoQA==
   dependencies:
     "@herbcaudill/base-x" "4"
     "@stablelib/utf8" "1"
