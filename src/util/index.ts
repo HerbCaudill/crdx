@@ -1,7 +1,6 @@
 export * from '/util/arrayToMap'
 export * from '/util/assert'
 export * from '/util/debug'
-export * from '/util/headsAreEqual'
 export * from '/util/memoize'
 export * from '/util/truncateHashes'
 export * from '/util/types'
