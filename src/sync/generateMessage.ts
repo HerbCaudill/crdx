@@ -1,7 +1,7 @@
 import { TruncatedHashFilter } from './TruncatedHashFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getHashes, getLink, getPredecessorHashes, SignatureChain } from '/chain'
-import { arrayToMap, headsAreEqual, unique } from '/util'
+import { Action, getHashes, getLink, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
+import { arrayToMap, unique } from '/util'
 
 export const generateMessage = <A extends Action, C>(
   chain: SignatureChain<A, C>,
