@@ -1,8 +1,8 @@
 import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
-import { append, createChain } from '/chain'
+import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { createUser } from '/user'
-import { assert, headsAreEqual } from '/util'
+import { assert } from '/util'
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
