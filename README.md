@@ -170,10 +170,10 @@ You’ll need to store this information securely once it’s been generated.
 CRDX doesn’t keep track of any other users’ names or public keys — you’ll need to ensure that Alice
 has some way of knowing what Bob’s public signature key is.
 
-> If you don't already have a public key infrastructure (PKI) solution, you might be interested in
-> [@localfirst/auth](https://github.com/local-first-web/auth). This library uses CRDX internally to
-> manage group membership and permissions, and keeps track of each member’s public keys on the
-> signature chain itself.
+> If you don't already have a way to manage users' secret keys and verify their public keys, you
+> might be interested in [@localfirst/auth](https://github.com/local-first-web/auth). This library
+> uses CRDX internally to manage group membership and permissions, and keeps track of each member’s
+> public keys on the signature chain itself.
 
 #### The resolver function
 
@@ -187,13 +187,17 @@ Suppose you have the following graph. Actions **c** and **d** are made concurren
 
 ![](https://raw.githubusercontent.com/HerbCaudill/pics/master/sigchain.3.png)
 
-Your resolver will decide what to do with these concurrent actions. It might
+Your resolver will decide what to do with these concurrent actions: How they're ordered, and which ones to keep. It might
 
 - take **c** before **d**
 - take **d** before **c**
 - take **d** and discard **c** altogether
 - etc.
 
-The resolver .
+A resolver consists of two functions: A **sort** function, and a **filter** function.
+
+TODO example
 
 #### The reducer function
+
+TODO
