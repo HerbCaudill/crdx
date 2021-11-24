@@ -8,6 +8,7 @@ import { assert, Hash, unique } from '/util'
  * Receives a sync message from a peer and possibly updates our chain with information from them. It
  * also processes any information they've provided about what they need, so that we can send that
  * information in our next message.
+ *
  * @returns A tuple `[chain, state]` containing our updated chain and our updated sync state with
  * this peer.
  * */
