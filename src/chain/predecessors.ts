@@ -38,29 +38,3 @@ export const isPredecessor = <A extends Action, C>(
     getPredecessorHashes(chain, b.hash).includes(a.hash)
   )
 }
-
-// TODO: getCommonPredecessor is not being used any more?
-
-export const getCommonPredecessorHash = memoize(
-  <A extends Action, C>(chain: SignatureChain<A, C>, a: string, b: string) => {
-    if (a === b) return a
-
-    // does one precede the other?
-    if (isPredecessorHash(chain, a, b)) return a
-    if (isPredecessorHash(chain, b, a)) return b
-
-    const aPredecessors = getPredecessorHashes(chain, a)
-    const bPredecessors = getPredecessorHashes(chain, b)
-    return aPredecessors.find(link => bPredecessors.includes(link))! // guaranteed to exist
-  }
-)
-
-export const getCommonPredecessor = <A extends Action, C>(
-  chain: SignatureChain<A, C>,
-  links: Link<A, C>[]
-): Link<A, C> => {
-  if (links.length !== 2) throw new Error('exactly two links required')
-  const [a, b] = links
-  const hash = getCommonPredecessorHash(chain, a.hash, b.hash)
-  return getLink(chain, hash)
-}
