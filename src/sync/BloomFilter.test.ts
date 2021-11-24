@@ -1,9 +1,8 @@
-import { utf8 } from '@herbcaudill/crypto'
 import { BloomFilter } from './BloomFilter'
 
 describe('Bloom filter', () => {
   it('2 values', () => {
-    const filter = new BloomFilter(2).add(['a', 'b'])
+    const filter = new BloomFilter(['a', 'b'])
 
     // no false negatives
     expect(filter.has('a')).toBe(true)
@@ -18,7 +17,7 @@ describe('Bloom filter', () => {
     const N = 1000
     const numbers = range(N)
 
-    const filter = new BloomFilter(N).add(numbers)
+    const filter = new BloomFilter(numbers)
 
     // no false negatives
     for (const n of numbers) {
@@ -37,7 +36,7 @@ describe('Bloom filter', () => {
     const N = 1000
     const numbers = range(N).map(n => Math.random().toString())
 
-    const filter = new BloomFilter(N).add(numbers)
+    const filter = new BloomFilter(numbers)
 
     // no false negatives
     for (const n of numbers) {
@@ -54,13 +53,13 @@ describe('Bloom filter', () => {
     const N = 10
     const numbers = range(N)
 
-    const filter = new BloomFilter(N).add(numbers)
+    const filter = new BloomFilter(numbers)
 
     // store or transmit the filter's value
     const storedValue = filter.save()
 
     // rehydrate from the stored value
-    const newFilter = new BloomFilter(N).load(storedValue)
+    const newFilter = new BloomFilter(storedValue)
 
     // the saved values match
     expect(newFilter.save()).toEqual(storedValue)
@@ -70,12 +69,12 @@ describe('Bloom filter', () => {
     const N = 10
     const numbers = range(N)
 
-    const filter = new BloomFilter(N).add(numbers)
+    const filter = new BloomFilter(numbers)
 
     // store or transmit the filter's value
     const storedValue = filter.save()
 
-    const newFilter = new BloomFilter(N).load(storedValue)
+    const newFilter = new BloomFilter(storedValue)
 
     // no false negatives
     for (const n of numbers) {
