@@ -23,20 +23,20 @@
   "dependencies": {
     "@herbcaudill/crypto": "2",
     "@herbcaudill/random": "0",
-    "@types/msgpack-lite": "^0.1.8",
-    "bloom-filters": "^1.3.9",
+    "bloom-filters": "1",
     "cuid": "2",
     "debug": "4",
     "events": "3",
     "fast-memoize": "2",
     "lodash": "4",
-    "msgpack-lite": "^0.1.26"
+    "msgpack-lite": "0"
   },
   "devDependencies": {
     "@herbcaudill/tscpaths": "0",
     "@types/debug": "4",
     "@types/jest": "27",
     "@types/lodash": "4",
+    "@types/msgpack-lite": "0",
     "cross-env": "6",
     "jest": "27",
     "ts-jest": "27",
