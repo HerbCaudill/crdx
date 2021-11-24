@@ -1,4 +1,4 @@
-import { getCommonPredecessor, getHead, getParents, getPredecessors, isPredecessor } from '/chain'
+import { getHead, getParents, getPredecessors, isPredecessor } from '/chain'
 import { buildChain, byPayload, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
@@ -69,28 +69,6 @@ describe('chains', () => {
       test(`c doesn't precede l`, () => expect(testCase('c', 'l')).toBe(false))
 
       test(`nonexistent nodes don't precede anything`, () => expect(testCase('nope', 'c')).toBe(false))
-    })
-
-    describe('getCommonPredecessor', () => {
-      const testCase = (a: string, b: string) => {
-        const aLink = findByPayload(chain, a)
-        const bLink = findByPayload(chain, b)
-        const result = getCommonPredecessor(chain, [aLink, bLink])
-        return result.body.payload
-      }
-
-      test('f g', () => expect(testCase('a', 'b')).toBe('a'))
-      test('f g', () => expect(testCase('b', 'a')).toBe('a'))
-      test('f g', () => expect(testCase('f', 'g')).toBe('d'))
-      test('l o', () => expect(testCase('l', 'o')).toBe('b'))
-      test('f f', () => expect(testCase('f', 'f')).toBe('f'))
-      test('d f', () => expect(testCase('d', 'f')).toBe('d'))
-      test('k l', () => expect(testCase('k', 'n')).toBe('k'))
-
-      test('require two links', () => {
-        const a = findByPayload(chain, 'a')
-        expect(() => getCommonPredecessor(chain, [a])).toThrow()
-      })
     })
   })
 })
