@@ -1,8 +1,6 @@
 import { Action, LinkMap } from '/chain'
 import { Hash } from '/util'
 
-export type EncodedFilter = Uint8Array // the encoded output of a probabilistic filter
-
 export interface SyncState {
   /** The head we had in common with this peer the last time we synced. If null, we don't have any
    * record of having synced before. */
@@ -26,6 +24,7 @@ export interface SyncState {
   /** All the links they've sent us*/
   theyHaveSent: Hash[]
 
+  /** Links they've sent that we haven't been able to absorb yet because we're missing dependencies */
   pendingLinks: LinkMap<any, any>
 }
 
@@ -42,6 +41,6 @@ export interface SyncMessage<A extends Action, C> {
   /** Any hashes we know we need. */
   need?: Hash[]
 
-  /** A byte-array encoding of a probabilistic filter representing the hashes we have  */
-  encodedFilter?: EncodedFilter
+  /** A byte-array encoding of a Bloom filter representing the hashes we have  */
+  encodedFilter?: Uint8Array
 }

@@ -1,73 +1,71 @@
-import { TruncatedHashFilter } from './TruncatedHashFilter'
+import { BloomFilter } from './BloomFilter'
 import { SyncMessage, SyncState } from './types'
 import { Action, getHashes, getLink, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
-import { arrayToMap, unique } from '/util'
+import { arrayToMap } from '/util'
 
+/**
+ * Generates a new sync message for a peer based on our current chain and our sync state with them.
+ *
+ * @returns A tuple `[state, message]` containing our updated sync state with this peer, and the
+ * message to send them. If the message returned is `undefined`, we are already synced up, they know
+ * we're synced up, and we don't have any further information to send.  */
 export const generateMessage = <A extends Action, C>(
+  /** Our current chain */
   chain: SignatureChain<A, C>,
+  /** Our sync state with this peer */
   state: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
-  const { theirHead, lastCommonHead, ourNeed, theirNeed } = state
+  let { theirHead, lastCommonHead, ourNeed, theirNeed } = state
   const { root, head } = chain
   const ourHead = head
+  const ourHashes = getHashes(chain)
+  const message = { root, head } as SyncMessage<A, C>
 
-  state = { ...state, ourHead }
-  let message: SyncMessage<A, C> | undefined
+  const syncedLastTime = headsAreEqual(ourHead, lastCommonHead)
+  const syncedThisTime = headsAreEqual(ourHead, theirHead)
+  const weAreAhead =
+    theirHead.length > 0 && // if we don't know their head, we can't assume we're ahead
+    theirHead.every(h => h in chain.links)
 
-  // CASE 1: We're synced up, no more information to exchange
-  if (headsAreEqual(ourHead, lastCommonHead)) {
-    message = undefined
-  } else {
-    message = { root, head }
+  // CASE 1: We are synced up
 
-    // If we've just now synced up, note that; we'll send one last message so they know we're caught up
-    if (headsAreEqual(state.ourHead, state.theirHead)) state.lastCommonHead = state.ourHead
+  // CASE 1a: We synced up in the last round, and they know we synced up, so we have nothing more to say
+  if (syncedLastTime) return [state, undefined]
 
-    const hashesTheyAlreadyHave = [
-      // we know they have their heads and everything preceding them
-      ...theirHead,
-      ...theirHead.flatMap(h => getPredecessorHashes(chain, h)),
-    ]
-
-    // CASE 2: we are ahead of them, so we know exactly what they need
-    const theyAreBehind = theirHead.length && theirHead.every(h => h in chain.links)
-    if (theyAreBehind) {
-      // figure out what they have & what they're missing
-      const hashesTheyNeed = getHashes(chain).filter(hash => !hashesTheyAlreadyHave.includes(hash))
-
-      message.links = hashesTheyNeed
-        .map(hash => getLink(chain, hash)) // look the links corresponding to each hash
-        .reduce(arrayToMap('hash'), {}) // turn into map
-    } else {
-      // CASE 3: we have divergent chains
-
-      // Let them know what we have
-
-      // build a probabilistic filter representing the hashes we have that we think they may need
-      // (omitting anything we know they already have)
-      const hashesTheyMightNeed = getHashes(chain).filter(hash => !hashesTheyAlreadyHave.includes(hash))
-      const filter = new TruncatedHashFilter()
-      filter.addHashes(hashesTheyMightNeed)
-      message.encodedFilter = filter.save() // send compact representation of the filter
-
-      // Request what we need
-      message.need = ourNeed
-    }
-
-    // Send them anything they've requested
-    const linksTheyRequested = theirNeed
-      .map(hash => getLink(chain, hash)) // look up each link
-      .reduce(arrayToMap('hash'), {}) // put links in a map
-
-    message.links = {
-      ...message.links,
-      ...linksTheyRequested,
-    }
-    state.theirNeed = []
-
-    const sendingNow = Object.keys(message.links)
-    state.weHaveSent = unique([...state.weHaveSent, ...sendingNow])
+  // CASE 1b: We are now synced up, but they might know know that; we'll send one last message just to confirm
+  if (syncedThisTime) {
+    // record the fact that we've converged in our sync state
+    state.lastCommonHead = ourHead
+    return [state, message]
   }
+
+  // CASE 2: We are not synced up
+
+  if (weAreAhead) {
+    // CASE 2a: we are ahead of them, so we don't need anything, AND we know exactly what they need
+
+    // They have their heads and everything preceding them
+    const hashesTheyHave = [...theirHead, ...theirHead.flatMap(h => getPredecessorHashes(chain, h))]
+    // Send them everything else
+    const hashesTheyAreMissing = ourHashes.filter(hash => !hashesTheyHave.includes(hash))
+    theirNeed = theirNeed.concat(hashesTheyAreMissing)
+  } else {
+    // CASE 2b: we are not ahead of them -- we could be behind, or we could have diverged
+
+    // Send them a Bloom filter so they'll know what we have
+    message.encodedFilter = new BloomFilter(ourHashes).save()
+    message.need = ourNeed // We'll also let them know any specific links we've previously identified that we're missing
+  }
+
+  // Send them links they need
+  message.links = theirNeed
+    .map(h => getLink(chain, h)) // look up each link
+    .reduce(arrayToMap('hash'), {}) // put links in a map
+
+  // Remember what we've sent
+  state.weHaveSent = state.weHaveSent.concat(theirNeed)
+  // We've sent them everything they've asked for, so reset their need
+  state.theirNeed = []
 
   return [state, message]
 }
