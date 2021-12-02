@@ -653,7 +653,7 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
-"@types/msgpack-lite@^0.1.8":
+"@types/msgpack-lite@0":
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/@types/msgpack-lite/-/msgpack-lite-0.1.8.tgz#032f19609e6353b65f2898d135e1f61e3aa8b102"
   integrity sha512-3qIhe8MH1kGcXnB5YuY6W0lLb9LEcWrhanDYfw0zKdXAv+CNKG0+6To1X8dqVyrxKb3FeAgJBJS5RdFwBQteVg==
@@ -894,7 +894,7 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
-bloom-filters@^1.3.9:
+bloom-filters@1:
   version "1.3.9"
   resolved "https://registry.yarnpkg.com/bloom-filters/-/bloom-filters-1.3.9.tgz#ccc41309e4800f344165c13e07732c24cac5d77f"
   integrity sha512-O4iiLiBeWEv4nj4movvOmGK/S4eY+9LPJn2JICyPuKghkr4vuJi46ofHmJRg4B9t5l0NElNG0YfwNcVUiUjYqA==
@@ -2622,7 +2622,7 @@ ms@2.1.2:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-msgpack-lite@0, msgpack-lite@^0.1.26:
+msgpack-lite@0:
   version "0.1.26"
   resolved "https://registry.yarnpkg.com/msgpack-lite/-/msgpack-lite-0.1.26.tgz#dd3c50b26f059f25e7edee3644418358e2a9ad89"
   integrity sha1-3TxQsm8FnyXn7e42REGDWOKprYk=
