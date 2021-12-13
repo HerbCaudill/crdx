@@ -52,6 +52,8 @@ export type Link<A extends Action, C> = {
     /** The public half of the key used to sign the link, in base58 encoding */
     key: Base58
   }
+
+  isInvalid?: boolean
 }
 
 export interface RootAction {
@@ -110,9 +112,7 @@ export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>)
  *   [f]
  * ```
  */
-export type Resolver<A extends Action, C> = (
-  chain: SignatureChain<A, C>
-) => {
+export type Resolver<A extends Action, C> = (chain: SignatureChain<A, C>) => {
   sort?: LinkComparator
   filter?: (link: Link<A, C>) => boolean
 }

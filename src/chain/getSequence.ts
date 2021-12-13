@@ -29,7 +29,11 @@ export const getSequence = <A extends Action, C>(
 
   const sorted = topoSort(chain, { comparator: sort })
 
-  return sorted.filter(link => filter(link))
+  // Rather than apply the filter directly, we mark links that would be filtered out as invalid.
+  return sorted.map(link => {
+    const isInvalid = link.isInvalid || !filter(link)
+    return { ...link, isInvalid }
+  })
 }
 
 export const baseResolver: Resolver<any, any> = _ => ({})

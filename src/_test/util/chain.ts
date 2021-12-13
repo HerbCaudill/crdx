@@ -9,6 +9,7 @@ const { alice } = setup('alice')
 export const getPayloads = (sequence: Link<XAction, any>[]) =>
   sequence //
     .filter(link => link.body.prev.length) // omit root link
+    .filter(link => link.isInvalid !== true) // omit invalid links
     .map(link => (link.body as LinkBody<XAction, any>).payload) // pull out payloads
     .join('') // return as single string
 
