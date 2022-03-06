@@ -40,6 +40,10 @@ export const receiveMessage = <A extends Action, C>(
   const theirChain = {
     root: theirRoot,
     head: theirHead,
+
+    // TODO
+    encryptedLinks: {},
+
     links: { ...chain.links, ...state.pendingLinks },
   }
 

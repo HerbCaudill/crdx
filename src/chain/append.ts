@@ -38,8 +38,11 @@ export const append = <A extends Action, C>({
   // clone the previous map of links and add the new one
   const links = { ...chain.links, [hash]: link }
 
+  // TODO
+  const encryptedLinks = chain.encryptedLinks
+
   // return new chain
   const root = chain.root ?? hash // if the chain didn't already have a root, this is it
   const head = [hash]
-  return { root, head, links } as SignatureChain<A, C>
+  return { root, head, encryptedLinks, links } as SignatureChain<A, C>
 }

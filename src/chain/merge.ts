@@ -27,6 +27,10 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
   const mergedChain: SignatureChain<A, C> = {
     root: a.root,
     head: newHeads,
+
+    // TODO
+    encryptedLinks: {},
+
     links: mergedLinks,
   }
 
