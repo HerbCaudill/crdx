@@ -5,6 +5,7 @@ export type Hash = Base58
 export type SemVer = string
 export type Key = Utf8 | Uint8Array
 export type Payload = Base58 | Uint8Array | object
+export type UUID = string
 
 export type Encrypted<T> = string & {
   __encrypted: T
