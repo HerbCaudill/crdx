@@ -35,7 +35,7 @@ export interface EncryptedSignatureChain<A extends Action, C> {
   head: Hash[]
 
   /** Hash table of all the links we know about */
-  encryptedLinks?: Record<Hash, EncryptedLink<A, C>>
+  encryptedLinks: Record<Hash, EncryptedLink<A, C>>
 }
 
 /**
