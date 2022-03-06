@@ -27,11 +27,8 @@ export interface SignatureChain<A extends Action, C> {
   head: Hash[]
 
   /** Hash table of all the links we know about */
-  links: LinkMap<A, C>
+  links: Record<Hash, Link<A, C>>
 }
-
-/** A `LinkMap` is a hash table of links */
-export type LinkMap<A extends Action, C> = Record<Hash, Link<A, C>>
 
 /** A link consists of a body, as well as a hash and a signature calculated from the body. */
 export type Link<A extends Action, C> = {
