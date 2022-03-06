@@ -1,7 +1,7 @@
 import { BloomFilter as _BloomFilter } from 'bloom-filters'
 import msgpack from 'msgpack-lite'
 
-const ERROR_RATE = 0.0001
+export const ERROR_RATE = 0.0001
 
 /** A Bloom filter is a probabilistic data structure that is used to test whether an element is a
  * member of a set. */

@@ -1,4 +1,4 @@
-import { BloomFilter } from './BloomFilter'
+import { BloomFilter, ERROR_RATE } from './BloomFilter'
 
 describe('Bloom filter', () => {
   it('2 values', () => {
@@ -29,7 +29,7 @@ describe('Bloom filter', () => {
     // few false positives
     const moreNumbers = range(N).map(n => n + N)
     const falsePositives = moreNumbers.filter(n => filter.has(n))
-    expect(falsePositives.length / N).toBeLessThan(0.0001)
+    expect(falsePositives.length / N).toBeLessThan(ERROR_RATE)
   })
 
   it('many random items', () => {
@@ -46,7 +46,7 @@ describe('Bloom filter', () => {
     // few false positives
     const moreNumbers = range(N).map(n => n + N)
     const falsePositives = moreNumbers.filter(n => filter.has(n)).length
-    expect(falsePositives / N).toBeLessThan(0.0001)
+    expect(falsePositives / N).toBeLessThan(ERROR_RATE)
   })
 
   it('save/rehydrate round trip', () => {
