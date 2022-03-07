@@ -2,7 +2,8 @@
 import { createChain } from '/chain/createChain'
 import { merge } from '/chain/merge'
 import { Action, Link, LinkBody, SignatureChain } from '/chain/types'
-import { setup } from '/test/util/setup'
+import { KeysetWithSecrets } from '/keyset'
+import { setup, TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 
 const { alice } = setup('alice')
 
@@ -24,19 +25,19 @@ export const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
 }
 
 export const buildChain = (type: string) => {
-  let root = createChain<XAction>({ user: alice, name: 'root' })
+  let root = createChain<XAction>({ user: alice, name: 'root', chainKeys })
   switch (trim(type)) {
     // one link
     case 'a': {
-      let a = appendLink(root, 'a')
+      let a = appendLink(root, 'a', chainKeys)
       return a
     }
 
     // no branches
     case trim(`a ─ b ─ c`): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
       return c
     }
 
@@ -46,9 +47,9 @@ export const buildChain = (type: string) => {
          a ─┤
             └─ c
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(a, 'c')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(a, 'c', chainKeys)
       return merge(b, c)
     }
 
@@ -59,11 +60,11 @@ export const buildChain = (type: string) => {
             └─── d ───┘
 
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
-      let d = appendLink(a, 'd')
-      let e = appendLink(merge(c, d), 'e')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
+      let d = appendLink(a, 'd', chainKeys)
+      let e = appendLink(merge(c, d), 'e', chainKeys)
       return e
     }
 
@@ -74,15 +75,15 @@ export const buildChain = (type: string) => {
             └─── d ───┘     └─── h ───┘
 
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
-      let d = appendLink(a, 'd')
-      let e = appendLink(merge(c, d), 'e')
-      let f = appendLink(e, 'f')
-      let g = appendLink(f, 'g')
-      let h = appendLink(e, 'h')
-      let i = appendLink(merge(g, h), 'i')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
+      let d = appendLink(a, 'd', chainKeys)
+      let e = appendLink(merge(c, d), 'e', chainKeys)
+      let f = appendLink(e, 'f', chainKeys)
+      let g = appendLink(f, 'g', chainKeys)
+      let h = appendLink(e, 'h', chainKeys)
+      let i = appendLink(merge(g, h), 'i', chainKeys)
       return i
     }
 
@@ -94,25 +95,25 @@ export const buildChain = (type: string) => {
                 ├──── h ──── i ─────┘     │
                 └───── j ─── k ── l ──────┘
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
-      let d = appendLink(c, 'd')
-      let e = appendLink(d, 'e')
-      let g = appendLink(e, 'g')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
+      let d = appendLink(c, 'd', chainKeys)
+      let e = appendLink(d, 'e', chainKeys)
+      let g = appendLink(e, 'g', chainKeys)
 
-      let f = appendLink(d, 'f')
+      let f = appendLink(d, 'f', chainKeys)
 
-      let h = appendLink(b, 'h')
-      let i = appendLink(h, 'i')
+      let h = appendLink(b, 'h', chainKeys)
+      let i = appendLink(h, 'i', chainKeys)
 
-      let j = appendLink(b, 'j')
-      let k = appendLink(j, 'k')
-      let l = appendLink(k, 'l')
+      let j = appendLink(b, 'j', chainKeys)
+      let k = appendLink(j, 'k', chainKeys)
+      let l = appendLink(k, 'l', chainKeys)
 
-      let o = appendLink(merge(g, merge(f, i)), 'o')
+      let o = appendLink(merge(g, merge(f, i)), 'o', chainKeys)
 
-      let n = appendLink(merge(o, l), 'n')
+      let n = appendLink(merge(o, l), 'n', chainKeys)
       return n
     }
 
@@ -123,18 +124,18 @@ export const buildChain = (type: string) => {
          a ─ b ─┤         └── i ─ j ─┘
                 └── d ────────┘
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
-      let e = appendLink(c, 'e')
-      let h = appendLink(e, 'h')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
+      let e = appendLink(c, 'e', chainKeys)
+      let h = appendLink(e, 'h', chainKeys)
 
-      let d = appendLink(b, 'd')
+      let d = appendLink(b, 'd', chainKeys)
 
-      let i = appendLink(merge(e, d), 'i')
-      let j = appendLink(i, 'j')
+      let i = appendLink(merge(e, d), 'i', chainKeys)
+      let j = appendLink(i, 'j', chainKeys)
 
-      let k = appendLink(merge(h, j), 'k')
+      let k = appendLink(merge(h, j), 'k', chainKeys)
       return k
     }
 
@@ -146,19 +147,19 @@ export const buildChain = (type: string) => {
                 ├─ h ─ i  
                 └─ j 
       `): {
-      let a = appendLink(root, 'a')
-      let b = appendLink(a, 'b')
-      let c = appendLink(b, 'c')
-      let d = appendLink(c, 'd')
-      let e = appendLink(d, 'e')
-      let g = appendLink(e, 'g')
-      let f = appendLink(d, 'f')
-      let o = appendLink(merge(g, f), 'o')
+      let a = appendLink(root, 'a', chainKeys)
+      let b = appendLink(a, 'b', chainKeys)
+      let c = appendLink(b, 'c', chainKeys)
+      let d = appendLink(c, 'd', chainKeys)
+      let e = appendLink(d, 'e', chainKeys)
+      let g = appendLink(e, 'g', chainKeys)
+      let f = appendLink(d, 'f', chainKeys)
+      let o = appendLink(merge(g, f), 'o', chainKeys)
 
-      let h = appendLink(b, 'h')
-      let i = appendLink(h, 'i')
+      let h = appendLink(b, 'h', chainKeys)
+      let i = appendLink(h, 'i', chainKeys)
 
-      let j = appendLink(b, 'j')
+      let j = appendLink(b, 'j', chainKeys)
 
       return merge(o, merge(i, j))
     }
@@ -177,7 +178,12 @@ export type XAction =
     }
 export type XLink = Link<XAction, {}>
 
-export const appendLink = (chain: SignatureChain<XAction, any>, payload: string) =>
-  append({ chain, action: { type: 'X', payload } as XAction, user: alice })
+export const appendLink = (chain: SignatureChain<XAction, any>, payload: string, chainKeys: KeysetWithSecrets) =>
+  append({
+    chain,
+    action: { type: 'X', payload } as XAction,
+    user: alice,
+    chainKeys,
+  })
 
 export const trim = (s: string) => s.replace(/\s*/g, '')

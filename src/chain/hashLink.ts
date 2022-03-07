@@ -1,9 +1,9 @@
-import { hash } from '@herbcaudill/crypto'
-import { Action } from './types'
+import { Encrypted, hash } from '@herbcaudill/crypto'
+import { Action, LinkBody } from './types'
 import { HashPurpose } from '/constants'
 
-const { LINK_TO_PREVIOUS } = HashPurpose
+const { LINK_HASH } = HashPurpose
 
-export const hashLink = <A extends Action>(body: A) => {
-  return hash(LINK_TO_PREVIOUS, body)
+export const hashLink = <A extends Action, C>(body: Encrypted<LinkBody<A, C>>) => {
+  return hash(LINK_HASH, body)
 }

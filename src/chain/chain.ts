@@ -6,3 +6,5 @@ export const getHead = <A extends Action, C>(chain: SignatureChain<A, C>) =>
   chain.head.map(hash => getLink(chain, hash))
 export const getHashes = (chain: SignatureChain<any, any>) => Object.keys(chain.links)
 export const getLink = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash) => chain.links[hash]
+export const getEncryptedLink = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash) =>
+  chain.encryptedLinks[hash]

@@ -1,6 +1,14 @@
 import { BloomFilter } from './BloomFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getHashes, getLink, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
+import {
+  Action,
+  getEncryptedLink,
+  getHashes,
+  getLink,
+  getPredecessorHashes,
+  headsAreEqual,
+  SignatureChain,
+} from '/chain'
 import { arrayToMap } from '/util'
 
 /**
@@ -59,7 +67,7 @@ export const generateMessage = <A extends Action, C>(
 
   // Send them links they need
   message.links = theirNeed
-    .map(h => getLink(chain, h)) // look up each link
+    .map(h => getEncryptedLink(chain, h)) // look up each link
     .reduce(arrayToMap('hash'), {}) // put links in a map
 
   // Remember what we've sent

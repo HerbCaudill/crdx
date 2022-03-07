@@ -1,5 +1,6 @@
 import { Reducer } from './types'
 import { Action, Resolver, SignatureChain } from '/chain'
+import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { ValidatorSet } from '/validator'
 
@@ -31,4 +32,7 @@ export type StoreOptions<S, A extends Action, C> = {
 
   /** For new stores: Additional information to include in the root node  */
   rootPayload?: any
+
+  /** Keyset for encrypting/decrypting the chain. */
+  chainKeys: KeysetWithSecrets
 }

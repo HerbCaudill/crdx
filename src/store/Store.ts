@@ -14,6 +14,7 @@ import {
   serialize,
   SignatureChain,
 } from '/chain'
+import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
@@ -35,12 +36,13 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     reducer,
     validators,
     resolver = baseResolver,
+    chainKeys,
   }: StoreOptions<S, A, C>) {
     super()
 
     this.chain = !chain
       ? // no chain provided, create one
-        createChain({ user, rootPayload })
+        createChain({ user, rootPayload, chainKeys })
       : typeof chain === 'string'
       ? // serialized chain provided, deserialize it
         deserialize(chain)
@@ -53,6 +55,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.validators = validators
     this.resolver = resolver
     this.user = user
+    this.chainKeys = chainKeys
 
     // set the initial state
     this.updateState()
@@ -93,7 +96,13 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     const actionWithPayload = { payload: undefined, ...action } as A
 
     // append this action as a new link to the chain
-    this.chain = append({ chain: this.chain, action: actionWithPayload, user: this.user, context: this.context })
+    this.chain = append({
+      chain: this.chain,
+      action: actionWithPayload,
+      user: this.user,
+      context: this.context,
+      chainKeys: this.chainKeys,
+    })
 
     // get the newly appended link (at this point we're guaranteed a single head, which is the one we appended)
     const [head] = getHead(this.chain)
@@ -145,6 +154,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private reducer: Reducer<S, A, C>
   private resolver: Resolver<A, C>
   private validators?: ValidatorSet
+
+  private chainKeys: KeysetWithSecrets
 
   private chain: SignatureChain<A, C>
   private state: S

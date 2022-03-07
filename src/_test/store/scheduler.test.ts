@@ -1,6 +1,7 @@
-import { Action, createChain, Link, Resolver, RootAction } from '/chain'
+import { Action, createChain, Link, Resolver } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
+import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { createUser } from '/user'
 import { UnixTimestamp } from '/util'
 
@@ -74,11 +75,11 @@ describe('scheduler', () => {
       }
     }
 
-    const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler' })
+    const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler', chainKeys })
 
     // everyone starts out with the same store
-    const aliceStore = createStore({ user: alice, chain, reducer, resolver })
-    const bobStore = createStore({ user: bob, chain, reducer, resolver })
+    const aliceStore = createStore({ user: alice, chain, reducer, resolver, chainKeys })
+    const bobStore = createStore({ user: bob, chain, reducer, resolver, chainKeys })
 
     const sync = () => {
       aliceStore.merge(bobStore.getChain())

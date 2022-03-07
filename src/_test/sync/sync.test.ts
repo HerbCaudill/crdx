@@ -1,6 +1,7 @@
 import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
 import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
+import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
 
@@ -9,8 +10,8 @@ describe('sync', () => {
     it('Alice and Bob are already synced up', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
-      const chain = createChain<any>({ user: alice, name: 'test chain' })
-      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice })
+      const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
+      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice, chainKeys })
       let aliceSyncState = initSyncState()
 
       // 👨🏻‍🦲 Bob starts with an exact a copy of 👩🏾 Alice's chain
@@ -43,14 +44,14 @@ describe('sync', () => {
     it('Alice is ahead of Bob', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
-      const chain = createChain<any>({ user: alice, name: 'test chain' })
+      const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
 
       // 👨🏻‍🦲 Bob has a copy of the original chain
       let bobChain = { ...chain }
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice })
+      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice, chainKeys })
       let aliceSyncState = initSyncState()
 
       let msg
@@ -97,7 +98,7 @@ describe('sync', () => {
       const bob = createUser('bob')
 
       // 👩🏾 Alice creates a chain
-      let aliceChain = createChain<any>({ user: alice, name: 'test chain' })
+      let aliceChain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
       let aliceSyncState = initSyncState()
 
       // 👨🏻‍🦲 Bob has a copy of the original chain
@@ -105,10 +106,10 @@ describe('sync', () => {
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      aliceChain = append({ chain: aliceChain, action: { type: 'FOO' }, user: alice })
+      aliceChain = append({ chain: aliceChain, action: { type: 'FOO' }, user: alice, chainKeys })
 
       // concurrently, 👨🏻‍🦲 Bob adds a link
-      bobChain = append({ chain: bobChain, action: { type: 'BAR' }, user: bob })
+      bobChain = append({ chain: bobChain, action: { type: 'BAR' }, user: bob, chainKeys })
 
       let msg
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
@@ -158,7 +159,7 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice makes a change; now they are out of sync
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user })
+        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user, chainKeys })
         expectNotToBeSynced(alice, bob)
 
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
@@ -176,7 +177,12 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
         // 👩🏾 Alice makes many changes; now they are out of sync
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: i }, user: alice.user })
+          alice.peer.chain = append({
+            chain: alice.peer.chain,
+            action: { type: 'FOO', payload: i },
+            user: alice.user,
+            chainKeys,
+          })
         }
         expectNotToBeSynced(alice, bob)
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
@@ -193,7 +199,12 @@ describe('sync', () => {
 
         // 👩🏾 Alice makes many changes
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: i }, user: alice.user })
+          alice.peer.chain = append({
+            chain: alice.peer.chain,
+            action: { type: 'FOO', payload: i },
+            user: alice.user,
+            chainKeys,
+          })
         }
         alice.peer.sync()
         network.deliverAll()
@@ -202,7 +213,12 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice makes one more change
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: 999 }, user: alice.user })
+        alice.peer.chain = append({
+          chain: alice.peer.chain,
+          action: { type: 'FOO', payload: 999 },
+          user: alice.user,
+          chainKeys,
+        })
         alice.peer.sync()
 
         network.deliverAll()
@@ -217,8 +233,18 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: 999 }, user: alice.user })
-        bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'PIZZA', payload: 42 }, user: bob.user })
+        alice.peer.chain = append({
+          chain: alice.peer.chain,
+          action: { type: 'FOO', payload: 999 },
+          user: alice.user,
+          chainKeys,
+        })
+        bob.peer.chain = append({
+          chain: bob.peer.chain,
+          action: { type: 'PIZZA', payload: 42 },
+          user: bob.user,
+          chainKeys,
+        })
         expectNotToBeSynced(alice, bob)
 
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
@@ -234,7 +260,12 @@ describe('sync', () => {
         const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO', payload: i }, user: alice.user })
+          alice.peer.chain = append({
+            chain: alice.peer.chain,
+            action: { type: 'FOO', payload: i },
+            user: alice.user,
+            chainKeys,
+          })
         }
         alice.peer.sync()
         bob.peer.sync()
@@ -245,8 +276,18 @@ describe('sync', () => {
 
         // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'BOO', payload: i }, user: alice.user })
-          bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'PIZZA', payload: i }, user: bob.user })
+          alice.peer.chain = append({
+            chain: alice.peer.chain,
+            action: { type: 'BOO', payload: i },
+            user: alice.user,
+            chainKeys,
+          })
+          bob.peer.chain = append({
+            chain: bob.peer.chain,
+            action: { type: 'PIZZA', payload: i },
+            user: bob.user,
+            chainKeys,
+          })
         }
         expectNotToBeSynced(alice, bob)
         alice.peer.sync()
@@ -263,7 +304,7 @@ describe('sync', () => {
         network.connect(alice.peer, charlie.peer)
         network.connect(bob.peer, charlie.peer)
 
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user })
+        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user, chainKeys })
 
         alice.peer.sync()
         bob.peer.sync()
@@ -276,9 +317,9 @@ describe('sync', () => {
         expectToBeSynced(alice, charlie)
 
         // everyone makes changes while offline; now they are out of sync
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'A' }, user: alice.user })
-        bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'B' }, user: bob.user })
-        charlie.peer.chain = append({ chain: charlie.peer.chain, action: { type: 'C' }, user: charlie.user })
+        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'A' }, user: alice.user, chainKeys })
+        bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'B' }, user: bob.user, chainKeys })
+        charlie.peer.chain = append({ chain: charlie.peer.chain, action: { type: 'C' }, user: charlie.user, chainKeys })
         expectNotToBeSynced(alice, bob)
 
         // now they reconnect and sync back up
@@ -351,7 +392,12 @@ describe('sync', () => {
 
           // first user makes a change
           const founder = userRecords[userNames[0]]
-          founder.peer.chain = append({ chain: founder.peer.chain, action: { type: 'FOO' }, user: founder.user })
+          founder.peer.chain = append({
+            chain: founder.peer.chain,
+            action: { type: 'FOO' },
+            user: founder.user,
+            chainKeys,
+          })
 
           founder.peer.sync()
           network.deliverAll()
@@ -366,7 +412,12 @@ describe('sync', () => {
 
           // first user makes a change
           const founder = userRecords[userNames[0]]
-          founder.peer.chain = append({ chain: founder.peer.chain, action: { type: 'FOO' }, user: founder.user })
+          founder.peer.chain = append({
+            chain: founder.peer.chain,
+            action: { type: 'FOO' },
+            user: founder.user,
+            chainKeys,
+          })
 
           for (const userName of userNames) userRecords[userName].peer.sync()
           network.deliverAll()
@@ -382,7 +433,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
             peer.sync()
             network.deliverAll()
           }
@@ -398,7 +449,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
             peer.sync()
             network.deliverAll()
           }
@@ -414,7 +465,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
           }
 
           // while they're disconnected, they have divergent docs
@@ -437,7 +488,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user })
+            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
           }
 
           // while they're disconnected, they have divergent docs

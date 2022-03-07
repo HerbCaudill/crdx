@@ -2,6 +2,7 @@
 import { append } from './append'
 import { Action, SignatureChain } from './types'
 import { ROOT } from '/constants'
+import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 
 export const EMPTY_CHAIN = {
@@ -11,13 +12,7 @@ export const EMPTY_CHAIN = {
   links: {},
 }
 
-export const createChain = <A extends Action, C = {}>({
-  user,
-  id = cuid(),
-  name = id,
-  rootPayload = {},
-  context = {} as C,
-}: {
+interface CreateChainParams<C = {}> {
   /** Local user (with secret keys) that is creating the chain.  */
   user: UserWithSecrets
 
@@ -31,8 +26,21 @@ export const createChain = <A extends Action, C = {}>({
   /** Object containing information to be added to the ROOT link. */
   rootPayload?: any
 
+  /** Any additional context provided by the application. */
   context?: C
-}) => {
+
+  /** Keyset used to encrypt & decrypt the chain. */
+  chainKeys: KeysetWithSecrets
+}
+
+export const createChain = <A extends Action, C = {}>({
+  user,
+  id = cuid(),
+  name = id,
+  rootPayload = {},
+  context = {} as C,
+  chainKeys,
+}: CreateChainParams<C>) => {
   const rootAction = {
     type: ROOT,
     prev: [],
@@ -47,6 +55,7 @@ export const createChain = <A extends Action, C = {}>({
     action: rootAction,
     user,
     context,
+    chainKeys,
   })
   return chain as SignatureChain<A, C>
 }

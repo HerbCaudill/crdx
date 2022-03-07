@@ -7,9 +7,10 @@ import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
   /** Does this link's hash check out? */
-  validateHash: link => {
+  validateHash: (link, chain) => {
     const { hash, body } = link
-    const expected = hashLink(body)
+    const { encryptedBody } = chain.encryptedLinks[hash]
+    const expected = hashLink(encryptedBody)
     if (hash === expected) return VALID
     else return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
   },

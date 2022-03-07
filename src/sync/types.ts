@@ -1,4 +1,4 @@
-import { Action, Link } from '/chain'
+import { Action, EncryptedLink, Link } from '/chain'
 import { Hash } from '/util'
 
 export interface SyncState {
@@ -25,7 +25,7 @@ export interface SyncState {
   theyHaveSent: Hash[]
 
   /** Links they've sent that we haven't been able to absorb yet because we're missing dependencies */
-  pendingLinks: Record<Hash, Link<any, any>>
+  pendingLinks: Record<Hash, EncryptedLink<any, any>>
 }
 
 export interface SyncMessage<A extends Action, C> {
@@ -36,7 +36,7 @@ export interface SyncMessage<A extends Action, C> {
   head: Hash[]
 
   /** Any links we know they need. */
-  links?: Record<Hash, Link<A, C>>
+  links?: Record<Hash, EncryptedLink<A, C>>
 
   /** Any hashes we know we need. */
   need?: Hash[]

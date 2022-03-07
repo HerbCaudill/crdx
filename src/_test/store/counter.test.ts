@@ -1,6 +1,7 @@
-import { Action, createChain, getRoot, RootAction } from '/chain'
+import { createChain, getRoot, RootAction } from '/chain'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
+import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { createUser } from '/user'
 
 /*
@@ -12,11 +13,11 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupCounter = () => {
-  const chain = createChain<CounterAction>({ user: alice, name: 'counter' })
-  const aliceStore = createStore({ user: alice, chain, reducer: counterReducer })
+  const chain = createChain<CounterAction>({ user: alice, name: 'counter', chainKeys })
+  const aliceStore = createStore({ user: alice, chain, reducer: counterReducer, chainKeys })
 
   const saved = aliceStore.getChain()
-  const bobStore = createStore({ user: bob, chain: saved, reducer: counterReducer })
+  const bobStore = createStore({ user: bob, chain: saved, reducer: counterReducer, chainKeys })
 
   return { store: aliceStore, aliceStore, bobStore }
 }

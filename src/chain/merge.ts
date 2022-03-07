@@ -1,5 +1,5 @@
 ﻿import uniq from 'lodash/uniq'
-import { Action, Link, SignatureChain } from './types'
+import { Action, EncryptedLink, Link, SignatureChain } from './types'
 import { Hash } from '/util'
 import { assertIsValid } from '/validator/validate'
 
@@ -17,6 +17,7 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
 
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
+  const mergedEncryptedLinks: Record<Hash, EncryptedLink<A, C>> = { ...a.encryptedLinks, ...b.encryptedLinks }
 
   const mergedHeads: Hash[] = uniq(a.head.concat(b.head))
   const existingLinks = Object.values(mergedLinks)
@@ -27,10 +28,7 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
   const mergedChain: SignatureChain<A, C> = {
     root: a.root,
     head: newHeads,
-
-    // TODO
-    encryptedLinks: {},
-
+    encryptedLinks: mergedEncryptedLinks,
     links: mergedLinks,
   }
 

@@ -37,14 +37,13 @@ export const receiveMessage = <A extends Action, C>(
   state.pendingLinks = { ...state.pendingLinks, ...newLinks }
 
   // try to reconstruct their chain by combining the links we know of with the links they've sent
-  const theirChain = {
+  const theirChain: SignatureChain<A, C> = {
     root: theirRoot,
     head: theirHead,
 
-    // TODO
-    encryptedLinks: {},
+    encryptedLinks: { ...chain.encryptedLinks, ...state.pendingLinks },
 
-    links: { ...chain.links, ...state.pendingLinks },
+    links: chain.links,
   }
 
   // check if our reconstruction of their chain is missing any dependencies
@@ -53,6 +52,7 @@ export const receiveMessage = <A extends Action, C>(
   // if not, our reconstructed chain is good so we merge with it
   if (state.ourNeed.length === 0) {
     state.pendingLinks = {} // we've used all the pending links, clear that out
+
     chain = merge(chain, theirChain)
   }
 

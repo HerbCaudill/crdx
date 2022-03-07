@@ -5,6 +5,7 @@ import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
 import { SyncMessage, SyncState } from '/sync/types'
+import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
 
@@ -127,7 +128,7 @@ export type TestUserStuff = {
 export const setupWithNetwork = (...userNames: string[]): [Record<string, TestUserStuff>, Network] => {
   const users = setup(...userNames)
   const founder = users[userNames[0]]
-  const chain = createChain({ user: founder })
+  const chain = createChain({ user: founder, chainKeys })
 
   const network = new Network()
 

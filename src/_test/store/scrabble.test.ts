@@ -2,6 +2,7 @@ import { makeRandom } from '@herbcaudill/random'
 import { createChain, RootAction } from '/chain'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
+import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { createUser } from '/user'
 import { arrayToMap } from '/util'
 
@@ -17,15 +18,15 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupScrabbleAttacks = () => {
-  const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble' })
+  const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', chainKeys })
   const reducer = scrabbleAttacksReducer
 
   // Alice starts a game and adds Bob as a player
-  const aliceStore = createStore({ user: alice, chain, reducer })
+  const aliceStore = createStore({ user: alice, chain, reducer, chainKeys })
   aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userName: 'bob' } })
 
   // Bob starts with a copy of Alice's chain
-  const bobStore = createStore({ user: bob, chain: aliceStore.getChain(), reducer })
+  const bobStore = createStore({ user: bob, chain: aliceStore.getChain(), reducer, chainKeys })
 
   // To sync, each merges their chain with the other's
   const sync = () => {
