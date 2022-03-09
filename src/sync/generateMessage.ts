@@ -60,14 +60,21 @@ export const generateMessage = <A extends Action, C>(
   } else {
     // CASE 2b: we are not ahead of them -- we could be behind, or we could have diverged
 
+    // TODO: remove this
     // Send them a Bloom filter so they'll know what we have
     message.encodedFilter = new BloomFilter(ourHashes).save()
+
     message.need = ourNeed // We'll also let them know any specific links we've previously identified that we're missing
   }
 
   // Send them links they need
   message.links = theirNeed
-    .map(h => getEncryptedLink(chain, h)) // look up each link
+    .map(h => {
+      // look up each encrypted link and add `prev` hashes in cleartext
+      const encryptedLink = getEncryptedLink(chain, h)
+      const { prev } = getLink(chain, h).body
+      return { ...encryptedLink, prev }
+    })
     .reduce(arrayToMap('hash'), {}) // put links in a map
 
   // Remember what we've sent

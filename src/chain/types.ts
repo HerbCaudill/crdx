@@ -56,6 +56,10 @@ export type EncryptedLink<A extends Action, C> = {
    * `crypto_box`) using the author's SK and the team's PK.
    */
   encryptedBody: Encrypted<LinkBody<A, C>>
+
+  /** When syncing, we include a copy of the prev hashes so make it possible to determine
+   * completeness without decrypting the chain. */
+  prev?: Hash[]
 }
 
 /** A link consists of a body, as well as a hash and a signature calculated from the body. */
@@ -123,7 +127,7 @@ export type Sequence<A extends Action, C> = Link<A, C>[]
 export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>) => number
 
 /**
- * A resolver encapsulates the logic for merging concurrent branches. It takes the chain as an
+ * A `Resolver` encapsulates the logic for merging concurrent branches. It takes the chain as an
  * argument, and returns two functions:
  * - `sort` is a comparator function that indicates how concurrent branches are to be ordered.
  * - `filter` is a predicate function that indicates which links to include in the resulting
@@ -145,3 +149,16 @@ export type Resolver<A extends Action, C> = (chain: SignatureChain<A, C>) => {
   sort?: LinkComparator
   filter?: (link: Link<A, C>) => boolean
 }
+
+/**
+ * A `DependencyMap` contains information about the graph structure of a `SignatureChain`, without
+ * any of the content. It is a map where each key is the hash of a link, and the value is that
+ * link's parents (the `prev` value in the `LinkBody`).
+ *
+ * This is used when syncing to determine where two peers have diverged and what additional links
+ * they still require to be in sync.
+ *
+ * A `DependencyMap` can be partial (e.g. `getRecentPredecessors` returns just the most recent
+ * links) or complete.)
+ */
+export type DependencyMap = Record<Hash, Hash[]>

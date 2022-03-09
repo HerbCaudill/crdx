@@ -1,8 +1,8 @@
-import { getMissingLinks } from './getMissingLinks'
 import { BloomFilter } from './BloomFilter'
+import { getMissingLinks } from './getMissingLinks'
 import { SyncMessage, SyncState } from './types'
 import { Action, merge, SignatureChain } from '/chain'
-import { assert, Hash, unique } from '/util'
+import { assert } from '/util'
 
 /**
  * Receives a sync message from a peer and possibly updates our chain with information from them. It
@@ -47,11 +47,17 @@ export const receiveMessage = <A extends Action, C>(
   }
 
   // check if our reconstruction of their chain is missing any dependencies
+
+  // TODO: We can no longer determine this just by looking at the links they've sent, because
+  // they're still encrypted. Instead, we can create a complete PredecessorMap by merging what they've sent
+  // with one taken from our chain.
   state.ourNeed = getMissingLinks(theirChain)
 
   // if not, our reconstructed chain is good so we merge with it
   if (state.ourNeed.length === 0) {
     state.pendingLinks = {} // we've used all the pending links, clear that out
+
+    // TODO: decrypt their chain here?
 
     chain = merge(chain, theirChain)
   }

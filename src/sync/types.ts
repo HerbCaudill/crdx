@@ -1,4 +1,4 @@
-import { Action, EncryptedLink, Link } from '/chain'
+import { Action, DependencyMap, EncryptedLink } from '/chain'
 import { Hash } from '/util'
 
 export interface SyncState {
@@ -26,6 +26,8 @@ export interface SyncState {
 
   /** Links they've sent that we haven't been able to absorb yet because we're missing dependencies */
   pendingLinks: Record<Hash, EncryptedLink<any, any>>
+
+  theirRecentLinks: DependencyMap
 }
 
 export interface SyncMessage<A extends Action, C> {
@@ -41,6 +43,9 @@ export interface SyncMessage<A extends Action, C> {
   /** Any hashes we know we need. */
   need?: Hash[]
 
+  // TODO: remove
   /** A byte-array encoding of a Bloom filter representing the hashes we have  */
   encodedFilter?: Uint8Array
+
+  recentLinks: DependencyMap
 }
