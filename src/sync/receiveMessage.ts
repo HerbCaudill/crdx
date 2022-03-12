@@ -1,6 +1,7 @@
 import { asymmetric, signatures } from '@herbcaudill/crypto'
 import { SyncMessage, SyncState } from './types'
 import { Action, DependencyMap, merge, SignatureChain } from '/chain'
+import { decryptChain } from '/chain/decrypt'
 import { getChainMap, isComplete } from '/chain/recentLinks'
 import { KeysetWithSecrets } from '/keyset'
 import { assert } from '/util'
@@ -81,10 +82,7 @@ export const receiveMessage = <A extends Action, C>(
     }
 
     // decrypt the links they've sent
-
-    // TODO: for now we're just using the chain keys we're given to do this without looking
-    // processing the chain, but this will break if keys are rotated. we actually need to reduce as
-    // we go along to keep up with any changes in keys.
+    chain = decryptChain(chain, chainKeys)
   }
 
   state.ourHead = chain.head
