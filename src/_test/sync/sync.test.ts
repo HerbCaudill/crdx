@@ -1,4 +1,4 @@
-import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
+import { Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
 import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { TEST_CHAIN_KEYS as chainKeys, TEST_CHAIN_KEYS } from '/test/util/setup'
@@ -9,7 +9,7 @@ const setup = setupWithNetwork(TEST_CHAIN_KEYS)
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
-    it.only('Alice and Bob are already synced up', () => {
+    it('Alice and Bob are already synced up', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
       const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
@@ -43,7 +43,7 @@ describe('sync', () => {
       expect(msg).toBeUndefined()
     })
 
-    it.only('Alice is ahead of Bob', () => {
+    it('Alice is ahead of Bob', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
       const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
@@ -151,7 +151,7 @@ describe('sync', () => {
 
   describe('with simulated network', () => {
     describe('manual setup', () => {
-      const N = 10 // "many"
+      const N = 15 // "many"
 
       it('one change', () => {
         const [{ alice, bob }, network] = setup('alice', 'bob')
