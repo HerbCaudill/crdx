@@ -56,10 +56,6 @@ export type EncryptedLink<A extends Action, C> = {
    * `crypto_box`) using the author's SK and the team's PK.
    */
   encryptedBody: Encrypted<LinkBody<A, C>>
-
-  /** When syncing, we include a copy of the prev hashes so make it possible to determine
-   * completeness without decrypting the chain. */
-  prev?: Hash[]
 }
 
 /** A link consists of a body, as well as a hash and a signature calculated from the body. */
