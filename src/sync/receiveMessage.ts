@@ -1,13 +1,14 @@
-import { BloomFilter } from './BloomFilter'
-import { getMissingLinks } from './getMissingLinks'
+import { asymmetric, signatures } from '@herbcaudill/crypto'
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, SignatureChain } from '/chain'
+import { Action, DependencyMap, merge, SignatureChain } from '/chain'
+import { getChainMap, isComplete } from '/chain/recentLinks'
+import { KeysetWithSecrets } from '/keyset'
 import { assert } from '/util'
 
 /**
- * Receives a sync message from a peer and possibly updates our chain with information from them. It
- * also processes any information they've provided about what they need, so that we can send that
- * information in our next message.
+ * Receives a sync message from a peer and updates our sync state accordingly so that
+ * `generateMessage` can determine what information they need. Also possibly updates our chain with
+ * information from them.
  *
  * @returns A tuple `[chain, state]` containing our updated chain and our updated sync state with
  * this peer.
@@ -15,67 +16,78 @@ import { assert } from '/util'
 export const receiveMessage = <A extends Action, C>(
   /** Our current chain */
   chain: SignatureChain<A, C>,
+
   /** Our sync state with this peer */
   state: SyncState,
+
   /** The sync message they've just sent */
-  {
-    root: theirRoot, //
-    head: theirHead,
-    links: newLinks = {},
-    need = [],
-    encodedFilter,
-  }: SyncMessage<A, C>
+  message: SyncMessage<A, C>,
+
+  chainKeys: KeysetWithSecrets
 ): [SignatureChain<A, C>, SyncState] => {
+  const {
+    root, //
+    head,
+    links = {},
+    recentHashes = {},
+    sendMoreHashes = false,
+    need = [],
+  } = message
+
   // This should never happen, but just as a sanity check
-  assert(chain.root === theirRoot, `Can't sync chains with different roots`)
+  assert(chain.root === root, `Can't sync chains with different roots`)
 
-  // 1. What did they send? Do we need anything else?
+  state.theirHead = head
 
-  state.theyHaveSent = state.theyHaveSent.concat(Object.keys(newLinks))
+  state.theyHaveSent = state.theyHaveSent.concat(Object.keys(links))
 
-  // store the new links in state, in case we can't merge yet
-  state.pendingLinks = { ...state.pendingLinks, ...newLinks }
+  // store the new links in state
+  state.links = { ...state.links, ...links }
 
-  // try to reconstruct their chain by combining the links we know of with the links they've sent
-  const theirChain: SignatureChain<A, C> = {
-    root: theirRoot,
-    head: theirHead,
-
-    encryptedLinks: { ...chain.encryptedLinks, ...state.pendingLinks },
-
-    links: chain.links,
+  // merge this set of recent hashes with any they've sent previously
+  state.theirRecentHashes = {
+    ...state.theirRecentHashes,
+    ...recentHashes,
   }
 
-  // check if our reconstruction of their chain is missing any dependencies
-
-  // TODO: We can no longer determine this just by looking at the links they've sent, because
-  // they're still encrypted. Instead, we can create a complete PredecessorMap by merging what they've sent
-  // with one taken from our chain.
-  state.ourNeed = getMissingLinks(theirChain)
-
-  // if not, our reconstructed chain is good so we merge with it
-  if (state.ourNeed.length === 0) {
-    state.pendingLinks = {} // we've used all the pending links, clear that out
-
-    // TODO: decrypt their chain here?
-
-    chain = merge(chain, theirChain)
-  }
-
-  // 2. What do they need?
-
+  state.sendRecentHashes = sendMoreHashes
   state.theirNeed = need
-  if (encodedFilter?.byteLength) {
-    // load the Bloom filter they sent us
-    const filter = new BloomFilter(encodedFilter)
 
-    // next message, send them anything that seems to be missing from their Bloom filter
-    const theyMightNeed = Object.keys(chain.links).filter(h => !filter.has(h))
-    state.theirNeed = state.theirNeed.concat(theyMightNeed)
+  // if we can reconstruct their chain, do so and merge with ours
+
+  // filter their recent hashes to only include ones we have the full link for
+  const mapOfLinksTheySent = Object.keys(state.theirRecentHashes).reduce((result, hash) => {
+    if (hash in state.links) {
+      result[hash] = state.theirRecentHashes[hash]
+    }
+    return result
+  }, {} as DependencyMap)
+
+  const mergedChainMap = {
+    ...getChainMap(chain), // everything we know about
+    ...mapOfLinksTheySent, // links they've sent, along with their dependencies
+  }
+  const weHaveTheirHeads = !state.theirHead.some(h => !(h in chain.encryptedLinks || h in state.links))
+
+  if (isComplete(mergedChainMap) && weHaveTheirHeads) {
+    // we can reconstruct their chain
+    chain = {
+      ...chain,
+      head: state.theirHead,
+      encryptedLinks: {
+        ...chain.encryptedLinks,
+        ...state.links,
+      },
+    }
+
+    // decrypt the links they've sent
+
+    // TODO: for now we're just using the chain keys we're given to do this without looking
+    // processing the chain, but this will break if keys are rotated. we actually need to reduce as
+    // we go along to keep up with any changes in keys.
   }
 
   state.ourHead = chain.head
-  state.theirHead = theirHead
 
   return [chain, state]
 }

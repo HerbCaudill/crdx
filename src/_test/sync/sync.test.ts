@@ -1,13 +1,15 @@
 import { Network, setupWithNetwork, TestUserStuff } from '../util/Network'
 import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
-import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
+import { TEST_CHAIN_KEYS as chainKeys, TEST_CHAIN_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
 
+const setup = setupWithNetwork(TEST_CHAIN_KEYS)
+
 describe('sync', () => {
   describe('manual walkthrough', () => {
-    it('Alice and Bob are already synced up', () => {
+    it.only('Alice and Bob are already synced up', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
       const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
@@ -22,17 +24,17 @@ describe('sync', () => {
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
@@ -41,7 +43,7 @@ describe('sync', () => {
       expect(msg).toBeUndefined()
     })
 
-    it('Alice is ahead of Bob', () => {
+    it.only('Alice is ahead of Bob', () => {
       // 👩🏾 Alice creates a chain
       const alice = createUser('alice')
       const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
@@ -59,27 +61,27 @@ describe('sync', () => {
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
 
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
@@ -115,29 +117,29 @@ describe('sync', () => {
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
       // 👨🏻‍🦲 Bob sees that Alice is missing one of his links, so he sends it
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
 
       // 👩🏾 Alice now has Bob's full chain, so she can merge with it
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested, as well as the new merge link
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg)
+      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg)
+      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
@@ -152,7 +154,7 @@ describe('sync', () => {
       const N = 10 // "many"
 
       it('one change', () => {
-        const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
+        const [{ alice, bob }, network] = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
@@ -171,7 +173,7 @@ describe('sync', () => {
       })
 
       it('many changes', () => {
-        const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
+        const [{ alice, bob }, network] = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
         expectToBeSynced(alice, bob)
@@ -194,7 +196,7 @@ describe('sync', () => {
       })
 
       it('many changes followed by a single change', () => {
-        const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
+        const [{ alice, bob }, network] = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // 👩🏾 Alice makes many changes
@@ -226,7 +228,7 @@ describe('sync', () => {
       })
 
       it('concurrent changes', () => {
-        const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
+        const [{ alice, bob }, network] = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
@@ -257,7 +259,7 @@ describe('sync', () => {
       })
 
       it('many concurrent changes', () => {
-        const [{ alice, bob }, network] = setupWithNetwork('alice', 'bob')
+        const [{ alice, bob }, network] = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         for (let i = 0; i < N; i++) {
           alice.peer.chain = append({
@@ -299,7 +301,7 @@ describe('sync', () => {
       })
 
       it('three peers, concurrent changes', () => {
-        const [{ alice, bob, charlie }, network] = setupWithNetwork('alice', 'bob', 'charlie')
+        const [{ alice, bob, charlie }, network] = setup('alice', 'bob', 'charlie')
         network.connect(alice.peer, bob.peer)
         network.connect(alice.peer, charlie.peer)
         network.connect(bob.peer, charlie.peer)
@@ -387,7 +389,7 @@ describe('sync', () => {
         }
 
         it(`syncs a single change (direct connections)`, () => {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectAll(network)
 
           // first user makes a change
@@ -407,7 +409,7 @@ describe('sync', () => {
         })
 
         it(`syncs a single change (indirect connections)`, () => {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectDaisyChain(network)
 
           // first user makes a change
@@ -427,7 +429,7 @@ describe('sync', () => {
         })
 
         it(`syncs multiple changes (direct connections)`, () => {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectAll(network)
 
           // each user makes a change
@@ -443,7 +445,7 @@ describe('sync', () => {
         })
 
         it(`syncs multiple changes (indirect connections)`, () => {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectDaisyChain(network)
 
           // each user makes a change
@@ -459,7 +461,7 @@ describe('sync', () => {
         })
 
         it('syncs divergent changes (indirect connections)', function () {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectDaisyChain(network)
 
           // each user makes a change
@@ -482,7 +484,7 @@ describe('sync', () => {
         })
 
         it('syncs divergent changes (direct connections)', function () {
-          const [userRecords, network] = setupWithNetwork(...userNames)
+          const [userRecords, network] = setup(...userNames)
           connectAll(network)
 
           // each user makes a change
