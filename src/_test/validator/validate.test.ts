@@ -64,27 +64,6 @@ describe('chains', () => {
       expect(validate(chain)).not.toBeValid()
     })
 
-    test.skip('Mallory tampers with the payload and even updates the hash; Bob is still not fooled', () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us', chainKeys })
-
-      // 🦹‍♂️ Mallory
-      const root = getRoot(chain)
-
-      const payload = root.body.payload
-      payload.name = payload.name.replace('Spies', 'Dorks')
-
-      // Mallory covers her tracks by recalculating the hash
-      const hash = hashLink(root.body)
-      root.hash = hash
-      chain.head = [hash]
-      chain.root = hash
-      chain.links = { [hash]: root }
-
-      // 👨🏻‍🦲 Bob is not fooled because the signature doesn't validate
-      expect(validate(chain)).not.toBeValid()
-    })
-
     test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
       const chain = createChain({ user: alice, name: 'Spies Я Us', chainKeys })
