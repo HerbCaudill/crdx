@@ -33,12 +33,18 @@ export const decryptChain = <A extends Action, C>(
 ): SignatureChain<A, C> => {
   const { encryptedLinks, links } = chain
   const decryptedLinks = {} as Record<string, Link<A, C>>
+
+  // TODO: for now we're just using the chain keys we're given to do this without looking
+  // processing the chain, but this will break if keys are rotated. we actually need to reduce as
+  // we go along to keep up with any changes in keys.
+
   for (const hash in encryptedLinks) {
     if (!(hash in links)) {
       const link = decryptLink(encryptedLinks[hash], chainKeys)
       decryptedLinks[hash] = link
     }
   }
+
   return {
     ...chain,
     links: {
