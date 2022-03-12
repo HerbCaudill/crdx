@@ -12,18 +12,18 @@ import { assertIsValid } from '/validator/validate'
 export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: SignatureChain<A, C>): SignatureChain<A, C> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
-  assertIsValid(a)
-  assertIsValid(b)
+  // TODO: need to adapt this to encryption instead of signatures
+  // assertIsValid(a)
+  // assertIsValid(b)
 
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
   const mergedEncryptedLinks: Record<Hash, EncryptedLink<A, C>> = { ...a.encryptedLinks, ...b.encryptedLinks }
 
   const mergedHeads: Hash[] = uniq(a.head.concat(b.head))
-  const existingLinks = Object.values(mergedLinks)
 
   // If one of the heads is a parent of an existing link, it is no longer a head
-  const newHeads = mergedHeads.filter(isNotParentOfAnyOf(existingLinks))
+  const newHeads = mergedHeads.filter(isNotParentOfAnyOf(mergedLinks))
 
   const mergedChain: SignatureChain<A, C> = {
     root: a.root,
@@ -37,13 +37,14 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
   return mergedChain
 }
 
-/**
- * @param links
- * @returns true if the given hash is not a parent of any of those links
- */
-const isNotParentOfAnyOf = (links: Link<any, any>[]) => (h: Hash) => {
-  return !links.some(isParent(h))
-}
+/** Returns true if the given hash is not a parent of any of those links */
+const isNotParentOfAnyOf =
+  <A extends Action, C>(links: Record<Hash, Link<A, C>>) =>
+  (h: Hash) =>
+    !Object.values(links).some(isParent(h))
 
-// Returns true if h is the parent of the given link
-const isParent = (h: Hash) => (l: Link<any, any>) => l.body.prev.includes(h)
+/** Returns true if h is the parent of the given link */
+const isParent =
+  <A extends Action, C>(h: Hash) =>
+  (l: Link<A, C>) =>
+    l.body.prev.includes(h)
