@@ -8,7 +8,6 @@ const EMPTY: DependencyMap = {}
  * Collects a chain's most recent links (i.e. the heads and their predecessors, up to a given
  * depth), and maps each link's hash to its parents.
  *
- * For example given this chain
  * ```
  *                   ┌─ e ─ g ─┐
  *         ┌─ c ─ d ─┤         ├─ o ─┐
@@ -16,7 +15,7 @@ const EMPTY: DependencyMap = {}
  *         ├──── h ──── i ─────┘     │
  *         └───── j ─── k ── l ──────┘
  * ```
- * and `depth: 2`, this function would return
+ * For example, given this chain and `depth: 2`, this function would return
  * ```
  * {
  *   l: ['k'],
@@ -47,7 +46,9 @@ export const getRecentLinks = <A extends Action, C>({
   if (depth === 0) return EMPTY
 
   return head.reduce((result, hash) => {
-    const parents = getLink(chain, hash).body.prev
+    const link = getLink(chain, hash)
+    if (!link || !link.body) console.error(chain, hash)
+    const parents = link.body.prev
     if (parents.length === 0) return result
 
     // don't look up parents we've already seen
@@ -66,6 +67,10 @@ export const getRecentLinks = <A extends Action, C>({
     }
   }, EMPTY)
 }
+
+/** Convenience function: returns full map of the given chain */
+export const getChainMap = <A extends Action, C>(chain: SignatureChain<A, C>): DependencyMap =>
+  getRecentLinks({ chain })
 
 /**
  * If we're not able to find a common ancestor with the recent links we were given, we'll ask
@@ -91,4 +96,13 @@ export const getMoreRecentLinks = <A extends Action, C>({
   const allParents = Object.keys(prev).flatMap(hash => prev[hash])
   const tails = allParents.filter(hash => !(hash in prev))
   return getRecentLinks({ chain, depth, head: tails })
+}
+
+/**
+ * Returns false if there are parent hashes that are not in the map.
+ */
+export const isComplete = (chainMap: DependencyMap) => {
+  const allDependencies = Object.values(chainMap).flat()
+  const isMissing = (hash: Hash) => !(hash in chainMap)
+  return !allDependencies.some(isMissing)
 }
