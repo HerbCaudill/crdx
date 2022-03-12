@@ -1,10 +1,10 @@
 import { getLink } from './chain'
-import { getMoreRecentLinks, getRecentLinks } from './recentLinks'
+import { getRecentHashes } from './recentLinks'
 import { SignatureChain } from './types'
 import { buildChain } from '/test/util/chain'
 import { Hash } from '/util'
 
-describe('recent links', () => {
+describe('recent hashes', () => {
   const chain = buildChain(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
@@ -13,9 +13,9 @@ describe('recent links', () => {
                 └───── j ─── k ── l ──────┘           
       `)
 
-  describe('getRecentLinks', () => {
+  describe('get recent hashes', () => {
     it('depth 2', () => {
-      const result = getRecentLinks({ chain, depth: 2 })
+      const result = getRecentHashes({ chain, depth: 2 })
       expect(lookupPayloads(chain, result)).toEqual({
         l: 'k',
         n: 'l,o',
@@ -24,7 +24,7 @@ describe('recent links', () => {
     })
 
     it('depth 3', () => {
-      const result = getRecentLinks({ chain, depth: 3 })
+      const result = getRecentHashes({ chain, depth: 3 })
       expect(lookupPayloads(chain, result)).toEqual({
         f: 'd',
         g: 'e',
@@ -37,7 +37,7 @@ describe('recent links', () => {
     })
 
     it('depth 10', () => {
-      const result = getRecentLinks({ chain, depth: 10 })
+      const result = getRecentHashes({ chain, depth: 10 })
 
       // this covers the whole chain because the longest path through it is less than 10 links long
       expect(lookupPayloads(chain, result)).toEqual({
@@ -59,7 +59,7 @@ describe('recent links', () => {
     })
 
     it('entire chain', () => {
-      const result = getRecentLinks({ chain }) // depth is undefined
+      const result = getRecentHashes({ chain }) // depth is undefined
       expect(lookupPayloads(chain, result)).toEqual({
         a: '',
         b: 'a',
@@ -79,16 +79,16 @@ describe('recent links', () => {
     })
   })
 
-  describe('getMoreRecentLinks', () => {
+  describe('get more recent hashes', () => {
     it('depth 2 + 2', () => {
-      const prev = getRecentLinks({ chain, depth: 2 })
+      const prev = getRecentHashes({ chain, depth: 2 })
 
       expect(lookupPayloads(chain, prev)).toEqual({
         l: 'k',
         n: 'l,o',
         o: 'f,g,i',
       })
-      const result = getMoreRecentLinks({ chain, depth: 2, prev })
+      const result = getRecentHashes({ chain, depth: 2, prev })
       expect(lookupPayloads(chain, result)).toEqual({
         d: 'c',
         e: 'd',
@@ -113,7 +113,7 @@ const lookupPayloads = (chain: SignatureChain<any, any>, linkMap: Record<Hash, H
     const payload = predecessors.map(getPayload).sort().join()
     return {
       ...result,
-      [key]: payload,
+      ...(key.length ? { [key]: payload } : {}),
     }
   }, {})
 }
