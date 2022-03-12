@@ -1,6 +1,7 @@
 // ignore file coverage
 import { setup } from './setup'
 import { createChain, SignatureChain } from '/chain'
+import { KeysetWithSecrets } from '/keyset'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
@@ -21,10 +22,11 @@ const logMessage = (msg: NetworkMessage) => {
 export class Network {
   peers: Record<string, Peer>
   queue: NetworkMessage[]
-
-  constructor() {
+  chainKeys: KeysetWithSecrets
+  constructor(chainKeys: KeysetWithSecrets) {
     this.peers = {}
     this.queue = []
+    this.chainKeys = chainKeys
   }
 
   registerPeer(peer: Peer) {
@@ -104,7 +106,7 @@ export class Peer {
 
   // Called by Network when we receive a message from another peer
   receiveMessage(sender: string, message: SyncMessage<any, any>) {
-    const [chain, syncState] = receiveMessage(this.chain, this.syncStates[sender], message)
+    const [chain, syncState] = receiveMessage(this.chain, this.syncStates[sender], message, chainKeys)
     this.chain = chain
     this.syncStates[sender] = syncState
     this.sync()
@@ -125,22 +127,24 @@ export type TestUserStuff = {
   peer: Peer
 }
 
-export const setupWithNetwork = (...userNames: string[]): [Record<string, TestUserStuff>, Network] => {
-  const users = setup(...userNames)
-  const founder = users[userNames[0]]
-  const chain = createChain({ user: founder, chainKeys })
+export const setupWithNetwork =
+  (chainKeys: KeysetWithSecrets) =>
+  (...userNames: string[]): [Record<string, TestUserStuff>, Network] => {
+    const users = setup(...userNames)
+    const founder = users[userNames[0]]
+    const chain = createChain({ user: founder, chainKeys })
 
-  const network = new Network()
+    const network = new Network(chainKeys)
 
-  const userRecords = {} as Record<string, TestUserStuff>
-  for (const userName in users) {
-    const user = users[userName]
-    const peer = new Peer(userName, chain, network)
-    userRecords[userName] = { user, peer }
+    const userRecords = {} as Record<string, TestUserStuff>
+    for (const userName in users) {
+      const user = users[userName]
+      const peer = new Peer(userName, chain, network)
+      userRecords[userName] = { user, peer }
+    }
+
+    return [userRecords, network]
   }
-
-  return [userRecords, network]
-}
 
 export type NetworkMessage = {
   to: string
