@@ -2,36 +2,29 @@ import { Action, DependencyMap, EncryptedLink } from '/chain'
 import { Hash } from '/util'
 
 export interface SyncState {
-  /** The head we had in common with this peer the last time we synced. If null, we don't have any
-   * record of having synced before. */
+  /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
   lastCommonHead: Hash[]
 
-  ////// their stuff (populated in receiveMessage)
-
-  /** Their head as of the last time they sent a sync message */
+  /** Their head as of the last time they sent a sync message. */
   theirHead: Hash[]
 
-  /** All the links they've sent us*/
-  theyHaveSent: Hash[]
+  /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
+  pendingLinks: Record<Hash, EncryptedLink<any, any>>
 
-  /** Links they've sent that we haven't been able to absorb yet (e.g. because we're missing dependencies) */
-  links: Record<Hash, EncryptedLink<any, any>>
+  /** The accumulated map of hashes they've sent (each new set is merged into this). */
+  theirDependencyMap?: DependencyMap
 
-  theirRecentHashes: DependencyMap
-
+  /** Hashes of links they asked for in the last message. */
   theirNeed: Hash[]
 
+  /** If true, we should send them a(nother) set of recent hashes  */
   sendRecentHashes: boolean
-
-  ////// our stuff (populated in generateMessage)
 
   /** Our head as of the last time we sent a sync message */
   ourHead: Hash[]
 
-  /** All the links we've sent them */
-  weHaveSent: Hash[]
-
-  ourRecentHashes: DependencyMap
+  /** The last set of recent hashes we sent them */
+  ourRecentHashes?: DependencyMap
 }
 
 export interface SyncMessage<A extends Action, C> {
@@ -41,11 +34,13 @@ export interface SyncMessage<A extends Action, C> {
   /** Our head at the time of sending. */
   head: Hash[]
 
-  /** Any links we know they need. */
+  /** Any links we know we need. */
   links?: Record<Hash, EncryptedLink<A, C>>
 
-  recentHashes: DependencyMap
+  /** Our most recent hashes and their dependencies. */
+  recentHashes?: DependencyMap
 
+  /** We set this to true if we know there are more hashes we don't know about and we need them to send more. */
   sendMoreHashes?: boolean
 
   /** Any hashes we know we need. */

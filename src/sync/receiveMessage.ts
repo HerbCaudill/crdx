@@ -1,10 +1,10 @@
-import { asymmetric, signatures } from '@herbcaudill/crypto'
+import { result } from 'lodash'
 import { SyncMessage, SyncState } from './types'
 import { Action, DependencyMap, merge, SignatureChain } from '/chain'
 import { decryptChain } from '/chain/decrypt'
 import { getChainMap, isComplete } from '/chain/recentLinks'
 import { KeysetWithSecrets } from '/keyset'
-import { assert } from '/util'
+import { assert, Hash, truncateHashes } from '/util'
 
 /**
  * Receives a sync message from a peer and updates our sync state accordingly so that
@@ -31,7 +31,7 @@ export const receiveMessage = <A extends Action, C>(
     head,
     links = {},
     recentHashes = {},
-    sendMoreHashes = false,
+    sendMoreHashes = true,
     need = [],
   } = message
 
@@ -40,14 +40,12 @@ export const receiveMessage = <A extends Action, C>(
 
   state.theirHead = head
 
-  state.theyHaveSent = state.theyHaveSent.concat(Object.keys(links))
-
   // store the new links in state
-  state.links = { ...state.links, ...links }
+  state.pendingLinks = { ...state.pendingLinks, ...links }
 
   // merge this set of recent hashes with any they've sent previously
-  state.theirRecentHashes = {
-    ...state.theirRecentHashes,
+  const theirDependencyMap = {
+    ...state.theirDependencyMap,
     ...recentHashes,
   }
 
@@ -56,36 +54,36 @@ export const receiveMessage = <A extends Action, C>(
 
   // if we can reconstruct their chain, do so and merge with ours
 
-  // filter their recent hashes to only include ones we have the full link for
-  const mapOfLinksTheySent = Object.keys(state.theirRecentHashes).reduce((result, hash) => {
-    if (hash in state.links) {
-      result[hash] = state.theirRecentHashes[hash]
+  const pendingHashes = Object.keys(state.pendingLinks)
+  if (pendingHashes.length) {
+    // make a dependency map of the pending links
+    const lookupDependencies = (r: DependencyMap, h: Hash) => ({ ...r, [h]: theirDependencyMap[h] })
+    const mapOfPendingLinks: DependencyMap = pendingHashes.reduce(lookupDependencies, {})
+
+    // we'll combine that with a dependency map of our own chain
+    const mapOfOurChain: DependencyMap = getChainMap(chain)
+
+    // are there any hashes we don't know about?
+    if (isComplete({ ...mapOfOurChain, ...mapOfPendingLinks })) {
+      // there are no gaps — we can reconstruct their chain
+      const theirChain = {
+        ...chain,
+        head: state.theirHead,
+        encryptedLinks: {
+          ...chain.encryptedLinks,
+          ...state.pendingLinks,
+        },
+      }
+      // decrypt encrypted links
+      const theirDecryptedChain = decryptChain(theirChain, chainKeys)
+
+      // merge with our chain
+      chain = merge(chain, theirDecryptedChain)
     }
-    return result
-  }, {} as DependencyMap)
-
-  const mergedChainMap = {
-    ...getChainMap(chain), // everything we know about
-    ...mapOfLinksTheySent, // links they've sent, along with their dependencies
-  }
-  const weHaveTheirHeads = !state.theirHead.some(h => !(h in chain.encryptedLinks || h in state.links))
-
-  if (isComplete(mergedChainMap) && weHaveTheirHeads) {
-    // we can reconstruct their chain
-    chain = {
-      ...chain,
-      head: state.theirHead,
-      encryptedLinks: {
-        ...chain.encryptedLinks,
-        ...state.links,
-      },
-    }
-
-    // decrypt the links they've sent
-    chain = decryptChain(chain, chainKeys)
   }
 
   state.ourHead = chain.head
+  state.theirDependencyMap = theirDependencyMap
 
   return [chain, state]
 }
