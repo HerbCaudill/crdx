@@ -17,13 +17,6 @@ export const decryptLink = <A extends Action, C>(
   return {
     hash: hashLink(encryptedBody),
     body: JSON.parse(decryptedLinkBody) as LinkBody<A, C>,
-
-    // TODO: remove signature block once it's not used
-    signed: {
-      signature: '',
-      userName: '',
-      key: '',
-    },
   }
 }
 

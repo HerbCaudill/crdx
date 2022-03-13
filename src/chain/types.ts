@@ -1,6 +1,14 @@
 ﻿import { User } from '/user'
 import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
 
+// NEXT: remove signatures
+
+// does it even make sense to call it a SignatureChain anymore?
+// - CipherChain
+// - CipherGraph
+// - Graph
+// - HashGraph
+
 /**
  * A signature chain is an acyclic directed graph of links. Each link is **asymmetrically encrypted
  * and authenticated** by the author, and includes **hashes of all known heads** at the time of
@@ -65,20 +73,6 @@ export type Link<A extends Action, C> = {
 
   /** The part of the link that is encrypted */
   body: LinkBody<A, C>
-
-  // TODO: remove signature block once it's not used
-
-  /** The signature block (signature, name, and key) */
-  signed: {
-    /** NaCL-generated base58 signature of the link's body */
-    signature: Base58
-
-    /** The username (or ID or email) of the person signing the link */
-    userName: string
-
-    /** The public half of the key used to sign the link, in base58 encoding */
-    key: Base58
-  }
 
   isInvalid?: boolean
 }

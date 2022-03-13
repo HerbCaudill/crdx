@@ -279,7 +279,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
   const { players, tiles, messages } = state
   switch (action.type) {
     case 'ROOT': {
-      const { userName } = link.signed
+      const { userName } = link.body.user
       const rootPlayer = { userName, words: [] }
       return {
         players: [rootPlayer],
@@ -313,7 +313,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
     }
 
     case 'CLAIM_WORD': {
-      const userName = link.signed.userName
+      const { userName } = link.body.user
       const { word } = action.payload
 
       let availableTiles = Object.values(tiles).filter(isAvailable)

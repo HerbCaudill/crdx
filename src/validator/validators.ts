@@ -45,17 +45,19 @@ const _validators: ValidatorSet = {
     return fail(message, { link, chain })
   },
 
-  /** Does this link's signature check out? */
-  validateSignatures: link => {
-    const signedMessage = {
-      payload: link.body,
-      signature: link.signed.signature,
-      publicKey: link.signed.key,
-    }
-    return signatures.verify(signedMessage) //
-      ? VALID
-      : fail('Signature is not valid', signedMessage)
-  },
+  // TODO: replace with validation of encryption?
+
+  // /** Does this link's signature check out? */
+  // validateSignatures: link => {
+  //   const signedMessage = {
+  //     payload: link.body,
+  //     signature: link.signed.signature,
+  //     publicKey: link.signed.key,
+  //   }
+  //   return signatures.verify(signedMessage) //
+  //     ? VALID
+  //     : fail('Signature is not valid', signedMessage)
+  // },
 }
 
 const fail = (msg: string, args?: any) => ({ isValid: false, error: new ValidationError(msg, args) })

@@ -53,15 +53,7 @@ export const append = <A extends Action, C>({
 
   // unencrypted link
 
-  // TODO: the signature block will go away
-  const { userName, keys } = user
-  const signed = {
-    userName,
-    signature: signatures.sign(body, keys.signature.secretKey),
-    key: keys.signature.publicKey,
-  }
-
-  const link: Link<A, C> = { body, hash, signed }
+  const link: Link<A, C> = { body, hash }
   const links = { ...chain.links, [hash]: link }
 
   // encrypted link

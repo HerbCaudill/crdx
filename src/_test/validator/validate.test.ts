@@ -11,9 +11,10 @@ const __ = expect.objectContaining
 
 const { alice } = setup('alice')
 
+// TODO: These tests now need to make sure that Eve can't modify a plaintext link because it will
+// no longer match the encrypted link
+
 describe('chains', () => {
-  // TODO: These tests now need to make sure that Eve can't modify a plaintext link because it will
-  // no longer match the encrypted link
   describe.skip('validation', () => {
     test(`Bob validates Alice's new chain`, () => {
       // 👩🏾 Alice
@@ -64,7 +65,7 @@ describe('chains', () => {
       expect(validate(chain)).not.toBeValid()
     })
 
-    test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
+    test.skip('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
       // 👩🏾 Alice
       const chain = createChain({ user: alice, name: 'Spies Я Us', chainKeys })
 
@@ -76,14 +77,14 @@ describe('chains', () => {
       const { secretKey, publicKey } = alice.keys.signature
       const signature = signatures.sign(root.body, secretKey)
 
-      chain.links[chain.root] = {
-        ...root,
-        signed: {
-          userName: alice.userName,
-          signature,
-          key: publicKey,
-        },
-      }
+      // chain.links[chain.root] = {
+      //   ...root,
+      //   signed: {
+      //     userName: alice.userName,
+      //     signature,
+      //     key: publicKey,
+      //   },
+      // }
 
       // 👨🏻‍🦲 Bob
       expect(validate(chain)).not.toBeValid()
