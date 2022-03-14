@@ -2,9 +2,16 @@ import { SyncState } from './types'
 
 export const initSyncState = (): SyncState => ({
   lastCommonHead: [],
-  theirHead: [],
-  pendingLinks: {},
-  theirNeed: [],
-  sendRecentHashes: true,
-  ourHead: [],
+
+  their: {
+    head: [],
+    links: {},
+  },
+  theyNeed: {
+    links: [],
+    moreLinkMap: true,
+  },
+  our: {
+    head: [],
+  },
 })

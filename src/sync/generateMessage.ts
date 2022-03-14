@@ -17,21 +17,14 @@ export const generateMessage = <A extends Action, C>(
   /** Our sync state with this peer */
   state: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
-  let {
-    theirHead,
-    lastCommonHead,
-    theirNeed: hashesTheyAskedFor,
-    theirDependencyMap: theirRecentHashes,
-    pendingLinks,
-  } = state
-  const { root, head } = chain
-  const ourHead = head
-  const ourHashes = getHashes(chain).concat(Object.keys(pendingLinks))
-  const message = { root, head } as SyncMessage<A, C>
+  let { lastCommonHead, their, theyNeed } = state
+  const { root, head: ourHead } = chain
+  const ourHashes = getHashes(chain).concat(Object.keys(their.links))
+  const message = { our: { root, head: ourHead }, weNeed: {} } as SyncMessage<A, C>
 
-  if (state.sendRecentHashes) {
+  if (state.theyNeed.moreLinkMap) {
     // send our recent hashes
-    message.recentHashes = getRecentHashes({ chain, depth, prev: state.ourRecentHashes })
+    message.our.linkMap = getRecentHashes({ chain, depth, prev: state.our.linkMap })
   }
 
   // CASE 1: We are synced up
@@ -42,7 +35,7 @@ export const generateMessage = <A extends Action, C>(
     return [state, undefined]
   }
 
-  const syncedThisTime = headsAreEqual(ourHead, theirHead)
+  const syncedThisTime = headsAreEqual(ourHead, their.head)
   if (syncedThisTime) {
     // CASE 1b: We are now synced up, but they might not know that; we'll send one last message just to confirm
 
@@ -55,39 +48,42 @@ export const generateMessage = <A extends Action, C>(
 
   let hashesWeKnowTheyNeed = [] as Hash[]
   const weAreAhead =
-    theirHead.length > 0 && // if we don't know their head, we can't assume we're ahead
-    theirHead.every(h => h in chain.links) // we're ahead if we already have all their heads
+    their.head.length > 0 && // if we don't know their head, we can't assume we're ahead
+    their.head.every(h => h in chain.links) // we're ahead if we already have all their heads
 
   if (weAreAhead) {
     // CASE 2a: we are ahead of them, so we don't need anything, AND we know exactly what they need
 
     // We know they have their heads and everything preceding them
-    const hashesTheyHave = [...theirHead, ...theirHead.flatMap(h => getPredecessorHashes(chain, h))]
+    const hashesTheyHave = [...their.head, ...their.head.flatMap(h => getPredecessorHashes(chain, h))]
     // Send them everything else
     hashesWeKnowTheyNeed = ourHashes.filter(hash => !hashesTheyHave.includes(hash))
   } else {
     // CASE 2b: they have links we don't have; we could be behind, or we could have diverged
 
-    if (theirRecentHashes) {
+    if (their.linkMap) {
       // if they've mentioned links that we don't have, ask for them
-      message.need = Object.keys(theirRecentHashes).filter(hash => !(hash in chain.links || hash in state.pendingLinks))
+      message.weNeed.links = Object.keys(their.linkMap).filter(
+        hash => !(hash in chain.links || hash in state.their.links)
+      )
 
       // if those links still won't give us the whole picture, ask for the next set of recent hashes
       const mergedChainMap = {
         ...getChainMap(chain), // everything we know about
-        ...theirRecentHashes, // their most recent links & dependencies
+        ...their.linkMap, // their most recent links & dependencies
       }
-      message.sendMoreHashes = !isComplete(mergedChainMap)
+      message.weNeed.moreLinkMap = !isComplete(mergedChainMap)
       if (!isComplete(mergedChainMap)) {
       } else {
-        hashesWeKnowTheyNeed = getHashes(chain).filter(hash => !(hash in theirRecentHashes!))
+        hashesWeKnowTheyNeed = getHashes(chain).filter(hash => !(hash in their.linkMap!))
       }
     }
   }
 
   // Send them links they need
+  const hashesTheyAskedFor = theyNeed.links
   const hashesTheyNeed = hashesTheyAskedFor.concat(hashesWeKnowTheyNeed)
-  message.links = hashesTheyNeed.reduce(
+  message.our.links = hashesTheyNeed.reduce(
     (result, hash) => ({
       ...result,
       [hash]: getEncryptedLink(chain, hash),
@@ -96,16 +92,16 @@ export const generateMessage = <A extends Action, C>(
   )
 
   // include dependency map info for links we send
-  message.recentHashes = {
-    ...message.recentHashes,
+  message.our.linkMap = {
+    ...message.our.linkMap,
     ...hashesTheyNeed.reduce((result, hash) => ({ ...result, [hash]: chain.links[hash].body.prev }), {}),
   }
 
   // Remember what we've sent
-  state.ourRecentHashes = message.recentHashes
+  state.our.linkMap = message.our.linkMap
 
   // We've sent them everything they've asked for, so reset their need
-  state.theirNeed = []
+  state.theyNeed.links = []
 
   return [state, message]
 }

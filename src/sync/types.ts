@@ -5,44 +5,54 @@ export interface SyncState {
   /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
   lastCommonHead: Hash[]
 
-  /** Their head as of the last time they sent a sync message. */
-  theirHead: Hash[]
+  their: {
+    /** Their head as of the last time they sent a sync message. */
+    head: Hash[]
 
-  /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
-  pendingLinks: Record<Hash, EncryptedLink<any, any>>
+    /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
+    links: Record<Hash, EncryptedLink<any, any>>
 
-  /** The accumulated map of hashes they've sent (each new set is merged into this). */
-  theirDependencyMap?: DependencyMap
+    /** The accumulated map of hashes they've sent (each new set is merged into this). */
+    linkMap?: DependencyMap
+  }
 
-  /** Hashes of links they asked for in the last message. */
-  theirNeed: Hash[]
+  theyNeed: {
+    /** Hashes of links they asked for in the last message. */
+    links: Hash[]
 
-  /** If true, we should send them a(nother) set of recent hashes  */
-  sendRecentHashes: boolean
+    /** If true, we should send them a(nother) set of recent hashes  */
+    moreLinkMap?: boolean
+  }
 
-  /** Our head as of the last time we sent a sync message */
-  ourHead: Hash[]
+  our: {
+    /** Our head as of the last time we sent a sync message */
+    head: Hash[]
 
-  /** The last set of recent hashes we sent them */
-  ourRecentHashes?: DependencyMap
+    /** The last set of recent hashes we sent them */
+    linkMap?: DependencyMap
+  }
 }
 
 export interface SyncMessage<A extends Action, C> {
-  /** Our root. We just send this as a sanity check - if our roots don't match we can't sync. */
-  root: Hash
+  our: {
+    /** Our root. We just send this as a sanity check - if our roots don't match we can't sync. */
+    root: Hash
 
-  /** Our head at the time of sending. */
-  head: Hash[]
+    /** Our head at the time of sending. */
+    head: Hash[]
 
-  /** Any links we know we need. */
-  links?: Record<Hash, EncryptedLink<A, C>>
+    /** Any links we know we need. */
+    links?: Record<Hash, EncryptedLink<A, C>>
 
-  /** Our most recent hashes and their dependencies. */
-  recentHashes?: DependencyMap
+    /** Our most recent hashes and their dependencies. */
+    linkMap?: DependencyMap
+  }
 
-  /** We set this to true if we know there are more hashes we don't know about and we need them to send more. */
-  sendMoreHashes?: boolean
+  weNeed: {
+    /** Any hashes we know we need. */
+    links?: Hash[]
 
-  /** Any hashes we know we need. */
-  need?: Hash[]
+    /** We set this to true if we know there are more hashes we don't know about and we need them to send more. */
+    moreLinkMap?: boolean
+  }
 }

@@ -1,10 +1,10 @@
-import { result } from 'lodash'
 import { SyncMessage, SyncState } from './types'
 import { Action, DependencyMap, merge, SignatureChain } from '/chain'
 import { decryptChain } from '/chain/decrypt'
 import { getChainMap, isComplete } from '/chain/recentLinks'
 import { KeysetWithSecrets } from '/keyset'
 import { assert, Hash, truncateHashes } from '/util'
+import { validate } from '/validator'
 
 /**
  * Receives a sync message from a peer and updates our sync state accordingly so that
@@ -26,64 +26,81 @@ export const receiveMessage = <A extends Action, C>(
 
   chainKeys: KeysetWithSecrets
 ): [SignatureChain<A, C>, SyncState] => {
-  const {
-    root, //
-    head,
-    links = {},
-    recentHashes = {},
-    sendMoreHashes = true,
-    need = [],
-  } = message
+  const { our: their, weNeed: theyNeed } = message
 
   // This should never happen, but just as a sanity check
-  assert(chain.root === root, `Can't sync chains with different roots`)
+  assert(chain.root === their.root, `Can't sync chains with different roots`)
 
-  state.theirHead = head
+  state.their.head = their.head
 
   // store the new links in state
-  state.pendingLinks = { ...state.pendingLinks, ...links }
+  state.their.links = { ...state.their.links, ...their.links }
 
   // merge this set of recent hashes with any they've sent previously
-  const theirDependencyMap = {
-    ...state.theirDependencyMap,
-    ...recentHashes,
+  const theirLinkMap = {
+    ...state.their.linkMap,
+    ...their.linkMap,
   }
 
-  state.sendRecentHashes = sendMoreHashes
-  state.theirNeed = need
+  state.theyNeed.moreLinkMap = theyNeed.moreLinkMap
+  state.theyNeed.links = theyNeed.links || []
 
-  // if we can reconstruct their chain, do so and merge with ours
+  // if they've sent new links and we have a full picture of their chain, try to merge it with ours
 
-  const pendingHashes = Object.keys(state.pendingLinks)
+  const pendingHashes = Object.keys(state.their.links)
   if (pendingHashes.length) {
     // make a dependency map of the pending links
-    const lookupDependencies = (r: DependencyMap, h: Hash) => ({ ...r, [h]: theirDependencyMap[h] })
-    const mapOfPendingLinks: DependencyMap = pendingHashes.reduce(lookupDependencies, {})
+    const mapOfPendingLinks: DependencyMap = pendingHashes.reduce(
+      (linkMap, hash) => ({ ...linkMap, [hash]: theirLinkMap[hash] }),
+      {}
+    )
 
     // we'll combine that with a dependency map of our own chain
     const mapOfOurChain: DependencyMap = getChainMap(chain)
 
     // are there any hashes we don't know about?
-    if (isComplete({ ...mapOfOurChain, ...mapOfPendingLinks })) {
+    const weHaveTheirFullChain = isComplete({ ...mapOfOurChain, ...mapOfPendingLinks })
+
+    if (weHaveTheirFullChain) {
       // there are no gaps — we can reconstruct their chain
       const theirChain = {
         ...chain,
-        head: state.theirHead,
+        head: state.their.head,
         encryptedLinks: {
           ...chain.encryptedLinks,
-          ...state.pendingLinks,
+          ...state.their.links,
         },
       }
+
       // decrypt encrypted links
       const theirDecryptedChain = decryptChain(theirChain, chainKeys)
 
       // merge with our chain
-      chain = merge(chain, theirDecryptedChain)
+      const mergedChain = merge(chain, theirDecryptedChain)
+
+      // check the integrity of the merged chain
+      const validation = validate(mergedChain)
+      if (validation.isValid) {
+        chain = mergedChain
+      } else {
+        // when we end up with invalid input from a peer, there are a few different things we need
+        // to do in order to heal the chain and react appropriately to a possibly malicious peer.
+        //
+        // 1. Throw out all the information we've received from them
+        // 2. Increment some kind of counter that indicates that we've rejected their input, and use
+        //    that to throttle them? Ask the user if we should try again?
+        // 3. Make it clear to the next level up that we've gotten bad input so they can react (e.g.
+        //    to Connection so it can send an appropriate message to the peer). Add an optional
+        //    error to the return value?
+      }
+
+      // either way, we can discard all pending links
+      state.their.links = {}
     }
   }
 
-  state.ourHead = chain.head
-  state.theirDependencyMap = theirDependencyMap
+  state.our.head = chain.head
+  state.their.linkMap = theirLinkMap
 
   return [chain, state]
 }

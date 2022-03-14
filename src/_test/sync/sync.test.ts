@@ -90,9 +90,9 @@ describe('sync', () => {
       expect(msg).toBeUndefined()
 
       // Bob knows that he is caught up with Alice
-      expect(headsAreEqual(bobSyncState.theirHead, aliceChain.head)).toBe(true)
+      expect(headsAreEqual(bobSyncState.their.head, aliceChain.head)).toBe(true)
       // Alice knows that Bob is caught up with her
-      expect(headsAreEqual(aliceSyncState.theirHead, bobChain.head)).toBe(true)
+      expect(headsAreEqual(aliceSyncState.their.head, bobChain.head)).toBe(true)
     })
 
     it('Alice and Bob have diverged', () => {
