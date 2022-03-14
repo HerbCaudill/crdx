@@ -1,5 +1,4 @@
-﻿import { signatures } from '@herbcaudill/crypto'
-import { ValidationError, ValidatorSet } from './types'
+﻿import { ValidationError, ValidatorSet } from './types'
 import { getRoot } from '/chain/chain'
 import { hashLink } from '/chain/hashLink'
 import { ROOT, VALID } from '/constants'
@@ -8,11 +7,11 @@ import { memoize } from '/util'
 const _validators: ValidatorSet = {
   /** Does this link's hash check out? */
   validateHash: (link, chain) => {
-    const { hash, body } = link
+    const { hash } = link
     const { encryptedBody } = chain.encryptedLinks[hash]
-    const expected = hashLink(encryptedBody)
-    if (hash === expected) return VALID
-    else return fail(`The hash calculated for this link does not match.`, { link, hash, expected })
+    const computedHash = hashLink(encryptedBody)
+    if (hash === computedHash) return VALID
+    else return fail(`The hash calculated for this link does not match.`, { link, hash, expected: computedHash })
   },
 
   /** Do the previous link(s) referenced by this link exist?  */
@@ -44,23 +43,9 @@ const _validators: ValidatorSet = {
       : `The link referenced by the chain \`root\` property must be a ROOT link` // not ROOT but is the chain root
     return fail(message, { link, chain })
   },
-
-  // TODO: replace with validation of encryption?
-
-  // /** Does this link's signature check out? */
-  // validateSignatures: link => {
-  //   const signedMessage = {
-  //     payload: link.body,
-  //     signature: link.signed.signature,
-  //     publicKey: link.signed.key,
-  //   }
-  //   return signatures.verify(signedMessage) //
-  //     ? VALID
-  //     : fail('Signature is not valid', signedMessage)
-  // },
 }
 
-const fail = (msg: string, args?: any) => ({ isValid: false, error: new ValidationError(msg, args) })
+export const fail = (msg: string, args?: any) => ({ isValid: false, error: new ValidationError(msg, args) })
 
 const memoizeFunctionMap = (source: ValidatorSet) => {
   const result = {} as ValidatorSet
