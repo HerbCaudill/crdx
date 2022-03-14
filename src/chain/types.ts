@@ -1,9 +1,7 @@
 ﻿import { User } from '/user'
 import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
 
-// NEXT: remove signatures
-
-// does it even make sense to call it a SignatureChain anymore?
+// TODO: does it even make sense to call it a SignatureChain anymore?
 // - CipherChain
 // - CipherGraph
 // - Graph
@@ -33,9 +31,6 @@ import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
  * author's secret key and the team public key at time of authoring.
  */
 export interface EncryptedSignatureChain<A extends Action, C> {
-  // TODO: version the chain?
-  // version: 3.0.0
-
   /** Hash of the root link (the "founding" link added when the chain was created) */
   root: Hash
 
