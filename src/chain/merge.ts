@@ -12,10 +12,6 @@ import { assertIsValid } from '/validator/validate'
 export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: SignatureChain<A, C>): SignatureChain<A, C> => {
   if (a.root !== b.root) throw new Error('Cannot merge two chains with different roots')
 
-  // TODO: need to adapt this to encryption instead of signatures
-  // assertIsValid(a)
-  // assertIsValid(b)
-
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...a.links, ...b.links }
   const mergedEncryptedLinks: Record<Hash, EncryptedLink<A, C>> = { ...a.encryptedLinks, ...b.encryptedLinks }
@@ -33,6 +29,8 @@ export const merge = <A extends Action, C>(a: SignatureChain<A, C>, b: Signature
   }
 
   mergedChain.head = mergedChain.head.sort()
+
+  assertIsValid(mergedChain)
 
   return mergedChain
 }

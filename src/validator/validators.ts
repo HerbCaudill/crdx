@@ -31,21 +31,25 @@ const _validators: ValidatorSet = {
     // all should be true, or all should be false
     if (hasNoPrevLink === isTheChainRoot && isTheChainRoot === hasRootType) return VALID
 
-    // ignore coverage
     const message = hasRootType
       ? // ROOT
         hasNoPrevLink
-        ? `The ROOT link cannot have any predecessors` // ROOT but has prev link
-        : `The ROOT link has to be the link referenced by the chain \`root\` property` // ROOT but isn't chain root
+        ? `The ROOT link has to be the link referenced by the chain \`root\` property` // ROOT but isn't chain root
+        : `The ROOT link cannot have any predecessors` // ROOT but has prev link
       : // not ROOT
       hasNoPrevLink
       ? `Non-ROOT links must have predecessors` // not ROOT but has no prev link
-      : `The link referenced by the chain \`root\` property must be a ROOT link` // not ROOT but is the chain root
+      : 'The link referenced by the chain `root` property must be a ROOT link' // not ROOT but is the chain root
     return fail(message, { link, chain })
   },
 }
 
-export const fail = (msg: string, args?: any) => ({ isValid: false, error: new ValidationError(msg, args) })
+export const fail = (msg: string, args?: any) => {
+  return {
+    isValid: false,
+    error: new ValidationError(msg, args),
+  }
+}
 
 const memoizeFunctionMap = (source: ValidatorSet) => {
   const result = {} as ValidatorSet

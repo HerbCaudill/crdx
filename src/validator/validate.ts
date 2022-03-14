@@ -1,10 +1,8 @@
-﻿import { Action, Link, SignatureChain } from '/chain/types'
+﻿import { ValidationResult, ValidatorSet } from './types'
 import { fail, validators } from './validators'
-import { InvalidResult, ValidatorSet, ValidationResult } from './types'
-import { VALID } from '/constants'
 import { hashLink } from '/chain/hashLink'
-
-// NEXT: test validation failure conditions
+import { Action, Link, SignatureChain } from '/chain/types'
+import { VALID } from '/constants'
 
 /**
  * Runs a signature chain through a series of validators to ensure that it is correctly formed, has
