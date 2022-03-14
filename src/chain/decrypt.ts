@@ -3,6 +3,9 @@ import { hashLink } from './hashLink'
 import { Action, EncryptedLink, Link, LinkBody, SignatureChain } from './types'
 import { KeysetWithSecrets } from '/keyset'
 
+/**
+ * Decrypts a single link of a chain, given the chain keys at the time the link was authored.
+ */
 export const decryptLink = <A extends Action, C>(
   encryptedLink: EncryptedLink<A, C>,
   chainKeys: KeysetWithSecrets
@@ -20,16 +23,18 @@ export const decryptLink = <A extends Action, C>(
   }
 }
 
+/**
+ * Decrypts a chain using a single keyset.
+ *
+ * **Note:** Applications that encode key rotations on the chain (like lf/auth) will need to
+ * implement their own version of `decryptChain` that reduces as it goes along, so that it can
+ * determine the correct keyset to use for each link.  */
 export const decryptChain = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   chainKeys: KeysetWithSecrets
 ): SignatureChain<A, C> => {
   const { encryptedLinks, links } = chain
   const decryptedLinks = {} as Record<string, Link<A, C>>
-
-  // TODO: for now we're just using the chain keys we're given to do this without looking
-  // processing the chain, but this will break if keys are rotated. we actually need to reduce as
-  // we go along to keep up with any changes in keys.
 
   for (const hash in encryptedLinks) {
     if (!(hash in links)) {
