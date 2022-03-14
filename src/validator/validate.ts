@@ -1,23 +1,39 @@
 ﻿import { Action, Link, SignatureChain } from '/chain/types'
-import { validators } from './validators'
+import { fail, validators } from './validators'
 import { InvalidResult, ValidatorSet, ValidationResult } from './types'
 import { VALID } from '/constants'
+import { hashLink } from '/chain/hashLink'
+
+// NEXT: test validation failure conditions
 
 /**
  * Runs a signature chain through a series of validators to ensure that it is correctly formed, has
  * not been tampered with, etc.
- * @chain The signature chain to validate
- * @customValidators Any additional validators (besides the base validators that test the chain's
- * integrity)
  */
 export const validate = <A extends Action, C>(
+  /** The signature chain to validate. */
   chain: SignatureChain<A, C>,
+
+  /** Any additional validators (besides the base validators that test the chain's integrity) */
   customValidators: ValidatorSet = {}
 ): ValidationResult => {
-  /**
-   * Returns a single reducer function that runs all validators.
-   * @param validators A map of validators
-   */
+  // Confirm that the root hash matches the computed hash of the root link
+  {
+    const rootHash = chain.root
+    const rootLink = chain.encryptedLinks[rootHash]
+    const computedHash = hashLink(rootLink.encryptedBody)
+    if (computedHash !== rootHash)
+      return fail('Root hash does not match the hash of the root link', { rootHash, computedHash, rootLink })
+  }
+  // Confirm that each head hash matches the computed hash of the head link
+  for (const headHash of chain.head) {
+    const headLink = chain.encryptedLinks[headHash]
+    const computedHash = hashLink(headLink.encryptedBody)
+    if (computedHash !== headHash)
+      return fail('Head hash does not match the hash of the head link', { headHash, computedHash, headLink })
+  }
+
+  // Returns a single reducer function that runs all validators.
   const composeValidators =
     (...validators: ValidatorSet[]) =>
     (currentLink: Link<A, C>) => {
@@ -30,22 +46,18 @@ export const validate = <A extends Action, C>(
         } catch (e) {
           // any errors thrown cause validation to fail and are returned with the validation result
           // ignore coverage
-          return {
-            isValid: false,
-            error: { message: e.message, details: e },
-          } as InvalidResult
+          return fail(e.message, e)
         }
       }
-      // no validators failed
       return VALID
     }
 
   const compositeValidator = composeValidators(validators, customValidators)
-
   for (const link of Object.values(chain.links)) {
     const result = compositeValidator(link)
     if (!result.isValid) return result
   }
+
   return VALID
 }
 
