@@ -44,22 +44,6 @@ describe('counter', () => {
     })
   })
 
-  describe('validation', () => {
-    // TODO: this should throw
-    test.skip('tampering with chain is detected', () => {
-      // 👩🏾 Alice makes a store
-      const { store } = setupCounter()
-      const chain = store.getChain()
-
-      // 🦹‍♂️ Mallory tampers with the root link
-      const payload = getRoot(chain).body.payload as any
-      payload.name = 'Mallory RAWKS'
-
-      // 👩🏾 Alice is not fooled
-      expect(() => store.validate()).toThrow()
-    })
-  })
-
   describe('merge', () => {
     test('concurrent changes are merged', () => {
       const { aliceStore, bobStore } = setupCounter()
