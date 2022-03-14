@@ -14,6 +14,7 @@ import {
   serialize,
   SignatureChain,
 } from '/chain'
+import { decryptChain } from '/chain/decrypt'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
@@ -45,7 +46,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
         createChain({ user, rootPayload, chainKeys })
       : typeof chain === 'string'
       ? // serialized chain provided, deserialize it
-        deserialize(chain)
+        decryptChain(deserialize(chain), chainKeys)
       : // chain provided, use it
         chain
 
@@ -74,7 +75,10 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   /** Returns a the current signature chain in serialized form; this can be used to rehydrate this
    * store from storage. */
   public save() {
-    return serialize(this.chain)
+    // remove plaintext  links from chain
+    const { links, ...redactedChain } = this.chain
+
+    return serialize(redactedChain as SignatureChain<A, C>)
   }
 
   /**
@@ -133,10 +137,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * application.
    */
   public validate() {
-    const validationResult = validate(this.chain, this.validators)
-    if (validationResult.isValid === false) {
-      throw validationResult.error
-    }
+    return validate(this.chain, this.validators)
   }
 
   // PRIVATE

@@ -59,10 +59,5 @@ export const validate = <A extends Action, C>(
   return VALID
 }
 
-export const assertIsValid = (chain: SignatureChain<any, any>) => {
-  const validationResult = validate(chain)
-  if (!validationResult.isValid) throw new Error(`Invalid chain: ${validationResult.error.message}`)
-}
-
 // merges multiple validator sets into one object
 const merge = (validatorSets: ValidatorSet[]) => validatorSets.reduce((result, vs) => Object.assign(result, vs), {})

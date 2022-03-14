@@ -8,7 +8,6 @@ export const getParents = <A extends Action, C>(chain: SignatureChain<A, C>, lin
 
 export const getPredecessorHashes = memoize(
   <A extends Action, C>(chain: SignatureChain<A, C>, hash: string): string[] => {
-    if (!(hash in chain.links)) return []
     const parents = getLink(chain, hash).body.prev
     const predecessors = parents.flatMap(parent => getPredecessorHashes(chain, parent))
     return uniq(parents.concat(predecessors))

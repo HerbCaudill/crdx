@@ -33,7 +33,7 @@ export const decryptChain = <A extends Action, C>(
   chain: SignatureChain<A, C>,
   chainKeys: KeysetWithSecrets
 ): SignatureChain<A, C> => {
-  const { encryptedLinks, links } = chain
+  const { encryptedLinks, links = {} } = chain
   const decryptedLinks = {} as Record<string, Link<A, C>>
 
   for (const hash in encryptedLinks) {
