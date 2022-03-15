@@ -1,9 +1,9 @@
 import { SyncMessage, SyncState } from './types'
 import { Action, getEncryptedLink, getHashes, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
-import { getChainMap, getRecentHashes, isComplete } from '/chain/recentLinks'
+import { getLinkMap, isComplete } from '../chain/linkMap'
 import { Hash } from '/util'
 
-const depth = 5
+const depth = 100
 
 /**
  * Generates a new sync message for a peer based on our current chain and our sync state with them.
@@ -20,17 +20,22 @@ export const generateMessage = <A extends Action, C>(
   let { lastCommonHead, their, theyNeed, lastError } = state
   const { root, head: ourHead } = chain
   const ourHashes = getHashes(chain).concat(Object.keys(their.links))
-  const message = { our: { root, head: ourHead }, weNeed: {} } as SyncMessage<A, C>
+  const message: SyncMessage<A, C> = { our: { root, head: ourHead }, weNeed: {} }
 
-  if (state.theyNeed.moreLinkMap) {
-    // send our recent hashes
-    message.our.linkMap = getRecentHashes({ chain, depth, prev: state.our.linkMap })
-  }
-
+  // CASE 0: Their last message caused a sync error
   if (lastError) {
     delete state.lastError
     const errorMessage = { ...message, error: lastError }
     return [state, errorMessage]
+  }
+
+  // TODO: simulate these error conditions in tests
+
+  // TODO: If _our_ last message caused a sync message, we should stop syncing
+
+  if (state.theyNeed.moreLinkMap) {
+    // send our recent hashes
+    message.our.linkMap = getLinkMap({ chain, depth, prev: state.our.linkMap, end: lastCommonHead })
   }
 
   // CASE 1: We are synced up
@@ -75,7 +80,7 @@ export const generateMessage = <A extends Action, C>(
 
       // if those links still won't give us the whole picture, ask for the next set of recent hashes
       const mergedChainMap = {
-        ...getChainMap(chain), // everything we know about
+        ...getLinkMap({ chain }), // everything we know about
         ...their.linkMap, // their most recent links & dependencies
       }
       message.weNeed.moreLinkMap = !isComplete(mergedChainMap)

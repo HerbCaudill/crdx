@@ -136,14 +136,13 @@ export type Resolver<A extends Action, C> = (chain: SignatureChain<A, C>) => {
 }
 
 /**
- * A `DependencyMap` contains information about the graph structure of a `SignatureChain`, without
+ * A `LinkMap` contains information about the graph structure of a `SignatureChain`, without
  * any of the content. It is a map where each key is the hash of a link, and the value is that
  * link's parents (the `prev` value in the `LinkBody`).
  *
  * This is used when syncing to determine where two peers have diverged and what additional links
  * they still require to be in sync.
  *
- * A `DependencyMap` can be partial (e.g. `getRecentPredecessors` returns just the most recent
- * links) or complete.)
+ * A `LinkMap` can be partial or complete.
  */
-export type DependencyMap = Record<Hash, Hash[]>
+export type LinkMap = Record<Hash, Hash[]>

@@ -1,4 +1,4 @@
-import { Action, DependencyMap, EncryptedLink } from '/chain'
+import { Action, LinkMap, EncryptedLink } from '/chain'
 import { Hash } from '/util'
 import { ValidationError } from '/validator'
 
@@ -11,7 +11,7 @@ export interface SyncState {
     links: Record<Hash, EncryptedLink<any, any>>
 
     /** The accumulated map of hashes they've sent (each new set is merged into this). */
-    linkMap?: DependencyMap
+    linkMap?: LinkMap
   }
 
   theyNeed: {
@@ -27,7 +27,7 @@ export interface SyncState {
     head: Hash[]
 
     /** The last set of recent hashes we sent them */
-    linkMap?: DependencyMap
+    linkMap?: LinkMap
   }
 
   /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
@@ -51,10 +51,10 @@ export interface SyncMessage<A extends Action, C> {
     links?: Record<Hash, EncryptedLink<A, C>>
 
     /** Our most recent hashes and their dependencies. */
-    linkMap?: DependencyMap
+    linkMap?: LinkMap
   }
 
-  weNeed?: {
+  weNeed: {
     /** Any hashes we know we need. */
     links?: Hash[]
 

@@ -1,7 +1,7 @@
 import { SyncMessage, SyncState } from './types'
-import { Action, DependencyMap, merge, SignatureChain } from '/chain'
+import { Action, LinkMap, merge, SignatureChain } from '/chain'
 import { decryptChain } from '/chain/decrypt'
-import { getChainMap, isComplete } from '/chain/recentLinks'
+import { getLinkMap, isComplete } from '../chain/linkMap'
 import { KeysetWithSecrets } from '/keyset'
 import { assert, Hash, truncateHashes } from '/util'
 import { validate } from '/validator'
@@ -50,13 +50,13 @@ export const receiveMessage = <A extends Action, C>(
   const pendingHashes = Object.keys(state.their.links)
   if (pendingHashes.length) {
     // make a dependency map of the pending links
-    const mapOfPendingLinks: DependencyMap = pendingHashes.reduce(
+    const mapOfPendingLinks: LinkMap = pendingHashes.reduce(
       (linkMap, hash) => ({ ...linkMap, [hash]: theirLinkMap[hash] }),
       {}
     )
 
     // we'll combine that with a dependency map of our own chain
-    const mapOfOurChain: DependencyMap = getChainMap(chain)
+    const mapOfOurChain: LinkMap = getLinkMap({ chain })
 
     // are there any hashes we don't know about?
     const weHaveTheirFullChain = isComplete({ ...mapOfOurChain, ...mapOfPendingLinks })
