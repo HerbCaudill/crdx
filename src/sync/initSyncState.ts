@@ -1,8 +1,6 @@
 import { SyncState } from './types'
 
 export const initSyncState = (): SyncState => ({
-  lastCommonHead: [],
-
   their: {
     head: [],
     links: {},
@@ -14,4 +12,7 @@ export const initSyncState = (): SyncState => ({
   our: {
     head: [],
   },
+
+  lastCommonHead: [],
+  failedSyncCount: 0,
 })

@@ -1,10 +1,8 @@
 import { Action, DependencyMap, EncryptedLink } from '/chain'
 import { Hash } from '/util'
+import { ValidationError } from '/validator'
 
 export interface SyncState {
-  /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
-  lastCommonHead: Hash[]
-
   their: {
     /** Their head as of the last time they sent a sync message. */
     head: Hash[]
@@ -31,6 +29,14 @@ export interface SyncState {
     /** The last set of recent hashes we sent them */
     linkMap?: DependencyMap
   }
+
+  /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
+  lastCommonHead: Hash[]
+
+  /** We increment this each time a sync fails because we would have ended up with an invalid chain */
+  failedSyncCount: number
+
+  lastError?: ValidationError
 }
 
 export interface SyncMessage<A extends Action, C> {
@@ -48,11 +54,13 @@ export interface SyncMessage<A extends Action, C> {
     linkMap?: DependencyMap
   }
 
-  weNeed: {
+  weNeed?: {
     /** Any hashes we know we need. */
     links?: Hash[]
 
     /** We set this to true if we know there are more hashes we don't know about and we need them to send more. */
     moreLinkMap?: boolean
   }
+
+  error?: ValidationError
 }

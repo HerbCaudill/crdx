@@ -26,7 +26,7 @@ export const receiveMessage = <A extends Action, C>(
 
   chainKeys: KeysetWithSecrets
 ): [SignatureChain<A, C>, SyncState] => {
-  const { our: their, weNeed: theyNeed } = message
+  const { our: their, weNeed: theyNeed = {} } = message
 
   // This should never happen, but just as a sanity check
   assert(chain.root === their.root, `Can't sync chains with different roots`)
@@ -83,19 +83,17 @@ export const receiveMessage = <A extends Action, C>(
       if (validation.isValid) {
         chain = mergedChain
       } else {
-        // when we end up with invalid input from a peer, there are a few different things we need
-        // to do in order to heal the chain and react appropriately to a possibly malicious peer.
-        //
-        // 1. Throw out all the information we've received from them
-        // 2. Increment some kind of counter that indicates that we've rejected their input, and use
-        //    that to throttle them? Ask the user if we should try again?
-        // 3. Make it clear to the next level up that we've gotten bad input so they can react (e.g.
-        //    to Connection so it can send an appropriate message to the peer). Add an optional
-        //    error to the return value?
+        // We only get here because we've received bad links from them — maliciously, or not. The
+        // application should monitor `failedSyncCount` and decide not to trust them if it's too high.
+        state.failedSyncCount += 1
+
+        // Provide error information to the application
+        state.lastError = validation.error
       }
 
       // either way, we can discard all pending links
       state.their.links = {}
+      state.their.linkMap = {}
     }
   }
 

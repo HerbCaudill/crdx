@@ -17,7 +17,7 @@ export const generateMessage = <A extends Action, C>(
   /** Our sync state with this peer */
   state: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
-  let { lastCommonHead, their, theyNeed } = state
+  let { lastCommonHead, their, theyNeed, lastError } = state
   const { root, head: ourHead } = chain
   const ourHashes = getHashes(chain).concat(Object.keys(their.links))
   const message = { our: { root, head: ourHead }, weNeed: {} } as SyncMessage<A, C>
@@ -25,6 +25,12 @@ export const generateMessage = <A extends Action, C>(
   if (state.theyNeed.moreLinkMap) {
     // send our recent hashes
     message.our.linkMap = getRecentHashes({ chain, depth, prev: state.our.linkMap })
+  }
+
+  if (lastError) {
+    delete state.lastError
+    const errorMessage = { ...message, error: lastError }
+    return [state, errorMessage]
   }
 
   // CASE 1: We are synced up
