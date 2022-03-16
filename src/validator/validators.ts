@@ -42,6 +42,26 @@ const _validators: ValidatorSet = {
       : 'The link referenced by the chain `root` property must be a ROOT link' // not ROOT but is the chain root
     return fail(message, { link, chain })
   },
+
+  validateTimestamps: (link, chain) => {
+    const { timestamp } = link.body
+
+    // timestamp can't be in the future
+    const now = Date.now()
+    if (timestamp > now) {
+      // TODO: test failure condition
+      return fail(`The link's timestamp is in the future.`, { link, now })
+    }
+
+    // timestamp can't be earlier than any previous link's timestamp
+    for (const hash of link.body.prev) {
+      const prevLink = chain.links[hash]
+      if (prevLink.body.timestamp > timestamp)
+        // TODO: test failure condition
+        return fail(`This link's timestamp can't be earlier than a previous link.`, { link, prevLink })
+    }
+    return VALID
+  },
 }
 
 export const fail = (msg: string, args?: any) => {
