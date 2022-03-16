@@ -1,7 +1,7 @@
-import { append } from './append'
-import { createChain } from './createChain'
-import { decryptLink, decryptChain } from './decrypt'
-import { SignatureChain } from './types'
+import { append } from '../../chain/append'
+import { createChain } from '../../chain/createChain'
+import { decryptLink, decryptChain } from '../../chain/decrypt'
+import { SignatureChain } from '../../chain/types'
 import { TEST_CHAIN_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 
