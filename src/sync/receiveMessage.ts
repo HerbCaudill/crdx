@@ -79,6 +79,10 @@ export const receiveMessage = <A extends Action, C>(
 
       // check the integrity of the merged chain
       const validation = validate(mergedChain)
+
+      // TODO: should the application should have a hook for providing a custom validator set here,
+      // so that the merge fails e.g. if the author's public keys don't match up?
+
       if (validation.isValid) {
         chain = mergedChain
       } else {
