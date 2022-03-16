@@ -26,7 +26,7 @@ export const receiveMessage = <A extends Action, C>(
 
   chainKeys: KeysetWithSecrets
 ): [SignatureChain<A, C>, SyncState] => {
-  const { our: their, weNeed: theyNeed = {} } = message
+  const their = message
 
   // This should never happen, but just as a sanity check
   assert(chain.root === their.root, `Can't sync chains with different roots`)
@@ -42,8 +42,7 @@ export const receiveMessage = <A extends Action, C>(
     ...their.linkMap,
   }
 
-  state.theyNeed.moreLinkMap = theyNeed.moreLinkMap
-  state.theyNeed.links = theyNeed.links || []
+  state.their.need = their.need || []
 
   // if they've sent new links and we have a full picture of their chain, try to merge it with ours
 
@@ -97,7 +96,6 @@ export const receiveMessage = <A extends Action, C>(
     }
   }
 
-  state.our.head = chain.head
   state.their.linkMap = theirLinkMap
 
   return [chain, state]

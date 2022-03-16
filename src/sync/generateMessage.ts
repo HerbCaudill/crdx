@@ -1,9 +1,7 @@
+import { getLinkMap } from '../chain/linkMap'
 import { SyncMessage, SyncState } from './types'
 import { Action, getEncryptedLink, getHashes, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
-import { getLinkMap, isComplete } from '../chain/linkMap'
 import { Hash } from '/util'
-
-const depth = 100
 
 /**
  * Generates a new sync message for a peer based on our current chain and our sync state with them.
@@ -17,10 +15,10 @@ export const generateMessage = <A extends Action, C>(
   /** Our sync state with this peer */
   state: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
-  let { lastCommonHead, their, theyNeed, lastError } = state
+  let { lastCommonHead, their, lastError } = state
   const { root, head: ourHead } = chain
   const ourHashes = getHashes(chain).concat(Object.keys(their.links))
-  const message: SyncMessage<A, C> = { our: { root, head: ourHead }, weNeed: {} }
+  const message: SyncMessage<A, C> = { root, head: ourHead }
 
   // CASE 0: Their last message caused a sync error
   if (lastError) {
@@ -31,21 +29,15 @@ export const generateMessage = <A extends Action, C>(
 
   // TODO: simulate these error conditions in tests
 
-  // TODO: If _our_ last message caused a sync message, we should stop syncing
+  // TODO: If _our_ last message caused a sync error, we should stop syncing
 
-  if (state.theyNeed.moreLinkMap) {
-    // send our recent hashes
-    message.our.linkMap = getLinkMap({ chain, depth, prev: state.our.linkMap, end: lastCommonHead })
-  }
-
-  // CASE 1: We are synced up
-
+  // CASE 1: We synced up in the last round, and they know we synced up, so we have nothing more to say
   const syncedLastTime = headsAreEqual(ourHead, lastCommonHead)
   if (syncedLastTime) {
-    // CASE 1a: We synced up in the last round, and they know we synced up, so we have nothing more to say
     return [state, undefined]
   }
 
+  // CASE 2: We just synced up, but they might not know that; we'll send one last message just to confirm
   const syncedThisTime = headsAreEqual(ourHead, their.head)
   if (syncedThisTime) {
     // CASE 1b: We are now synced up, but they might not know that; we'll send one last message just to confirm
@@ -55,64 +47,70 @@ export const generateMessage = <A extends Action, C>(
     return [state, message]
   }
 
-  // CASE 2: We are not synced up
-
   let hashesWeKnowTheyNeed = [] as Hash[]
+
   const weAreAhead =
     their.head.length > 0 && // if we don't know their head, we can't assume we're ahead
     their.head.every(h => h in chain.links) // we're ahead if we already have all their heads
 
   if (weAreAhead) {
-    // CASE 2a: we are ahead of them, so we don't need anything, AND we know exactly what they need
+    // CASE 3: we are ahead of them, so we don't need anything, AND we know exactly what they need
 
     // We know they have their heads and everything preceding them
     const hashesTheyHave = [...their.head, ...their.head.flatMap(h => getPredecessorHashes(chain, h))]
     // Send them everything else
     hashesWeKnowTheyNeed = ourHashes.filter(hash => !hashesTheyHave.includes(hash))
   } else {
-    // CASE 2b: they have links we don't have; we could be behind, or we could have diverged
+    // CASE 4: we're either behind, or have diverged
 
     if (their.linkMap) {
-      // if they've mentioned links that we don't have, ask for them
-      message.weNeed.links = Object.keys(their.linkMap).filter(
-        hash => !(hash in chain.links || hash in state.their.links)
-      )
-
-      // if those links still won't give us the whole picture, ask for the next set of recent hashes
-      const mergedChainMap = {
-        ...getLinkMap({ chain }), // everything we know about
-        ...their.linkMap, // their most recent links & dependencies
-      }
-      message.weNeed.moreLinkMap = !isComplete(mergedChainMap)
-      if (!isComplete(mergedChainMap)) {
-      } else {
-        hashesWeKnowTheyNeed = getHashes(chain).filter(hash => !(hash in their.linkMap!))
-      }
+      // if they've sent us a link map, ask for anything we don't have
+      message.need = Object.keys(their.linkMap).filter(hash => !(hash in chain.links || hash in state.their.links))
+      // and send them any links we know they need
+      hashesWeKnowTheyNeed = getHashes(chain).filter(hash => !(hash in their.linkMap!))
+    }
+    // If we've synced before, send them a map of everything new since the last time
+    if (lastCommonHead) {
+      // but only if we have something new to send
+      if (!headsAreEqual(ourHead, state.weSent.linkMapAtHead))
+        message.linkMap = getLinkMap({ chain, end: lastCommonHead })
     }
   }
 
   // Send them links they need
-  const hashesTheyAskedFor = theyNeed.links
-  const hashesTheyNeed = hashesTheyAskedFor.concat(hashesWeKnowTheyNeed)
-  message.our.links = hashesTheyNeed.reduce(
-    (result, hash) => ({
-      ...result,
-      [hash]: getEncryptedLink(chain, hash),
-    }),
-    {}
-  )
+  const hashesTheyAskedFor = their.need
+  const hashesTheyNeed = hashesTheyAskedFor
+    .concat(hashesWeKnowTheyNeed)
+    .filter(hash => !state.weSent.links.includes(hash)) // exclude links we've already sent
 
-  // include dependency map info for links we send
-  message.our.linkMap = {
-    ...message.our.linkMap,
-    ...hashesTheyNeed.reduce((result, hash) => ({ ...result, [hash]: chain.links[hash].body.prev }), {}),
+  if (hashesTheyNeed.length) {
+    message.links = hashesTheyNeed.reduce(
+      (result, hash) => ({
+        ...result,
+        [hash]: getEncryptedLink(chain, hash),
+      }),
+      {}
+    )
+
+    // add dependency info for links we send
+    message.linkMap = {
+      ...message.linkMap,
+      ...hashesTheyNeed.reduce(
+        (result, hash) => ({
+          ...result,
+          [hash]: chain.links[hash].body.prev,
+        }),
+        {}
+      ),
+    }
+
+    state.weSent.links = state.weSent.links.concat(hashesTheyNeed)
   }
 
-  // Remember what we've sent
-  state.our.linkMap = message.our.linkMap
+  if (message.linkMap) state.weSent.linkMapAtHead = ourHead
 
   // We've sent them everything they've asked for, so reset their need
-  state.theyNeed.links = []
+  state.their.need = []
 
   return [state, message]
 }

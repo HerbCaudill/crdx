@@ -6,6 +6,8 @@ import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
 // - CipherGraph
 // - Graph
 // - HashGraph
+// - AuthChain
+// - AuthGraph
 
 /**
  * A signature chain is an acyclic directed graph of links. Each link is **asymmetrically encrypted
@@ -51,7 +53,10 @@ export interface SignatureChain<A extends Action, C> extends EncryptedSignatureC
 }
 
 export type EncryptedLink<A extends Action, C> = {
-  /** Public key of the author of the link, at the time of authoring. */
+  /**
+   * Public key of the author of the link, at the time of authoring. After decryption, it is up to
+   * the application to ensure that this is in fact the public key of the author (`link.body.user`).
+   */
   authorPublicKey: Base58
 
   /**
@@ -61,7 +66,7 @@ export type EncryptedLink<A extends Action, C> = {
   encryptedBody: Encrypted<LinkBody<A, C>>
 }
 
-/** A link consists of a body, as well as a hash and a signature calculated from the body. */
+/** A link consists of a body, as well as a hash calculated from the body. */
 export type Link<A extends Action, C> = {
   /** Hash of the body */
   hash: Hash

@@ -4,13 +4,11 @@ export const initSyncState = (): SyncState => ({
   their: {
     head: [],
     links: {},
+    need: [],
   },
-  theyNeed: {
+
+  weSent: {
     links: [],
-    moreLinkMap: true,
-  },
-  our: {
-    head: [],
   },
 
   lastCommonHead: [],
