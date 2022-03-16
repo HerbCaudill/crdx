@@ -88,7 +88,7 @@ export const getLinkMap = <A extends Action, C>({
   }, EMPTY)
 }
 
-const getTails = (linkMap: LinkMap): Hash[] => {
+export const getTails = (linkMap: LinkMap): Hash[] => {
   // To find the tails, we collect all the parents listed in the given linkMap, and only include the
   // ones that aren't also included as keys, e.g. [g, f, i] in the above example.
   const allParents = Object.keys(linkMap).flatMap(hash => linkMap[hash])
