@@ -1,11 +1,14 @@
-import { Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
 import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
+import { Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
 import { TEST_CHAIN_KEYS as chainKeys, TEST_CHAIN_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
+import { logMessages } from '/util/messageSummary'
 
 const setup = setupWithNetwork(TEST_CHAIN_KEYS)
+
+// TODO: Figure out why sync sessions have such a long tail of identical messages
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
@@ -223,7 +226,8 @@ describe('sync', () => {
         })
         alice.peer.sync()
 
-        network.deliverAll()
+        const msgs = network.deliverAll()
+        expect(msgs.length).toBeLessThanOrEqual(3)
         expectToBeSynced(alice, bob)
       })
 
@@ -232,6 +236,9 @@ describe('sync', () => {
         network.connect(alice.peer, bob.peer)
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
+        alice.peer.sync()
+        network.deliverAll()
+
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
@@ -251,8 +258,9 @@ describe('sync', () => {
 
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
         alice.peer.sync()
-        bob.peer.sync()
-        network.deliverAll()
+        const msgs = network.deliverAll()
+
+        expect(msgs.length).toBeLessThanOrEqual(6)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
@@ -270,7 +278,6 @@ describe('sync', () => {
           })
         }
         alice.peer.sync()
-        bob.peer.sync()
         network.deliverAll()
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
@@ -293,8 +300,9 @@ describe('sync', () => {
         }
         expectNotToBeSynced(alice, bob)
         alice.peer.sync()
-        bob.peer.sync()
-        network.deliverAll()
+        const msgs = network.deliverAll()
+
+        expect(msgs.length).toBeLessThanOrEqual(6)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
@@ -309,8 +317,6 @@ describe('sync', () => {
         alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user, chainKeys })
 
         alice.peer.sync()
-        bob.peer.sync()
-        charlie.peer.sync()
         network.deliverAll()
 
         // no changes yet; everyone is synced up
@@ -326,9 +332,9 @@ describe('sync', () => {
 
         // now they reconnect and sync back up
         alice.peer.sync()
-        bob.peer.sync()
-        charlie.peer.sync()
-        network.deliverAll()
+        const msgs = network.deliverAll()
+
+        expect(msgs.length).toBeLessThanOrEqual(27)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
@@ -347,8 +353,8 @@ describe('sync', () => {
     describePeers('a', 'b')
     describePeers('a', 'b', 'c')
     describePeers('a', 'b', 'c', 'd')
-    // describePeers('a', 'b', 'c', 'd', 'e')
-    // describePeers('a', 'b', 'c', 'd', 'e', 'f')
+    describePeers('a', 'b', 'c', 'd', 'e')
+    describePeers('a', 'b', 'c', 'd', 'e', 'f')
 
     function describePeers(...userNames: string[]) {
       describe(`${userNames.length} peers`, () => {
@@ -402,7 +408,11 @@ describe('sync', () => {
           })
 
           founder.peer.sync()
-          network.deliverAll()
+          const msgs = network.deliverAll()
+
+          // if (userNames.length === 4) logMessages(msgs)
+
+          expect(msgs.length).toBeLessThanOrEqual(935) // seems excessive
 
           // all peers have the same doc
           assertAllEqual(network)
@@ -421,7 +431,8 @@ describe('sync', () => {
             chainKeys,
           })
 
-          for (const userName of userNames) userRecords[userName].peer.sync()
+          // founder.peer.sync()
+          userNames.forEach(u => userRecords[u].peer.sync())
           network.deliverAll()
 
           // all peers have the same doc
@@ -432,14 +443,17 @@ describe('sync', () => {
           const [userRecords, network] = setup(...userNames)
           connectAll(network)
 
+          let msgCount = 0
+
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
             peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
             peer.sync()
-            network.deliverAll()
+            msgCount += network.deliverAll().length
           }
 
+          expect(msgCount).toBeLessThanOrEqual(1410) // seems excessive
           // all peers have the same doc
           assertAllEqual(network)
         })
@@ -448,13 +462,17 @@ describe('sync', () => {
           const [userRecords, network] = setup(...userNames)
           connectDaisyChain(network)
 
+          let msgCount = 0
+
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
             peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
             peer.sync()
-            network.deliverAll()
+            msgCount += network.deliverAll().length
           }
+
+          expect(msgCount).toBeLessThanOrEqual(140)
 
           // all peers have the same doc
           assertAllEqual(network)
@@ -476,10 +494,11 @@ describe('sync', () => {
           for (const userName in userRecords) {
             userRecords[userName].peer.sync()
           }
-          network.deliverAll()
+          const msgs = network.deliverAll()
+
+          expect(msgs.length).toBeLessThanOrEqual(389)
 
           // after connecting, their docs converge
-          network.deliverAll()
           assertAllEqual(network)
         })
 
@@ -499,7 +518,10 @@ describe('sync', () => {
           for (const userName in userRecords) {
             userRecords[userName].peer.sync()
           }
-          network.deliverAll()
+          const msgs = network.deliverAll()
+          // if (userNames.length === 4) logMessages(msgs)
+
+          expect(msgs.length).toBeLessThanOrEqual(3080) // seems excessive
 
           // after connecting, their docs converge
           assertAllEqual(network)
