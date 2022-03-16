@@ -1,7 +1,6 @@
-import { getLink } from './chain'
-import { getLinkMap } from './linkMap'
-import { SignatureChain } from './types'
-import { buildChain, byPayload, findByPayload } from '/test/util/chain'
+import { getLink, SignatureChain } from '/chain'
+import { getLinkMap } from '/chain/linkMap'
+import { buildChain, findByPayload } from '/test/util/chain'
 import { Hash } from '/util'
 
 describe('getLinkMap', () => {
