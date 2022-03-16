@@ -8,7 +8,7 @@ import { logMessages } from '/util/messageSummary'
 
 const setup = setupWithNetwork(TEST_CHAIN_KEYS)
 
-// TODO: Figure out why sync sessions have such a long tail of identical messages
+// TODO: Figure out why sync sessions have such a long tail of identical messages before converging.
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
