@@ -104,7 +104,7 @@ export const generateMessage = <A extends Action, C>(
 
     // If our head has changed since last time we sent them a linkMap,
     if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
-      // send a new linkMap with everything that's happend since then
+      // send a new linkMap with everything that's happened since then
       message.linkMap = getLinkMap({ chain, end: lastCommonHead })
       state.our.linkMapAtHead = ourHead
     }
