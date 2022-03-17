@@ -57,5 +57,6 @@ export interface SyncMessage<A extends Action, C> {
   /** Any hashes we know we need. */
   need?: Hash[]
 
+  /** Any errors caused by their last sync message. */
   error?: ValidationError
 }
