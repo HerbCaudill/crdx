@@ -1,17 +1,17 @@
 import memoize from 'lodash/memoize'
 import { getLink } from './chain'
-import { Action, Link, SignatureChain } from '/chain/types'
+import { Action, Link, HashGraph } from '/chain/types'
 import { Hash } from '/util'
 
 /**
  * Returns the hashes of the children of the link with the given hash.
  */
-export const getChildrenHashes = <A extends Action, C>(chain: SignatureChain<A, C>, hash: Hash): string[] => {
+export const getChildrenHashes = <A extends Action, C>(chain: HashGraph<A, C>, hash: Hash): string[] => {
   const childrenLookup = calculateChildren(chain)
   return childrenLookup[hash] || []
 }
 
-export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, link: Link<A, C>): Link<A, C>[] => {
+export const getChildren = <A extends Action, C>(chain: HashGraph<A, C>, link: Link<A, C>): Link<A, C>[] => {
   return getChildrenHashes(chain, link.hash).map(hash => getLink(chain, hash))
 }
 
@@ -24,7 +24,7 @@ export const getChildren = <A extends Action, C>(chain: SignatureChain<A, C>, li
  * }
  * ```
  */
-const calculateChildren = memoize(<A extends Action, C>(chain: SignatureChain<A, C>) => {
+const calculateChildren = memoize(<A extends Action, C>(chain: HashGraph<A, C>) => {
   const childrenLookup = {} as Record<Hash, Hash[]>
 
   // find the parents of each link, and add them to a dictionary lookup

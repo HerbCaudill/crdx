@@ -1,5 +1,5 @@
 import { getLink, getParents } from './chain'
-import { Action, LinkMap, SignatureChain } from './types'
+import { Action, LinkMap, HashGraph } from './types'
 import { Hash, truncateHashes } from '/util'
 
 export const EMPTY: LinkMap = {}
@@ -36,7 +36,7 @@ export const getLinkMap = <A extends Action, C>({
   hashes,
 }: {
   /** The chain to collect links from. */
-  chain: SignatureChain<A, C>
+  chain: HashGraph<A, C>
 
   /**
    * How many levels back we want to go in the chain. If omitted, we'll get a map covering the whole

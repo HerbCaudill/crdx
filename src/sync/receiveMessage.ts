@@ -1,5 +1,5 @@
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, SignatureChain } from '/chain'
+import { Action, merge, HashGraph } from '/chain'
 import { decryptChain } from '/chain/decrypt'
 import { KeysetWithSecrets } from '/keyset'
 import { assert } from '/util'
@@ -15,7 +15,7 @@ import { validate } from '/validator'
  * */
 export const receiveMessage = <A extends Action, C>(
   /** Our current chain */
-  chain: SignatureChain<A, C>,
+  chain: HashGraph<A, C>,
 
   /** Our sync state with this peer */
   prevState: SyncState,
@@ -24,7 +24,7 @@ export const receiveMessage = <A extends Action, C>(
   message: SyncMessage<A, C>,
 
   chainKeys: KeysetWithSecrets
-): [SignatureChain<A, C>, SyncState] => {
+): [HashGraph<A, C>, SyncState] => {
   const their = message
 
   // This should never happen, but just as a sanity check

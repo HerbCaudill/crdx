@@ -1,8 +1,8 @@
 ﻿import { byHash, topoSort } from './topoSort'
-import { Action, Link, Resolver, SignatureChain } from './types'
+import { Action, Link, Resolver, HashGraph } from './types'
 
 /**
- * Takes a `SignatureChain` and returns a flat array of links by performing a topographical sort and
+ * Takes a `HashGraph` and returns a flat array of links by performing a topographical sort and
  * filter. For example, this chain
  * ```
  *                      ┌─ e ─ g ─┐
@@ -21,10 +21,7 @@ import { Action, Link, Resolver, SignatureChain } from './types'
  * - `filter` is a predicate function that indicates which links to include in the resulting
  *   sequence.
  */
-export const getSequence = <A extends Action, C>(
-  chain: SignatureChain<A, C>,
-  resolver: Resolver<A, C> = baseResolver
-) => {
+export const getSequence = <A extends Action, C>(chain: HashGraph<A, C>, resolver: Resolver<A, C> = baseResolver) => {
   const { sort = byHash, filter = noFilter } = resolver(chain)
 
   const sorted = topoSort(chain, { comparator: sort })

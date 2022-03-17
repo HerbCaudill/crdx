@@ -1,6 +1,6 @@
 ﻿import cuid from 'cuid'
 import { append } from './append'
-import { Action, SignatureChain } from './types'
+import { Action, HashGraph } from './types'
 import { ROOT } from '/constants'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
@@ -57,5 +57,5 @@ export const createChain = <A extends Action, C = {}>({
     context,
     chainKeys,
   })
-  return chain as SignatureChain<A, C>
+  return chain as HashGraph<A, C>
 }

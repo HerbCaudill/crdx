@@ -1,13 +1,13 @@
 ﻿import { asymmetric, signatures } from '@herbcaudill/crypto'
 import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, Link, LinkBody, SignatureChain } from './types'
+import { Action, EncryptedLink, Link, LinkBody, HashGraph } from './types'
 import { KeysetWithSecrets } from '/keyset'
 import { redactUser, UserWithSecrets } from '/user'
 
 interface AppendParams<A extends Action, C> {
   /** The chain to append a link to. */
-  chain: SignatureChain<A, C> | typeof EMPTY_CHAIN
+  chain: HashGraph<A, C> | typeof EMPTY_CHAIN
 
   /** The action (type & payload) being added to the chain. */
   action: A
@@ -28,7 +28,7 @@ export const append = <A extends Action, C>({
   user,
   context = {} as C,
   chainKeys,
-}: AppendParams<A, C>): SignatureChain<A, C> => {
+}: AppendParams<A, C>): HashGraph<A, C> => {
   // unencrypted body
   const body = {
     ...action,
@@ -65,5 +65,5 @@ export const append = <A extends Action, C>({
   // return new chain
   const root = chain.root ?? hash // if the chain didn't already have a root, this is it
   const head = [hash]
-  return { root, head, encryptedLinks, links } as SignatureChain<A, C>
+  return { root, head, encryptedLinks, links } as HashGraph<A, C>
 }

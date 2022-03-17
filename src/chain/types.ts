@@ -1,7 +1,7 @@
 ﻿import { User } from '/user'
 import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
 
-// TODO: does it even make sense to call it a SignatureChain anymore?
+// TODO: does it even make sense to call it a HashGraph anymore?
 // - CipherChain
 // - CipherGraph
 // - Graph
@@ -10,18 +10,18 @@ import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
 // - AuthGraph
 
 /**
- * A signature chain is an acyclic directed graph of links. Each link is **asymmetrically encrypted
+ * A hash graph is an acyclic directed graph of links. Each link is **asymmetrically encrypted
  * and authenticated** by the author, and includes **hashes of all known heads** at the time of
  * authoring.
  *
  * This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or
  * removed without causing the hash and authentication checks to fail.
  *
- * A signature chain is just data and can be stored as JSON. It consists of a hash table of the
+ * A hash graph is just data and can be stored as JSON. It consists of a hash table of the
  * links themselves, plus a pointer to the **root** (the “founding” link added when the chain was
  * created) and the **head** (the most recent link(s) we know about).
  *
- * The `EncryptedSignatureChain` interface takes two parameters:
+ * The `EncryptedHashGraph` interface takes two parameters:
  *
  * - `A` is the Action type — typically a union of various `type` labels (e.g. 'ADD_CONTACT') along
  *   with the interface of the payload associated with each one.
@@ -29,10 +29,10 @@ import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
  *   information about the context in which a link is added (e.g. a device ID, or the version of the
  *   application)
  *
- * The `EncryptedSignatureChain` can live in public. Each link is asymmetrically encrypted using the
+ * The `EncryptedHashGraph` can live in public. Each link is asymmetrically encrypted using the
  * author's secret key and the team public key at time of authoring.
  */
-export interface EncryptedSignatureChain {
+export interface EncryptedHashGraph {
   /** Hash of the root link (the "founding" link added when the chain was created) */
   root: Hash
 
@@ -44,10 +44,10 @@ export interface EncryptedSignatureChain {
 }
 
 /**
- * The `SignatureChain` interface adds the decrypted links, and is for local manipulation by the
+ * The `HashGraph` interface adds the decrypted links, and is for local manipulation by the
  * application.
  */
-export interface SignatureChain<A extends Action, C> extends EncryptedSignatureChain {
+export interface HashGraph<A extends Action, C> extends EncryptedHashGraph {
   /** Decrypted links */
   links: Record<Hash, Link<A, C>>
 }
@@ -110,7 +110,7 @@ export type LinkBody<A extends Action, C> = {
 } & A & // plus everything from the action interface
   C // plus everything from the context interface
 
-/** A `Sequence` is a topological sort of a signature chain (or a portion thereof). */
+/** A `Sequence` is a topological sort of a hash graph (or a portion thereof). */
 export type Sequence<A extends Action, C> = Link<A, C>[]
 
 /** Any function that takes two links and tells us which comes first can be used as a comparator. */
@@ -135,13 +135,13 @@ export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>)
  *   [f]
  * ```
  */
-export type Resolver<A extends Action, C> = (chain: SignatureChain<A, C>) => {
+export type Resolver<A extends Action, C> = (chain: HashGraph<A, C>) => {
   sort?: LinkComparator
   filter?: (link: Link<A, C>) => boolean
 }
 
 /**
- * A `LinkMap` contains information about the graph structure of a `SignatureChain`, without
+ * A `LinkMap` contains information about the graph structure of a `HashGraph`, without
  * any of the content. It is a map where each key is the hash of a link, and the value is that
  * link's parents (the `prev` value in the `LinkBody`).
  *

@@ -1,6 +1,6 @@
 import { asymmetric } from '@herbcaudill/crypto'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, Link, LinkBody, SignatureChain } from './types'
+import { Action, EncryptedLink, Link, LinkBody, HashGraph } from './types'
 import { KeysetWithSecrets } from '/keyset'
 
 /**
@@ -30,9 +30,9 @@ export const decryptLink = <A extends Action, C>(
  * implement their own version of `decryptChain` that reduces as it goes along, so that it can
  * determine the correct keyset to use for each link.  */
 export const decryptChain = <A extends Action, C>(
-  chain: SignatureChain<A, C>,
+  chain: HashGraph<A, C>,
   chainKeys: KeysetWithSecrets
-): SignatureChain<A, C> => {
+): HashGraph<A, C> => {
   const { encryptedLinks, links = {} } = chain
   const decryptedLinks = {} as Record<string, Link<A, C>>
 

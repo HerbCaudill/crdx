@@ -12,7 +12,7 @@ import {
   merge,
   Resolver,
   serialize,
-  SignatureChain,
+  HashGraph,
 } from '/chain'
 import { decryptChain } from '/chain/decrypt'
 import { KeysetWithSecrets } from '/keyset'
@@ -67,22 +67,22 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     return this.state
   }
 
-  /** Returns the current signature chain */
-  public getChain(): SignatureChain<A, C> {
+  /** Returns the current hash graph */
+  public getChain(): HashGraph<A, C> {
     return this.chain
   }
 
-  /** Returns a the current signature chain in serialized form; this can be used to rehydrate this
+  /** Returns a the current hash graph in serialized form; this can be used to rehydrate this
    * store from storage. */
   public save() {
     // remove plaintext  links from chain
     const { links, ...redactedChain } = this.chain
 
-    return serialize(redactedChain as SignatureChain<A, C>)
+    return serialize(redactedChain as HashGraph<A, C>)
   }
 
   /**
-   * Dispatches an action to be added to the signature chain. This is the only way to trigger a
+   * Dispatches an action to be added to the hash graph. This is the only way to trigger a
    * state change.
    *
    * The `reducer` function provided when creating the store will be called with the current state
@@ -125,7 +125,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * @param theirChain
    * @returns this `Store` instance
    */
-  public merge(theirChain: SignatureChain<A, C>) {
+  public merge(theirChain: HashGraph<A, C>) {
     this.chain = merge(this.chain, theirChain)
     this.updateState()
     return this
@@ -158,7 +158,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
 
   private chainKeys: KeysetWithSecrets
 
-  private chain: SignatureChain<A, C>
+  private chain: HashGraph<A, C>
   private state: S
 
   private updateState() {

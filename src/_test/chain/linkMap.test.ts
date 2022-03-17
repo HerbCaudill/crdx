@@ -1,4 +1,4 @@
-import { getLink, SignatureChain } from '/chain'
+import { getLink, HashGraph } from '/chain'
 import { getLinkMap } from '/chain/linkMap'
 import { buildChain, findByPayload } from '/test/util/chain'
 import { Hash } from '/util'
@@ -148,7 +148,7 @@ describe('getLinkMap', () => {
   })
 })
 
-const lookupPayloads = (chain: SignatureChain<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
+const lookupPayloads = (chain: HashGraph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
   const getPayload = (hash: Hash): string => {
     const linkBody = getLink(chain, hash).body
     return linkBody.type === 'ROOT' ? '' : linkBody.payload

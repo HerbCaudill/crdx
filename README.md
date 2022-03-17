@@ -65,7 +65,7 @@ Redux works with an append-only list of actions. CRDX adds a couple of twists:
   append-only list of actions won’t be sufficient. Instead, we arrange actions in a directed acyclic
   **graph** (DAG).
 
-This hash-chained and signed directed graph of actions is called a **signature chain**.
+This hash-chained and signed directed graph of actions is called a **hash graph**.
 
 ## How
 
@@ -108,9 +108,9 @@ const state = store.getState()
 console.log(state.value) // 2
 ```
 
-#### The signature chain
+#### The hash graph
 
-A signature chain is an acyclic directed graph of links. Each link
+A hash graph is an acyclic directed graph of links. Each link
 
 - is **cryptographically signed** by the author; and
 - includes a **hash of the parent link**.
@@ -120,11 +120,11 @@ removed without causing the hash and signature checks to fail.
 
 ![sigchain.1](https://raw.githubusercontent.com/HerbCaudill/pics/master/sigchain.1.png)
 
-A signature chain is just data and can be stored as JSON. It consists of a hash table of the links
+A hash graph is just data and can be stored as JSON. It consists of a hash table of the links
 themselves, plus a pointer to the **root** (the “founding” link added when the chain was created)
 and the **head** (the most recent link we know about).
 
-If Alice adds new links to the signature chain while disconnected from Bob, there’s no problem: When
+If Alice adds new links to the hash graph while disconnected from Bob, there’s no problem: When
 they sync up, Bob will realize that he’s behind and he’ll get the latest links in the chain.
 
 If Alice and Bob _both_ add new links to the signature while they’re disconnected from each other.
@@ -173,12 +173,12 @@ has some way of knowing what Bob’s public signature key is.
 > If you don't already have a way to manage users' secret keys and verify their public keys, you
 > might be interested in [@localfirst/auth](https://github.com/local-first-web/auth). This library
 > uses CRDX internally to manage group membership and permissions, and keeps track of each member’s
-> public keys on the signature chain itself.
+> public keys on the hash graph itself.
 
 #### The resolver function
 
 Like Redux, CRDX uses a **reducer** to calculate the current state from a sequence of actions. But
-we’re working with a directed graph, not a sequence. To flatten the signature chain’s graph of
+we’re working with a directed graph, not a sequence. To flatten the hash graph’s graph of
 actions into a single sequence, you provide a **resolver** function that defines how any two
 concurrent sequences will be merged. This is where you implement any domain-specific
 conflict-resolution logic.

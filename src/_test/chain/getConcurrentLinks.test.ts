@@ -1,19 +1,16 @@
-import { getConcurrentBubbles, getConcurrentLinks, SignatureChain } from '/chain'
+import { getConcurrentBubbles, getConcurrentLinks, HashGraph } from '/chain'
 import { buildChain, byPayload, findByPayload, getPayloads } from '../util/chain'
 
 describe('chains', () => {
   describe('getConcurrentLinks', () => {
-    const testConcurrentLinks = (chain: SignatureChain<any, any>, payload: string, expected: string) => {
+    const testConcurrentLinks = (chain: HashGraph<any, any>, payload: string, expected: string) => {
       const link = findByPayload(chain, payload)
       const result = getConcurrentLinks(chain, link)
-      const payloads = getPayloads(result)
-        .split('')
-        .sort()
-        .join('')
+      const payloads = getPayloads(result).split('').sort().join('')
       test(`${payload}: ${expected.length ? expected : '-'}`, () => expect(payloads).toEqual(expected))
     }
 
-    const testBubbles = (chain: SignatureChain<any, any>, expected: string) => {
+    const testBubbles = (chain: HashGraph<any, any>, expected: string) => {
       const bubbles = getConcurrentBubbles(chain)
         .map(b => getPayloads(b.map(h => chain.links[h]).sort(byPayload)))
         .join(',')

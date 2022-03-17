@@ -1,4 +1,4 @@
-import { Action, Link, SignatureChain } from '/chain'
+import { Action, Link, HashGraph } from '/chain'
 
 export interface InvalidResult {
   isValid: false
@@ -16,13 +16,13 @@ export class ValidationError extends Error {
     this.details = details
   }
 
-  public name: 'Signature chain validation error'
+  public name: 'Hash Graph validation error'
   public details?: any
 }
 
 export type ValidationResult = ValidResult | InvalidResult
 
-export type Validator = <A extends Action, C>(link: Link<A, C>, chain: SignatureChain<A, C>) => ValidationResult
+export type Validator = <A extends Action, C>(link: Link<A, C>, chain: HashGraph<A, C>) => ValidationResult
 
 export type ValidatorSet = {
   [key: string]: Validator

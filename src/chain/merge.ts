@@ -1,5 +1,5 @@
 ﻿import uniq from 'lodash/uniq'
-import { Action, EncryptedLink, Link, SignatureChain } from './types'
+import { Action, EncryptedLink, Link, HashGraph } from './types'
 import { Hash } from '/util'
 
 /**
@@ -14,11 +14,11 @@ export const merge = <A extends Action, C>(
    * with the same keys, so this should be the more trusted of the two, e.g. the local one rather
    * than the remote.
    * */
-  ours: SignatureChain<A, C>,
+  ours: HashGraph<A, C>,
 
   /** The second chain. This should be the less trusted of the two, e.g. the remote one.  */
-  theirs: SignatureChain<A, C>
-): SignatureChain<A, C> => {
+  theirs: HashGraph<A, C>
+): HashGraph<A, C> => {
   if (ours.root !== theirs.root) throw new Error('Cannot merge two chains with different roots')
 
   // The new chain will contain all the links from either chain
@@ -30,7 +30,7 @@ export const merge = <A extends Action, C>(
   // If one of the heads is a parent of an existing link, it is no longer a head
   const newHeads = mergedHeads.filter(isNotParentOfAnyOf(mergedLinks))
 
-  const mergedChain: SignatureChain<A, C> = {
+  const mergedChain: HashGraph<A, C> = {
     root: ours.root,
     head: newHeads,
     encryptedLinks: mergedEncryptedLinks,

@@ -6,7 +6,7 @@ import {
   getLinkMap,
   getPredecessorHashes,
   headsAreEqual,
-  SignatureChain,
+  HashGraph,
 } from '/chain'
 import { Hash } from '/util'
 
@@ -18,7 +18,7 @@ import { Hash } from '/util'
  * we're synced up, and we don't have any further information to send.  */
 export const generateMessage = <A extends Action, C>(
   /** Our current chain */
-  chain: SignatureChain<A, C>,
+  chain: HashGraph<A, C>,
   /** Our sync state with this peer */
   prevState: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {

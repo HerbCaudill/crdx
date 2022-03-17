@@ -1,6 +1,6 @@
-import { Action, SignatureChain } from '/chain/types'
+import { Action, HashGraph } from '/chain/types'
 
-export function getMissingLinks<A extends Action, C>(chain: SignatureChain<A, C>) {
+export function getMissingLinks<A extends Action, C>(chain: HashGraph<A, C>) {
   // collect all the `prev` hashes from all of the links in the chain
   const parentHashes = Object.values(chain.links) //
     .flatMap(link => link.body.prev) as string[]

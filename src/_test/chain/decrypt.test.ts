@@ -1,7 +1,4 @@
-import { append } from '../../chain/append'
-import { createChain } from '../../chain/createChain'
-import { decryptLink, decryptChain } from '../../chain/decrypt'
-import { SignatureChain } from '../../chain/types'
+import { append, createChain, decryptChain, decryptLink, HashGraph } from '/chain'
 import { TEST_CHAIN_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 
@@ -31,7 +28,7 @@ describe('decrypt', () => {
       head: chain.head,
       encryptedLinks: chain.encryptedLinks,
       links: {}, // don't include unencrypted links
-    } as SignatureChain<any, any>
+    } as HashGraph<any, any>
 
     const decryptedChain = decryptChain(encryptedChain, chainKeys)
     for (const hash in chain.links) {

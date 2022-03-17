@@ -1,12 +1,9 @@
 ﻿import { getChildrenHashes } from './children'
-import { Action, Link, LinkComparator, SignatureChain } from './types'
+import { Action, Link, LinkComparator, HashGraph } from './types'
 import { Hash } from '/util'
 
-/** Flattens a signature chain into a sequence  */
-export const topoSort = <A extends Action, C>(
-  chain: SignatureChain<A, C>,
-  options: TopoSortOptions = {}
-): Link<A, C>[] => {
+/** Flattens a hash graph into a sequence  */
+export const topoSort = <A extends Action, C>(chain: HashGraph<A, C>, options: TopoSortOptions = {}): Link<A, C>[] => {
   const { comparator = byHash } = options
 
   // Kahn's algorithm

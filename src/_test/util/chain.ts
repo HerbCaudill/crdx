@@ -1,7 +1,7 @@
 ﻿import { append } from '/chain/append'
 import { createChain } from '/chain/createChain'
 import { merge } from '/chain/merge'
-import { Action, Link, LinkBody, SignatureChain } from '/chain/types'
+import { Action, Link, LinkBody, HashGraph } from '/chain/types'
 import { KeysetWithSecrets } from '/keyset'
 import { setup, TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 
@@ -14,7 +14,7 @@ export const getPayloads = (sequence: Link<XAction, any>[]) =>
     .map(link => (link.body as LinkBody<XAction, any>).payload) // pull out payloads
     .join('') // return as single string
 
-export const findByPayload = (chain: SignatureChain<XAction, any>, payload: XAction['payload']) => {
+export const findByPayload = (chain: HashGraph<XAction, any>, payload: XAction['payload']) => {
   const links = Object.values(chain.links)
   return links.find(n => n.body.payload === payload) as Link<XAction, any>
 }
@@ -178,7 +178,7 @@ export type XAction =
     }
 export type XLink = Link<XAction, {}>
 
-export const appendLink = (chain: SignatureChain<XAction, any>, payload: string, chainKeys: KeysetWithSecrets) =>
+export const appendLink = (chain: HashGraph<XAction, any>, payload: string, chainKeys: KeysetWithSecrets) =>
   append({
     chain,
     action: { type: 'X', payload } as XAction,

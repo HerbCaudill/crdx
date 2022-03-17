@@ -1,6 +1,6 @@
-﻿## ✍🔗 Signature chain
+﻿## ✍🔗 Hash Graph
 
-A signature chain is an acyclic directed graph of links. Each link
+A hash graph is an acyclic directed graph of links. Each link
 
 - is **cryptographically signed** by the author; and
 - includes a **hash of the parent link**.
@@ -9,7 +9,7 @@ This means that the chain is **append-only**: Existing nodes can’t be modified
 
 ![sigchain.1](https://raw.githubusercontent.com/HerbCaudill/pics/master/sigchain.1.png)
 
-A signature chain is just data and can be stored as JSON. It consists of a hash table of the links themselves, plus a pointer to the **root** (the “founding” link added when the chain was created) and the **head** (the most recent link we know about).
+A hash graph is just data and can be stored as JSON. It consists of a hash table of the links themselves, plus a pointer to the **root** (the “founding” link added when the chain was created) and the **head** (the most recent link we know about).
 
 ### Determining group membership
 
@@ -23,7 +23,7 @@ A team’s latest membership state is calculated by running a chain’s collecti
 
 This system is designed to allow **decentralized, intermittently connected peers** to collaborate **without a central server**; so we take for granted that any two members might make membership changes while disconnected from each other.
 
-If Alice adds new links to the signature chain while disconnected from Bob, there’s no problem: When they sync up, Bob will realize that he’s behind and he’ll get the latest links in the chain.
+If Alice adds new links to the hash graph while disconnected from Bob, there’s no problem: When they sync up, Bob will realize that he’s behind and he’ll get the latest links in the chain.
 
 Now suppose Alice and Bob _both_ add new links to the signature while they’re disconnected from each other. When they sync up, they each add a special **merge link**, pointing to their two divergent heads. This merge link becomes the new head for both of them.
 
@@ -39,7 +39,7 @@ In many cases, we can accept all the concurrent changes in some arbitrary order,
 
 In most of these cases, we adopt a “strong-remove” policy for group and role membership: We **err on the side of removal**, reasoning that we can always add someone back if they shouldn’t have been removed, but you can’t reverse the leak of information that might take place if someone who you thought was removed was in fact still around. So in case (2), we don’t allow Bob’s addition of Debbie; and in case (3), Bob stays removed. In case (1), we use seniority as a tiebreaker: Whoever has been on the team longest wins. (This the only deviation from a strict "strong-remove" policy, which would resolve this case by removing them both.)<a id='link-note-1' href='#note-1'>[1]</a>
 
-We implement this policy using a custom **resolver**. A resolver is a function that takes two concurrent sequences of links and turns them into a single sequence. This is done deterministically, so that every member processing the same signature chain independently converges on the same group membership state.
+We implement this policy using a custom **resolver**. A resolver is a function that takes two concurrent sequences of links and turns them into a single sequence. This is done deterministically, so that every member processing the same hash graph independently converges on the same group membership state.
 
 A resolver decides how to order the links in the two sequences, and which links to omit. This diagram shows a few different ways that one graph might be sequenced, depending on the resolver’s rules:
 
@@ -110,7 +110,7 @@ A link is an object that looks like this:
 
 #### `create(payload, context)`
 
-Returns a signature chain containing a single root element.
+Returns a hash graph containing a single root element.
 
 ```js
 const payload = { team: 'Spies Я Us' }

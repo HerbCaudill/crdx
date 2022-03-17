@@ -1,16 +1,16 @@
 ﻿import { ValidationResult, ValidatorSet } from './types'
 import { fail, validators } from './validators'
 import { hashLink } from '/chain/hashLink'
-import { Action, Link, SignatureChain } from '/chain/types'
+import { Action, Link, HashGraph } from '/chain/types'
 import { VALID } from '/constants'
 
 /**
- * Runs a signature chain through a series of validators to ensure that it is correctly formed, has
+ * Runs a hash graph through a series of validators to ensure that it is correctly formed, has
  * not been tampered with, etc.
  */
 export const validate = <A extends Action, C>(
-  /** The signature chain to validate. */
-  chain: SignatureChain<A, C>,
+  /** The hash graph to validate. */
+  chain: HashGraph<A, C>,
 
   /** Any additional validators (besides the base validators that test the chain's integrity) */
   customValidators: ValidatorSet = {}

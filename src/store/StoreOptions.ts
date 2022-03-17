@@ -1,5 +1,5 @@
 import { Reducer } from './types'
-import { Action, Resolver, SignatureChain } from '/chain'
+import { Action, Resolver, HashGraph } from '/chain'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { ValidatorSet } from '/validator'
@@ -12,7 +12,7 @@ export type StoreOptions<S, A extends Action, C> = {
   context?: C
 
   /** A Redux-style reducer that calculates a new state given the previous state and an action. In
-   *  this case an "action" is a link in a signature chain. */
+   *  this case an "action" is a link in a hash graph. */
   reducer: Reducer<S, A, C>
 
   /** A resolver defines how any two concurrent sequences will be merged. It is a pure function that is
@@ -28,7 +28,7 @@ export type StoreOptions<S, A extends Action, C> = {
   initialState?: S
 
   /** For pre-existing stores: A chain to preload, e.g. from saved state. */
-  chain?: string | SignatureChain<A, C>
+  chain?: string | HashGraph<A, C>
 
   /** For new stores: Additional information to include in the root node  */
   rootPayload?: any

@@ -1,6 +1,6 @@
 // ignore file coverage
 import { setup } from './setup'
-import { createChain, headsAreEqual, SignatureChain } from '/chain'
+import { createChain, headsAreEqual, HashGraph } from '/chain'
 import { KeysetWithSecrets } from '/keyset'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
@@ -74,10 +74,10 @@ export class Network {
 export class Peer {
   syncStates: Record<string, SyncState>
   userName: string
-  chain: SignatureChain<any, any>
+  chain: HashGraph<any, any>
   network: Network
 
-  constructor(userName: string, chain: SignatureChain<any, any>, network: Network) {
+  constructor(userName: string, chain: HashGraph<any, any>, network: Network) {
     this.userName = userName
     this.chain = chain
     this.network = network
