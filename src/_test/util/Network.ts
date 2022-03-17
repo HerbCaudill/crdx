@@ -9,7 +9,6 @@ import { SyncMessage, SyncState } from '/sync/types'
 import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
-import { syncMessageSummary } from '/util/messageSummary'
 
 const log = debug('crdx:network')
 
