@@ -575,7 +575,7 @@ describe('sync', () => {
   })
 
   describe('failure handling', () => {
-    it('timestamp out of order', () => {
+    it('single failure', () => {
       const IN_THE_PAST = new Date('2020-01-01').getTime()
 
       const {
@@ -610,5 +610,46 @@ describe('sync', () => {
       // Alice doesn't have the bad link
       expect(alice.peer.chain.links).not.toHaveProperty(badHash)
     })
+  })
+
+  it('repeated failures', () => {
+    const IN_THE_PAST = new Date('2020-01-01').getTime()
+
+    const {
+      userRecords: { alice, eve },
+      network,
+    } = setup('alice', 'eve')
+    network.connect(alice.peer, eve.peer)
+
+    // no changes yet; 👩🏾 Alice and 🦹‍♀️ Eve are synced up
+    expectToBeSynced(alice, eve)
+
+    for (let i = 0; i < 10; i++) {
+      // 🦹‍♀️ Eve sets her system clock back when appending a link
+      const now = Date.now()
+      setSystemTime(IN_THE_PAST)
+      eve.peer.chain = append({
+        chain: eve.peer.chain,
+        action: { type: 'FOO', payload: 'pizza' },
+        user: eve.user,
+        chainKeys,
+      })
+      setSystemTime(now)
+      const badHash = eve.peer.chain.head[0]
+
+      eve.peer.sync()
+
+      // Since Eve's chain is invalid, the sync fails
+      expect(() => network.deliverAll()).toThrow()
+
+      // They are not synced
+      expectNotToBeSynced(alice, eve)
+
+      // 👩🏾 Alice doesn't have the bad link
+      expect(alice.peer.chain.links).not.toHaveProperty(badHash)
+    }
+
+    // 👩🏾 Alice knows how many times Eve failed to sync
+    expect(alice.peer.syncStates['eve'].failedSyncCount).toBe(10)
   })
 })
