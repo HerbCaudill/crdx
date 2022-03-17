@@ -1,9 +1,9 @@
-﻿import { asymmetric, signatures } from '@herbcaudill/crypto'
+﻿import { asymmetric } from '@herbcaudill/crypto'
 import { EMPTY_CHAIN } from './createChain'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, Link, LinkBody, HashGraph } from './types'
+import { Action, EncryptedLink, HashGraph, Link, LinkBody } from './types'
 import { KeysetWithSecrets } from '/keyset'
-import { redactUser, UserWithSecrets } from '/user'
+import { UserWithSecrets } from '/user'
 
 interface AppendParams<A extends Action, C> {
   /** The chain to append a link to. */
@@ -37,7 +37,7 @@ export const append = <A extends Action, C>({
     ...context,
   } as LinkBody<A, C>
 
-  // chain to previous head(s). If there are no previous heads, this is the root node.
+  // link to previous head(s). If there are no previous heads, this is the root node.
   body.prev = chain.head ?? []
 
   // encrypted body

@@ -14,10 +14,8 @@ This store doesn't have a custom resolver; any conflicting actions (e.g. concurr
 the same letter) are ordered arbitrarily and dealt with in the reducer. 
 */
 
-const alice = createUser('alice')
-alice.userId = 'alice'
-const bob = createUser('bob')
-bob.userId = 'bob'
+const alice = createUser('alice', 'alice')
+const bob = createUser('bob', 'bob')
 
 const setupScrabbleAttacks = () => {
   const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', chainKeys })

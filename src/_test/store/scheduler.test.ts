@@ -13,10 +13,8 @@ import { UnixTimestamp } from '/util'
  * resolved by giving the room to the person with the most seniority.
  */
 describe('scheduler', () => {
-  const alice = createUser('alice')
-  alice.userId = 'alice'
-  const bob = createUser('bob')
-  bob.userId = 'bob'
+  const alice = createUser('alice', 'alice')
+  const bob = createUser('bob', 'bob')
 
   // the person with the longest tenure wins in the case of conflicts
   const seniorityLookup: Record<string, number> = {
