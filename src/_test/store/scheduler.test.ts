@@ -14,7 +14,9 @@ import { UnixTimestamp } from '/util'
  */
 describe('scheduler', () => {
   const alice = createUser('alice')
+  alice.userId = 'alice'
   const bob = createUser('bob')
+  bob.userId = 'bob'
 
   // the person with the longest tenure wins in the case of conflicts
   const seniorityLookup: Record<string, number> = {
