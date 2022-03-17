@@ -21,14 +21,6 @@ import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
  * links themselves, plus a pointer to the **root** (the “founding” link added when the chain was
  * created) and the **head** (the most recent link(s) we know about).
  *
- * The `EncryptedHashGraph` interface takes two parameters:
- *
- * - `A` is the Action type — typically a union of various `type` labels (e.g. 'ADD_CONTACT') along
- *   with the interface of the payload associated with each one.
- * - `C` is the Context interface — by default this is an empty interface, but might contain
- *   information about the context in which a link is added (e.g. a device ID, or the version of the
- *   application)
- *
  * The `EncryptedHashGraph` can live in public. Each link is asymmetrically encrypted using the
  * author's secret key and the team public key at time of authoring.
  */
@@ -46,6 +38,14 @@ export interface EncryptedHashGraph {
 /**
  * The `HashGraph` interface adds the decrypted links, and is for local manipulation by the
  * application.
+ *
+ * The `HashGraph` interface takes two parameters:
+ *
+ * - `A` is the Action type — typically a union of various `type` labels (e.g. 'ADD_CONTACT') along
+ *   with the interface of the payload associated with each one.
+ * - `C` is the Context interface — by default this is an empty interface, but might contain
+ *   information about the context in which a link is added (e.g. a device ID, or the version of the
+ *   application)
  */
 export interface HashGraph<A extends Action, C> extends EncryptedHashGraph {
   /** Decrypted links */
@@ -100,7 +100,7 @@ export type Action =
 /** The `LinkBody` adds contextual information to the `Action`. This is the part of the link that is signed */
 export type LinkBody<A extends Action, C> = {
   /** User who authored this link */
-  user: User
+  userId: string
 
   /** Unix timestamp on device that created this link */
   timestamp: UnixTimestamp

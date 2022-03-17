@@ -74,7 +74,7 @@ describe('chains', () => {
 
         // 🦹‍♀️ Eve tampers with the root
         const rootLink = getRoot(chain)
-        rootLink.body.user.userName = 'Eve'
+        rootLink.body.userId = eve.userId
 
         // 🦹‍♀️ She reencrypts the link with her private key
         chain.encryptedLinks[chain.root] = {
@@ -133,7 +133,7 @@ describe('chains', () => {
         // 🦹‍♀️ Eve tampers with the head
         const headHash = chain.head[0]
         const headLink = getLink(chain, headHash)
-        headLink.body.user.userName = 'Eve'
+        headLink.body.userId = eve.userId
 
         // 🦹‍♀️ She reencrypts the link with her private key
         chain.encryptedLinks[headHash] = {

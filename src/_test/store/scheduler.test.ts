@@ -28,7 +28,7 @@ describe('scheduler', () => {
      * The resolver enforces the rule that the most senior person wins in cases of conflict.
      */
     const resolver: Resolver<SchedulerAction, SchedulerState> = _ => {
-      const seniority = (link: SchedulerLink) => seniorityLookup[link.body.user.userName]
+      const seniority = (link: SchedulerLink) => seniorityLookup[link.body.userId]
       return {
         sort: (a: SchedulerLink, b: SchedulerLink) => seniority(b) - seniority(a),
       }

@@ -104,7 +104,6 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
       chain: this.chain,
       action: actionWithPayload,
       user: this.user,
-      context: this.context,
       chainKeys: this.chainKeys,
     })
 

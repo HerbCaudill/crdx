@@ -32,13 +32,13 @@ export const append = <A extends Action, C>({
   // unencrypted body
   const body = {
     ...action,
-    user: redactUser(user),
+    userId: user.userId,
     timestamp: new Date().getTime(),
     ...context,
   } as LinkBody<A, C>
 
-  // chain to previous head(s). if none exists, this is the root node.
-  if (chain.head) body.prev = chain.head
+  // chain to previous head(s). If there are no previous heads, this is the root node.
+  body.prev = chain.head ?? []
 
   // encrypted body
 
@@ -52,12 +52,10 @@ export const append = <A extends Action, C>({
   const hash = hashLink(encryptedBody)
 
   // unencrypted link
-
   const link: Link<A, C> = { body, hash }
   const links = { ...chain.links, [hash]: link }
 
   // encrypted link
-
   const authorPublicKey = user.keys.encryption.publicKey
   const encryptedLink: EncryptedLink = { authorPublicKey, encryptedBody }
   const encryptedLinks = { ...chain.encryptedLinks, [hash]: encryptedLink }

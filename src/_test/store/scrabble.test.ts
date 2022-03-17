@@ -15,7 +15,9 @@ the same letter) are ordered arbitrarily and dealt with in the reducer.
 */
 
 const alice = createUser('alice')
+alice.userId = 'alice'
 const bob = createUser('bob')
+bob.userId = 'bob'
 
 const setupScrabbleAttacks = () => {
   const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', chainKeys })
@@ -23,7 +25,7 @@ const setupScrabbleAttacks = () => {
 
   // Alice starts a game and adds Bob as a player
   const aliceStore = createStore({ user: alice, chain, reducer, chainKeys })
-  aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userName: 'bob' } })
+  aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userId: 'bob' } })
 
   // Bob starts with a copy of Alice's chain
   const bobStore = createStore({ user: bob, chain: aliceStore.getChain(), reducer, chainKeys })
@@ -43,8 +45,8 @@ describe('scrabble attacks', () => {
       const { aliceStore } = setupScrabbleAttacks()
       const { players, tiles } = aliceStore.getState()
       expect(players).toEqual([
-        { userName: 'alice', words: [] },
-        { userName: 'bob', words: [] },
+        { userId: 'alice', words: [] },
+        { userId: 'bob', words: [] },
       ])
       expect(Object.keys(tiles)).toHaveLength(100)
     })
@@ -277,10 +279,11 @@ const SEED = 'test 12345'
 const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksAction> = (state, link) => {
   const action = link.body
   const { players, tiles, messages } = state
+
   switch (action.type) {
     case 'ROOT': {
-      const { userName } = link.body.user
-      const rootPlayer = { userName, words: [] }
+      const { userId } = link.body
+      const rootPlayer = { userId, words: [] }
       return {
         players: [rootPlayer],
         tiles: initialTiles(SEED),
@@ -289,8 +292,8 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
     }
 
     case 'ADD_PLAYER': {
-      const { userName } = action.payload
-      const newPlayer = { userName, words: [] }
+      const { userId } = action.payload
+      const newPlayer = { userId, words: [] }
       return {
         ...state,
         players: players.concat(newPlayer),
@@ -313,7 +316,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
     }
 
     case 'CLAIM_WORD': {
-      const { userName } = link.body.user
+      const { userId } = action
       const { word } = action.payload
 
       let availableTiles = Object.values(tiles).filter(isAvailable)
@@ -328,7 +331,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
 
         if (matchingTile === undefined) {
           // not available - abort
-          const newMessage = { userName, message: `letter ${letter} not available` }
+          const newMessage = { userId, message: `letter ${letter} not available` }
           return {
             ...state,
             messages: messages.concat(newMessage),
@@ -347,7 +350,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
         ...state,
         // add this word to the player's words
         players: players.map(player => {
-          const words = player.userName === userName ? player.words.concat(word) : player.words
+          const words = player.userId === userId ? player.words.concat(word) : player.words
           return {
             ...player,
             words,
@@ -449,7 +452,7 @@ export const alphabet = Object.keys(letterMap) as Letter[]
 
 interface AddPlayer {
   type: 'ADD_PLAYER'
-  payload: { userName: string }
+  payload: { userId: string }
 }
 
 interface FlipTileAction {
@@ -473,12 +476,12 @@ interface ScrabbleAttacksState {
 }
 
 interface Message {
-  userName: string
+  userId: string
   message: string
 }
 
 interface Player {
-  userName: string
+  userId: string
   words: string[]
 }
 
