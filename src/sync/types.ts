@@ -1,5 +1,4 @@
-import { Base58 } from '@herbcaudill/crypto'
-import { Action, LinkMap, EncryptedLink } from '/chain'
+import { Action, EncryptedLink, LinkMap } from '/chain'
 import { Hash } from '/util'
 import { ValidationError } from '/validator'
 
@@ -9,7 +8,7 @@ export interface SyncState {
     head: Hash[]
 
     /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
-    links: Record<Hash, Base58>
+    links: Record<Hash, EncryptedLink>
 
     /** The map of hashes they've sent. */
     linkMap?: LinkMap
@@ -50,7 +49,7 @@ export interface SyncMessage<A extends Action, C> {
   head: Hash[]
 
   /** Any links we know we need. */
-  links?: Record<Hash, Base58>
+  links?: Record<Hash, EncryptedLink>
 
   /** Our most recent hashes and their dependencies. */
   linkMap?: LinkMap
