@@ -1,13 +1,4 @@
-﻿import { User } from '/user'
-import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
-
-// TODO: does it even make sense to call it a HashGraph anymore?
-// - CipherChain
-// - CipherGraph
-// - Graph
-// - HashGraph
-// - AuthChain
-// - AuthGraph
+﻿import { Base58, Hash, UnixTimestamp } from '/util/types'
 
 /**
  * A hash graph is an acyclic directed graph of links. Each link is **asymmetrically encrypted
