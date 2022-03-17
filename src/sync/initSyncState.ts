@@ -7,7 +7,8 @@ export const initSyncState = (): SyncState => ({
     need: [],
   },
 
-  weSent: {
+  our: {
+    head: [],
     links: [],
   },
 
