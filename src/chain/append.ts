@@ -59,7 +59,7 @@ export const append = <A extends Action, C>({
   // encrypted link
 
   const authorPublicKey = user.keys.encryption.publicKey
-  const encryptedLink: EncryptedLink<A, C> = { authorPublicKey, encryptedBody }
+  const encryptedLink: EncryptedLink = { authorPublicKey, encryptedBody }
   const encryptedLinks = { ...chain.encryptedLinks, [hash]: encryptedLink }
 
   // return new chain
