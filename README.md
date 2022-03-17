@@ -1,8 +1,8 @@
 <img src='./img/crdx-logo.png' width='150' />
 
-## A conflict-free, replicated state container
+## A conflict-free replicated state container
 
-**crdx** is a **state container for JavaScript apps**. It's comparable to
+**CRDX** is a **state container for JavaScript apps**. It's comparable to
 [Redux](https://redux.js.org/), [MobX](https://mobx.js.org/README.html), or
 [Recoil](https://recoiljs.org/), and it can be used in any framework ([React](https://reactjs.org/),
 [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), etc.), or with no framework.
@@ -10,7 +10,9 @@
 It is also a **CRDT** ([conflict-free replicated
 datatype](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type)), allowing you to create
 a [local-first](http://inkandswitch.com/local-first/) application that syncs state directly with
-peers, with no need for a server.
+peers, with no need for a authoritative central server. This library includes a network-agnostic
+**sync protocol** that receives and generates messages to be sent over whatever communication
+channel you choose.
 
 ## Why
 
@@ -58,14 +60,14 @@ actions.
 
 Redux works with an append-only list of actions. CRDX adds a couple of twists:
 
-- To ensure each action’s authenticity, each one is cryptographically **signed** by its author.
+- To ensure each action’s authenticity, each one is **signed and encrypted** by its author.
 - To ensure the integrity of the whole sequence of actions, each one is linked to the previous one
   by its cryptographic **hash**.
 - To support peer-to-peer replication, we need to deal with concurrent changes, which means a simple
-  append-only list of actions won’t be sufficient. Instead, we arrange actions in a directed acyclic
-  **graph** (DAG).
+  append-only list of actions won’t be sufficient. Instead, we arrange actions in a **directed acyclic
+  graph** (DAG).
 
-This hash-chained and signed directed graph of actions is called a **hash graph**.
+### Encryption and authentication
 
 ## How
 
@@ -110,28 +112,60 @@ console.log(state.value) // 2
 
 #### The hash graph
 
-A hash graph is an acyclic directed graph of links. Each link
-
-- is **cryptographically signed** by the author; and
-- includes a **hash of the parent link**.
+A hash graph is an acyclic directed graph of links, each one describing an action. Each link is
+**signed and encrypted** by its author, and includes the **hashes of the (encrypted) parent links**.
 
 This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or
-removed without causing the hash and signature checks to fail.
+removed without causing multiple checks to fail.
 
 ![sigchain.1](https://raw.githubusercontent.com/HerbCaudill/pics/master/sigchain.1.png)
 
-A hash graph is just data and can be stored as JSON. It consists of a hash table of the links
-themselves, plus a pointer to the **root** (the “founding” link added when the chain was created)
-and the **head** (the most recent link we know about).
+A hash graph is just data and can be stored as JSON. It consists of a hash table of the encrypted
+links, plus a pointer to the **root** (the “founding” link added when the chain was created) and the
+**head(s)** (the most recent link(s) we know about). When stored, an encrypted graph might look like
+this:
 
-If Alice adds new links to the hash graph while disconnected from Bob, there’s no problem: When
-they sync up, Bob will realize that he’s behind and he’ll get the latest links in the chain.
+```js
+{
+  root: "cscgQ",
+  head: ["srDMr"],
+  encryptedLinks: {
+    cscgQ: {
+      "authorPublicKey": "FHNjr...",
+      "encryptedBody": "JQdx9wGsu3NJwhtmTzugRyG8V9YWfFGDomMjL7MmxPQMwffMtVkegFsCtsp1UCSSrTddQEQvFr..."
+    },
+    srDMr: {
+      "authorPublicKey": "HgVrG...",
+      "encryptedBody": "GuTSQcyuBdNTQJNUpa5SJRcg6Ps72Q6pkHmncLxscC9XuRHfhEg8L9reaT4dNznGRSvsek61cB..."
+    }
+  }
+}
+```
 
-If Alice and Bob _both_ add new links to the signature while they’re disconnected from each other.
-When they sync up, they each add a special **merge link**, pointing to their two divergent heads.
-This merge link becomes the new head for both of them.
+If Alice adds new links to the hash graph while Bob is disconnected, there’s no problem: When they
+sync up, Alice will see that Bob is behind and send him the latest links in the chain.
+
+If Alice and Bob _both_ add new links to the hash graph while they’re disconnected from each other,
+when they sync up, the new links from both of them will be added to the graph. The graph will now
+have at least two heads, and a new link would reference them both as parents.
+
+> TODO update image
 
 ![image](https://user-images.githubusercontent.com/2136620/98110368-43240700-1e9f-11eb-9ea9-ecd1253e9ffe.png)
+
+The links describe **actions**. A decrypted link might look like this:
+
+```js
+{
+  Cr661: {
+    type: 'INCREMENT',
+    payload: 1,
+    userId: 'cl0v7w2180000qwonebagcodq',
+    timestamp: 1647535150461,
+    prev: ['xT1YW'],
+  },
+}
+```
 
 #### Users and keys
 
