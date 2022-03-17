@@ -32,6 +32,7 @@ export const receiveMessage = <A extends Action, C>(
   assert(chain.root === their.root, `Can't sync chains with different roots`)
 
   state.their.head = their.head
+  state.their.reportedError = their.error
 
   // store the new links in state
   state.their.links = { ...state.their.links, ...their.links }
@@ -90,8 +91,8 @@ export const receiveMessage = <A extends Action, C>(
         // application should monitor `failedSyncCount` and decide not to trust them if it's too high.
         state.failedSyncCount += 1
 
-        // Provide error information to the application
-        state.lastError = validation.error
+        // Record the error so we can surface it in generateMessage
+        state.our.reportedError = validation.error
       }
 
       // either way, we can discard all pending links
