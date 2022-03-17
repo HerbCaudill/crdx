@@ -23,7 +23,7 @@ export const merge = <A extends Action, C>(
 
   // The new chain will contain all the links from either chain
   const mergedLinks: Record<Hash, Link<A, C>> = { ...theirs.links, ...ours.links }
-  const mergedEncryptedLinks: Record<Hash, EncryptedLink<A, C>> = { ...theirs.encryptedLinks, ...ours.encryptedLinks }
+  const mergedEncryptedLinks: Record<Hash, EncryptedLink> = { ...theirs.encryptedLinks, ...ours.encryptedLinks }
 
   const mergedHeads: Hash[] = uniq(ours.head.concat(theirs.head))
 
