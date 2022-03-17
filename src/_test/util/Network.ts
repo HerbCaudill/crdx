@@ -1,6 +1,6 @@
 // ignore file coverage
 import { setup } from './setup'
-import { createChain, SignatureChain } from '/chain'
+import { createChain, headsAreEqual, SignatureChain } from '/chain'
 import { KeysetWithSecrets } from '/keyset'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
@@ -9,6 +9,7 @@ import { SyncMessage, SyncState } from '/sync/types'
 import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
+import { syncMessageSummary } from '/util/messageSummary'
 
 const log = debug('crdx:network')
 
@@ -18,7 +19,7 @@ const logMessage = (msg: NetworkMessage) => {
   log(`${from}->${to} ${head} (${links?.count || 0} links)`)
 }
 
-// Simulates a peer-to-peer network
+/** Simulates a peer-to-peer network. */
 export class Network {
   peers: Record<string, Peer>
   queue: NetworkMessage[]
@@ -33,7 +34,7 @@ export class Network {
     this.peers[peer.userName] = peer
   }
 
-  // Establishes a bidirectionial connection between two peers
+  /** Establishes a bidirectionial connection between two peers */
   connect(a: Peer, b: Peer) {
     this.registerPeer(a)
     this.registerPeer(b)
@@ -41,12 +42,12 @@ export class Network {
     b.connect(a.userName)
   }
 
-  // Enqueues one message to be sent from fromPeer to toPeer
+  /** Enqueues one message to be sent from fromPeer to toPeer */
   sendMessage(from: string, to: string, body: SyncMessage<any, any>) {
     this.queue.push({ from, to, body })
   }
 
-  // Runs the protocol until all peers run out of things to say
+  /** Runs the protocol until all peers run out of things to say */
   deliverAll() {
     let messageCount = 0
     const peerCount = Object.keys(this.peers).length
@@ -68,6 +69,7 @@ export class Network {
       this.peers[to].receiveMessage(from, body)
 
       // log the message for the results of this delivery run
+      // console.log({ from: message.from, to: message.to, ...syncMessageSummary(message.body) })
       delivered.push(message)
     }
     // console.log(`${messageCount} msgs delivered`)
@@ -75,7 +77,7 @@ export class Network {
   }
 }
 
-// One peer, which may be connected to any number of other peers
+/** One peer, which may be connected to any number of other peers */
 export class Peer {
   syncStates: Record<string, SyncState>
   userName: string
@@ -90,49 +92,55 @@ export class Peer {
     this.syncStates = {}
   }
 
-  // Called by Network.connect when a connection is established with a remote peer
+  /**  Called by Network.connect when a connection is established with a remote peer */
   connect(userName: string) {
     this.syncStates[userName] = initSyncState()
   }
 
-  // Generates and enqueues messages to all peers we're connected to (unless there is nothing to send)
-  sync() {
-    for (const [userName, prevSyncState] of Object.entries(this.syncStates)) {
-      const [syncState, message] = generateMessage(this.chain, prevSyncState)
+  /**  Generates and enqueues messages to the named peer (or if none given, to all peers we're connected to) (unless there is nothing to send) */
+  sync(userName?: string) {
+    if (userName) {
+      // sync only with this peer
+      const [syncState, message] = generateMessage(this.chain, this.syncStates[userName])
       this.syncStates[userName] = syncState
       if (message) this.network.sendMessage(this.userName, userName, message)
+    } else {
+      // sync with everyone
+      for (const userName of Object.keys(this.syncStates)) this.sync(userName)
     }
   }
 
-  // Called by Network when we receive a message from another peer
+  /** Called by Network when we receive a message from another peer */
   receiveMessage(sender: string, message: SyncMessage<any, any>) {
+    if (message.error) {
+      throw new Error(`${message.error.message}\n${JSON.stringify(message.error.details, 0, 2)}`)
+    }
+
+    const prevHead = this.chain.head
+
     const [chain, syncState] = receiveMessage(this.chain, this.syncStates[sender], message, chainKeys)
     this.chain = chain
     this.syncStates[sender] = syncState
-    this.sync()
+
+    // has our chain changed at all as a result of this message?
+    if (headsAreEqual(prevHead, chain.head)) {
+      // no change, just reply to the sender
+      this.sync(sender)
+    } else {
+      // our chain has changed, sync with everyone
+      this.sync()
+    }
   }
-}
-
-function truncateStack(err: Error, lines = 5) {
-  err.stack = err
-    .stack! //
-    .split('\n')
-    .slice(1, lines)
-    .join('\n') // truncate repetitive stack
-  return err
-}
-
-export type TestUserStuff = {
-  user: UserWithSecrets
-  peer: Peer
 }
 
 export const setupWithNetwork =
   (chainKeys: KeysetWithSecrets) =>
-  (...userNames: string[]): [Record<string, TestUserStuff>, Network] => {
+  (...userNames: string[]) => {
     const users = setup(...userNames)
-    const founder = users[userNames[0]]
-    const chain = createChain({ user: founder, chainKeys })
+    const founderUserName = userNames[0]
+    const founderUser = users[founderUserName]
+
+    const chain = createChain({ user: founderUser, chainKeys })
 
     const network = new Network(chainKeys)
 
@@ -143,11 +151,25 @@ export const setupWithNetwork =
       userRecords[userName] = { user, peer }
     }
 
-    return [userRecords, network]
+    const founder = userRecords[founderUserName]
+    return { userRecords, network, founder }
   }
+
+export const expectToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
+  expect(a.peer.chain.head).toEqual(b.peer.chain.head)
+}
+
+export const expectNotToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
+  expect(a.peer.chain.head).not.toEqual(b.peer.chain.head)
+}
 
 export type NetworkMessage = {
   to: string
   from: string
   body: SyncMessage<any, any>
+}
+
+export type TestUserStuff = {
+  user: UserWithSecrets
+  peer: Peer
 }
