@@ -50,7 +50,7 @@ export interface SyncMessage<A extends Action, C> {
   head: Hash[]
 
   /** Any links we know we need. */
-  links?: Record<Hash, EncryptedLink<A, C>>
+  links?: Record<Hash, Base58>
 
   /** Our most recent hashes and their dependencies. */
   linkMap?: LinkMap
