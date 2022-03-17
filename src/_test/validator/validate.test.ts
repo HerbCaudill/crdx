@@ -2,14 +2,14 @@
 import { buildChain } from '/test/util/chain'
 import { append, createChain, getHead, getLink, getRoot } from '/chain'
 import { hashLink } from '/chain/hashLink'
-import '/test/util/expect/toBeValid'
 import { setup, TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
+import { validate } from '/validator/validate'
+import '/test/util/expect/toBeValid'
 
 import { jest } from '@jest/globals'
-import { validate } from '/validator/validate'
+const { setSystemTime } = jest.useFakeTimers()
 
 const { alice, eve } = setup('alice', 'eve')
-const { setSystemTime } = jest.useFakeTimers()
 
 describe('chains', () => {
   describe('validation', () => {
