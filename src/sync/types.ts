@@ -1,3 +1,4 @@
+import { Base58 } from '@herbcaudill/crypto'
 import { Action, LinkMap, EncryptedLink } from '/chain'
 import { Hash } from '/util'
 import { ValidationError } from '/validator'
@@ -8,16 +9,25 @@ export interface SyncState {
     head: Hash[]
 
     /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
-    links: Record<Hash, EncryptedLink<any, any>>
+    links: Record<Hash, Base58>
 
     /** The map of hashes they've sent. */
     linkMap?: LinkMap
 
     /** Hashes of links they asked for in the last message. */
     need: Hash[]
+
+    /** The last error they sent us */
+    reportedError?: ValidationError
   }
 
-  weSent: {
+  our: {
+    /** Our head as of the last message */
+    head: Hash[]
+
+    /** The last error we sent them */
+    reportedError?: ValidationError
+
     /** Our head when we sent the last linkMap, so we don't keep sending it */
     linkMapAtHead?: Hash[]
 
@@ -30,8 +40,6 @@ export interface SyncState {
 
   /** We increment this each time a sync fails because we would have ended up with an invalid chain */
   failedSyncCount: number
-
-  lastError?: ValidationError
 }
 
 export interface SyncMessage<A extends Action, C> {
