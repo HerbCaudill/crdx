@@ -1,14 +1,14 @@
+import { jest } from '@jest/globals'
 import { append, createChain, headsAreEqual } from '/chain'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
-import { Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
+import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
 import { TEST_CHAIN_KEYS as chainKeys, TEST_CHAIN_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
-import { logMessages } from '/util/messageSummary'
+
+const { setSystemTime } = jest.useFakeTimers()
 
 const setup = setupWithNetwork(TEST_CHAIN_KEYS)
-
-// TODO: Figure out why sync sessions have such a long tail of identical messages before converging.
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
@@ -157,7 +157,10 @@ describe('sync', () => {
       const N = 15 // "many"
 
       it('one change', () => {
-        const [{ alice, bob }, network] = setup('alice', 'bob')
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
@@ -176,7 +179,10 @@ describe('sync', () => {
       })
 
       it('many changes', () => {
-        const [{ alice, bob }, network] = setup('alice', 'bob')
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
         expectToBeSynced(alice, bob)
@@ -199,7 +205,10 @@ describe('sync', () => {
       })
 
       it('many changes followed by a single change', () => {
-        const [{ alice, bob }, network] = setup('alice', 'bob')
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // 👩🏾 Alice makes many changes
@@ -232,7 +241,10 @@ describe('sync', () => {
       })
 
       it('concurrent changes', () => {
-        const [{ alice, bob }, network] = setup('alice', 'bob')
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
 
         // no changes yet; 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
@@ -260,14 +272,17 @@ describe('sync', () => {
         alice.peer.sync()
         const msgs = network.deliverAll()
 
-        expect(msgs.length).toBeLessThanOrEqual(6)
+        expect(msgs.length).toBeLessThanOrEqual(4)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
       })
 
       it('many concurrent changes', () => {
-        const [{ alice, bob }, network] = setup('alice', 'bob')
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         for (let i = 0; i < N; i++) {
           alice.peer.chain = append({
@@ -302,14 +317,56 @@ describe('sync', () => {
         alice.peer.sync()
         const msgs = network.deliverAll()
 
-        expect(msgs.length).toBeLessThanOrEqual(6)
+        expect(msgs.length).toBeLessThanOrEqual(4)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
       })
 
+      it('repeated sets of concurrent changes', () => {
+        const {
+          userRecords: { alice, bob },
+          network,
+        } = setup('alice', 'bob')
+        network.connect(alice.peer, bob.peer)
+
+        // 👩🏾 Alice and 👨🏻‍🦲 Bob are synced up
+        alice.peer.sync()
+        network.deliverAll()
+        expectToBeSynced(alice, bob)
+
+        for (let j = 0; j < 4; j++) {
+          // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
+          for (let i = 0; i < 4; i++) {
+            alice.peer.chain = append({
+              chain: alice.peer.chain,
+              action: { type: 'BOO', payload: j * 10 + i },
+              user: alice.user,
+              chainKeys,
+            })
+            bob.peer.chain = append({
+              chain: bob.peer.chain,
+              action: { type: 'PIZZA', payload: j * 10 + i },
+              user: bob.user,
+              chainKeys,
+            })
+          }
+          expectNotToBeSynced(alice, bob)
+          alice.peer.sync()
+          const msgs = network.deliverAll()
+
+          expect(msgs.length).toBeLessThanOrEqual(4)
+
+          // Now they are synced up again
+          expectToBeSynced(alice, bob)
+        }
+      })
+
       it('three peers, concurrent changes', () => {
-        const [{ alice, bob, charlie }, network] = setup('alice', 'bob', 'charlie')
+        const {
+          userRecords: { alice, bob, charlie },
+          network,
+        } = setup('alice', 'bob', 'charlie')
         network.connect(alice.peer, bob.peer)
         network.connect(alice.peer, charlie.peer)
         network.connect(bob.peer, charlie.peer)
@@ -334,20 +391,13 @@ describe('sync', () => {
         alice.peer.sync()
         const msgs = network.deliverAll()
 
-        expect(msgs.length).toBeLessThanOrEqual(27)
+        expect(msgs.length).toBeLessThanOrEqual(22)
 
         // Now they are synced up again
         expectToBeSynced(alice, bob)
         expectToBeSynced(bob, charlie)
         expectToBeSynced(alice, charlie)
       })
-
-      const expectToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
-        expect(a.peer.chain.head).toEqual(b.peer.chain.head)
-      }
-      const expectNotToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
-        expect(a.peer.chain.head).not.toEqual(b.peer.chain.head)
-      }
     })
 
     describePeers('a', 'b')
@@ -395,11 +445,10 @@ describe('sync', () => {
         }
 
         it(`syncs a single change (direct connections)`, () => {
-          const [userRecords, network] = setup(...userNames)
+          const { userRecords, network, founder } = setup(...userNames)
           connectAll(network)
 
           // first user makes a change
-          const founder = userRecords[userNames[0]]
           founder.peer.chain = append({
             chain: founder.peer.chain,
             action: { type: 'FOO' },
@@ -410,20 +459,18 @@ describe('sync', () => {
           founder.peer.sync()
           const msgs = network.deliverAll()
 
-          // if (userNames.length === 4) logMessages(msgs)
-
-          expect(msgs.length).toBeLessThanOrEqual(935) // seems excessive
+          expect(msgs.length).toBeLessThanOrEqual(65)
 
           // all peers have the same doc
           assertAllEqual(network)
         })
 
         it(`syncs a single change (indirect connections)`, () => {
-          const [userRecords, network] = setup(...userNames)
+          const { userRecords, network, founder } = setup(...userNames)
+
           connectDaisyChain(network)
 
           // first user makes a change
-          const founder = userRecords[userNames[0]]
           founder.peer.chain = append({
             chain: founder.peer.chain,
             action: { type: 'FOO' },
@@ -431,8 +478,7 @@ describe('sync', () => {
             chainKeys,
           })
 
-          // founder.peer.sync()
-          userNames.forEach(u => userRecords[u].peer.sync())
+          founder.peer.sync()
           network.deliverAll()
 
           // all peers have the same doc
@@ -440,46 +486,48 @@ describe('sync', () => {
         })
 
         it(`syncs multiple changes (direct connections)`, () => {
-          const [userRecords, network] = setup(...userNames)
-          connectAll(network)
+          const { userRecords, network, founder } = setup(...userNames)
 
-          let msgCount = 0
+          connectAll(network)
 
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
             peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
-            peer.sync()
-            msgCount += network.deliverAll().length
           }
 
-          expect(msgCount).toBeLessThanOrEqual(1410) // seems excessive
+          founder.peer.sync()
+          const msgs = network.deliverAll()
+
+          expect(msgs.length).toBeLessThanOrEqual(205)
+
           // all peers have the same doc
           assertAllEqual(network)
         })
 
         it(`syncs multiple changes (indirect connections)`, () => {
-          const [userRecords, network] = setup(...userNames)
-          connectDaisyChain(network)
+          const { userRecords, network, founder } = setup(...userNames)
 
-          let msgCount = 0
+          connectDaisyChain(network)
 
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
             peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
-            peer.sync()
-            msgCount += network.deliverAll().length
           }
 
-          expect(msgCount).toBeLessThanOrEqual(140)
+          founder.peer.sync()
+          const msgs = network.deliverAll()
+
+          expect(msgs.length).toBeLessThanOrEqual(55)
 
           // all peers have the same doc
           assertAllEqual(network)
         })
 
         it('syncs divergent changes (indirect connections)', function () {
-          const [userRecords, network] = setup(...userNames)
+          const { userRecords, network, founder } = setup(...userNames)
+
           connectDaisyChain(network)
 
           // each user makes a change
@@ -491,19 +539,18 @@ describe('sync', () => {
           // while they're disconnected, they have divergent docs
           assertAllDifferent(network)
 
-          for (const userName in userRecords) {
-            userRecords[userName].peer.sync()
-          }
+          founder.peer.sync()
           const msgs = network.deliverAll()
 
-          expect(msgs.length).toBeLessThanOrEqual(389)
+          expect(msgs.length).toBeLessThanOrEqual(55)
 
           // after connecting, their docs converge
           assertAllEqual(network)
         })
 
         it('syncs divergent changes (direct connections)', function () {
-          const [userRecords, network] = setup(...userNames)
+          const { userRecords, network, founder } = setup(...userNames)
+
           connectAll(network)
 
           // each user makes a change
@@ -515,18 +562,53 @@ describe('sync', () => {
           // while they're disconnected, they have divergent docs
           assertAllDifferent(network)
 
-          for (const userName in userRecords) {
-            userRecords[userName].peer.sync()
-          }
+          founder.peer.sync()
           const msgs = network.deliverAll()
-          // if (userNames.length === 4) logMessages(msgs)
 
-          expect(msgs.length).toBeLessThanOrEqual(3080) // seems excessive
+          expect(msgs.length).toBeLessThanOrEqual(205)
 
           // after connecting, their docs converge
           assertAllEqual(network)
         })
       })
     }
+  })
+
+  describe('failure handling', () => {
+    it('timestamp out of order', () => {
+      const IN_THE_PAST = new Date('2020-01-01').getTime()
+
+      const {
+        userRecords: { alice, eve },
+        network,
+      } = setup('alice', 'eve')
+      network.connect(alice.peer, eve.peer)
+
+      // no changes yet; 👩🏾 Alice and 🦹‍♀️ Eve are synced up
+      expectToBeSynced(alice, eve)
+
+      // 🦹‍♀️ Eve sets her system clock back when appending a link
+      const now = Date.now()
+      setSystemTime(IN_THE_PAST)
+      eve.peer.chain = append({
+        chain: eve.peer.chain,
+        action: { type: 'FOO', payload: 'pizza' },
+        user: eve.user,
+        chainKeys,
+      })
+      setSystemTime(now)
+      const badHash = eve.peer.chain.head[0]
+
+      eve.peer.sync()
+
+      // Since Eve's chain is invalid, the sync fails
+      expect(() => network.deliverAll()).toThrow(`timestamp can't be earlier`)
+
+      // They are not synced
+      expectNotToBeSynced(alice, eve)
+
+      // Alice doesn't have the bad link
+      expect(alice.peer.chain.links).not.toHaveProperty(badHash)
+    })
   })
 })
