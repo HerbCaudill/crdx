@@ -1,5 +1,5 @@
 ﻿import { User } from '/user'
-import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
+import { Base58, Hash, Key, UnixTimestamp } from '/util/types'
 
 // TODO: does it even make sense to call it a SignatureChain anymore?
 // - CipherChain
