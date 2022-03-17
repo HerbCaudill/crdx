@@ -32,7 +32,7 @@ import { Base58, Encrypted, Hash, Key, UnixTimestamp } from '/util/types'
  * The `EncryptedSignatureChain` can live in public. Each link is asymmetrically encrypted using the
  * author's secret key and the team public key at time of authoring.
  */
-export interface EncryptedSignatureChain<A extends Action, C> {
+export interface EncryptedSignatureChain {
   /** Hash of the root link (the "founding" link added when the chain was created) */
   root: Hash
 
@@ -40,19 +40,19 @@ export interface EncryptedSignatureChain<A extends Action, C> {
   head: Hash[]
 
   /** Hash table of all the links we know about */
-  encryptedLinks: Record<Hash, EncryptedLink<A, C>>
+  encryptedLinks: Record<Hash, EncryptedLink>
 }
 
 /**
  * The `SignatureChain` interface adds the decrypted links, and is for local manipulation by the
  * application.
  */
-export interface SignatureChain<A extends Action, C> extends EncryptedSignatureChain<A, C> {
+export interface SignatureChain<A extends Action, C> extends EncryptedSignatureChain {
   /** Decrypted links */
   links: Record<Hash, Link<A, C>>
 }
 
-export type EncryptedLink<A extends Action, C> = {
+export type EncryptedLink = {
   /**
    * Public key of the author of the link, at the time of authoring. After decryption, it is up to
    * the application to ensure that this is in fact the public key of the author (`link.body.user`).
@@ -63,7 +63,7 @@ export type EncryptedLink<A extends Action, C> = {
    * The body of the link, encrypted asymmetrically with authentication (using libsodium's
    * `crypto_box`) using the author's SK and the team's PK.
    */
-  encryptedBody: Encrypted<LinkBody<A, C>>
+  encryptedBody: Base58
 }
 
 /** A link consists of a body, as well as a hash calculated from the body. */
