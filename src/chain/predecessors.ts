@@ -3,9 +3,6 @@ import { memoize } from '/util'
 import uniq from 'lodash/uniq'
 import { getLink } from './chain'
 
-export const getParents = <A extends Action, C>(chain: SignatureChain<A, C>, link: Link<A, C>) =>
-  link.body.prev.map(hash => getLink(chain, hash))
-
 export const getPredecessorHashes = memoize(
   <A extends Action, C>(chain: SignatureChain<A, C>, hash: string): string[] => {
     const parents = getLink(chain, hash).body.prev
@@ -20,6 +17,7 @@ export const getPredecessors = <A extends Action, C>(chain: SignatureChain<A, C>
     .map(h => chain.links[h])
     .filter(link => link !== undefined)
 
+/** Returns true if `a` is a predecessor of `b` */
 export const isPredecessorHash = <A extends Action, C>(chain: SignatureChain<A, C>, a: string, b: string) =>
   getPredecessorHashes(chain, b).includes(a)
 
