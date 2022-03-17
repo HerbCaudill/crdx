@@ -1,4 +1,4 @@
-import { getLink } from './chain'
+import { getLink, getParents } from './chain'
 import { Action, LinkMap, SignatureChain } from './types'
 import { Hash, truncateHashes } from '/util'
 
@@ -33,6 +33,7 @@ export const getLinkMap = <A extends Action, C>({
   start = chain.head,
   end = [],
   prev,
+  hashes,
 }: {
   /** The chain to collect links from. */
   chain: SignatureChain<A, C>
@@ -57,17 +58,30 @@ export const getLinkMap = <A extends Action, C>({
    * go back further. In that case we provide the last result we got, and pick up from there.
    */
   prev?: LinkMap
+
+  hashes?: Hash[]
 }): LinkMap => {
-  // If we're given a previous result, we want to pick up where we left off: The 'tails' of the
-  // last result will be the 'heads' used to find the next set of recent links.
-  if (prev) start = getTails(prev)
+  // If we're given a list of hashes, send a linkMap for just those hashes
+  if (hashes) {
+    return hashes.reduce(
+      (result, hash) => ({
+        ...result,
+        [hash]: getParents(chain, hash),
+      }),
+      EMPTY
+    )
+  }
+
+  if (prev)
+    // If we're given a previous result, we want to pick up where we left off: The 'tails' of the
+    // last result will be the 'heads' used to find the next set of recent links.
+    start = getTails(prev)
 
   // don't go past the depth of levels requested
   if (depth === 0) return EMPTY
 
   return start.reduce((result, hash) => {
-    const link = getLink(chain, hash)
-    const parents = link.body.prev
+    const parents = getParents(chain, hash)
 
     const parentsToLookup = parents
       .filter(parent => !(parent in result)) // don't look up parents we've already seen
