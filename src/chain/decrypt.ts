@@ -7,7 +7,7 @@ import { KeysetWithSecrets } from '/keyset'
  * Decrypts a single link of a chain, given the chain keys at the time the link was authored.
  */
 export const decryptLink = <A extends Action, C>(
-  encryptedLink: EncryptedLink<A, C>,
+  encryptedLink: EncryptedLink,
   chainKeys: KeysetWithSecrets
 ): Link<A, C> => {
   const { authorPublicKey, encryptedBody } = encryptedLink
@@ -38,7 +38,7 @@ export const decryptChain = <A extends Action, C>(
 
   for (const hash in encryptedLinks) {
     if (!(hash in links)) {
-      const link = decryptLink(encryptedLinks[hash], chainKeys)
+      const link = decryptLink<A, C>(encryptedLinks[hash], chainKeys)
       decryptedLinks[hash] = link
     }
   }
