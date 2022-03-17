@@ -50,7 +50,7 @@ export class Network {
   deliverAll() {
     let messageCount = 0
     const peerCount = Object.keys(this.peers).length
-    const maxMessages = 5 ** peerCount // should be plenty - any more & something has gone haywire
+    const maxMessages = 3 ** peerCount // should be plenty - any more & something has gone haywire
 
     const delivered = [] as NetworkMessage[]
 
@@ -59,19 +59,13 @@ export class Network {
       if (messageCount++ > maxMessages) throw new Error('loop detected')
 
       // send the oldest message in the queue
-      const message = this.queue.shift()
-      assert(message) // make ts happy
-
-      logMessage(message)
+      const message = this.queue.shift()!
 
       const { to, from, body } = message
       this.peers[to].receiveMessage(from, body)
 
-      // log the message for the results of this delivery run
-      // console.log({ from: message.from, to: message.to, ...syncMessageSummary(message.body) })
       delivered.push(message)
     }
-    // console.log(`${messageCount} msgs delivered`)
     return delivered
   }
 }
@@ -112,7 +106,7 @@ export class Peer {
   /** Called by Network when we receive a message from another peer */
   receiveMessage(sender: string, message: SyncMessage<any, any>) {
     if (message.error) {
-      throw new Error(`${message.error.message}\n${JSON.stringify(message.error.details, 0, 2)}`)
+      throw new Error(`${message.error.message}\n${JSON.stringify(message.error.details, null, 2)}`)
     }
 
     const prevHead = this.chain.head
