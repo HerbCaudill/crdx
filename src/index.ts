@@ -1,4 +1,4 @@
-export * from './chain'
+export * from './graph'
 export * from './constants'
 export * from './keyset'
 export * from './store'

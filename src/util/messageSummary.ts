@@ -1,22 +1,29 @@
 import { truncateHashes } from './truncateHashes'
+import { SyncMessage } from '/sync'
+import { NetworkMessage } from '/test/util/Network'
 
-// export const logMessages = (msgs: NetworkMessage[]) => {
-//   msgs.forEach(m => {
-//     const summary = truncateHashes(util.inspect(messageSummary(m.body), { depth: 1, colors: true }))
-//     console.log(`from ${m.from} to ${m.to}: ${summary}`)
-//   })
-// }
+export const logMessages = (msgs: NetworkMessage[]) => {
+  const result = msgs.map(m => JSON.stringify(networkMessageSummary(m))).join('\n')
+  console.log(result)
+}
 
-export const syncMessageSummary = (m: any) => {
+export const networkMessageSummary = (m: NetworkMessage) => {
+  return {
+    from: m.from,
+    to: m.to,
+    ...syncMessageSummary(m.body),
+  }
+}
+export const syncMessageSummary = (m: SyncMessage<any, any>) => {
   if (m === undefined) {
     return 'DONE'
   } else {
-    const { head, encodedFilter, links, need } = m
-    const body = { head } as any
-    if (encodedFilter?.length) body.encodedFilter = encodedFilter.length
-    if (links) body.links = Object.keys(links).join(', ')
-    if (need) body.need = need.join(', ')
-
-    return truncateHashes(JSON.stringify(body))
+    const { head, linkMap, links, need, error } = m
+    const body = { head: head.join() } as any
+    if (linkMap) body.linkMap = Object.keys(linkMap).join()
+    if (links) body.links = Object.keys(links).join()
+    if (need) body.need = need.join()
+    if (error) body.error = error.message
+    return truncateHashes(body)
   }
 }

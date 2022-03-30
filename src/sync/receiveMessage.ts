@@ -1,71 +1,75 @@
-import { getMissingLinks } from './getMissingLinks'
-import { BloomFilter } from './BloomFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, SignatureChain } from '/chain'
-import { assert, Hash, unique } from '/util'
+import { Action, merge, HashGraph } from '/graph'
+import { decryptGraph } from '/graph/decrypt'
+import { KeysetWithSecrets } from '/keyset'
+import { assert } from '/util'
+import { validate } from '/validator'
 
 /**
- * Receives a sync message from a peer and possibly updates our chain with information from them. It
- * also processes any information they've provided about what they need, so that we can send that
- * information in our next message.
+ * Receives a sync message from a peer and updates our sync state accordingly so that
+ * `generateMessage` can determine what information they need. Also possibly updates our graph with
+ * information from them.
  *
- * @returns A tuple `[chain, state]` containing our updated chain and our updated sync state with
+ * @returns A tuple `[graph, state]` containing our updated graph and our updated sync state with
  * this peer.
  * */
 export const receiveMessage = <A extends Action, C>(
-  /** Our current chain */
-  chain: SignatureChain<A, C>,
+  /** Our current graph */
+  graph: HashGraph<A, C>,
+
   /** Our sync state with this peer */
-  state: SyncState,
+  prevState: SyncState,
+
   /** The sync message they've just sent */
-  {
-    root: theirRoot, //
-    head: theirHead,
-    links: newLinks = {},
-    need = [],
-    encodedFilter,
-  }: SyncMessage<A, C>
-): [SignatureChain<A, C>, SyncState] => {
+  message: SyncMessage<A, C>,
+
+  graphKeys: KeysetWithSecrets
+): [HashGraph<A, C>, SyncState] => {
+  const their = message
+
   // This should never happen, but just as a sanity check
-  assert(chain.root === theirRoot, `Can't sync chains with different roots`)
+  assert(graph.root === their.root, `Can't sync graphs with different roots`)
 
-  // 1. What did they send? Do we need anything else?
-
-  state.theyHaveSent = state.theyHaveSent.concat(Object.keys(newLinks))
-
-  // store the new links in state, in case we can't merge yet
-  state.pendingLinks = { ...state.pendingLinks, ...newLinks }
-
-  // try to reconstruct their chain by combining the links we know of with the links they've sent
-  const theirChain = {
-    root: theirRoot,
-    head: theirHead,
-    links: { ...chain.links, ...state.pendingLinks },
+  const state: SyncState = {
+    ...prevState,
+    their: {
+      head: their.head,
+      need: their.need || [],
+      links: { ...prevState.their.links, ...their.links },
+      linkMap: { ...prevState.their.linkMap, ...their.linkMap },
+      reportedError: their.error,
+    },
   }
 
-  // check if our reconstruction of their chain is missing any dependencies
-  state.ourNeed = getMissingLinks(theirChain)
+  // if we've received links from them, try to reconstruct their graph and merge
+  if (Object.keys(state.their.links).length) {
+    // reconstruct their graph
+    const head = their.head
+    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.links }
+    const encryptedGraph = { ...graph, head, encryptedLinks }
+    const theirGraph = decryptGraph(encryptedGraph, graphKeys)
 
-  // if not, our reconstructed chain is good so we merge with it
-  if (state.ourNeed.length === 0) {
-    state.pendingLinks = {} // we've used all the pending links, clear that out
-    chain = merge(chain, theirChain)
+    // merge with our graph
+    const mergedGraph = merge(graph, theirGraph)
+
+    // check the integrity of the merged graph
+    const validation = validate(mergedGraph)
+
+    if (validation.isValid) {
+      graph = mergedGraph
+    } else {
+      // We only get here if we've received bad links from them — maliciously, or not. The
+      // application should monitor `failedSyncCount` and decide not to trust them if it's too high.
+      state.failedSyncCount += 1
+
+      // Record the error so we can surface it in generateMessage
+      state.our.reportedError = validation.error
+    }
+
+    // either way, we can discard all pending links
+    state.their.links = {}
+    state.their.linkMap = {}
   }
 
-  // 2. What do they need?
-
-  state.theirNeed = need
-  if (encodedFilter?.byteLength) {
-    // load the Bloom filter they sent us
-    const filter = new BloomFilter(encodedFilter)
-
-    // next message, send them anything that seems to be missing from their Bloom filter
-    const theyMightNeed = Object.keys(chain.links).filter(h => !filter.has(h))
-    state.theirNeed = state.theirNeed.concat(theyMightNeed)
-  }
-
-  state.ourHead = chain.head
-  state.theirHead = theirHead
-
-  return [chain, state]
+  return [graph, state]
 }

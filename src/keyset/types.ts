@@ -1,5 +1,6 @@
 ﻿import { Base58, Base58Keypair } from '@herbcaudill/crypto'
 
+export const GRAPH = 'GRAPH'
 export const TEAM = 'TEAM'
 export const ROLE = 'ROLE'
 export const USER = 'USER'
@@ -7,7 +8,7 @@ export const DEVICE = 'DEVICE'
 export const EPHEMERAL = 'EPHEMERAL'
 
 // avoiding enums https://maxheiber.medium.com/alternatives-to-typescript-enums-50e4c16600b1
-export const KeyType = { TEAM, ROLE, USER, DEVICE, EPHEMERAL } as const
+export const KeyType = { GRAPH, TEAM, ROLE, USER, DEVICE, EPHEMERAL } as const
 export type KeyType = typeof KeyType[keyof typeof KeyType]
 
 /**
@@ -38,9 +39,3 @@ export interface KeysetWithSecrets extends KeyMetadata {
 // type guard: Keyset vs KeysetWithSecrets
 export const hasSecrets = (keys: Keyset | KeysetWithSecrets): keys is KeysetWithSecrets =>
   keys.encryption.hasOwnProperty('secretKey') && keys.signature.hasOwnProperty('secretKey') && 'secretKey' in keys
-
-// type guard: KeysetWithSecrets vs. KeyScope
-export const isKeyset = (k: KeysetWithSecrets | KeyScope): k is KeysetWithSecrets =>
-  'secretKey' in k && //
-  'encryption' in k &&
-  'signature' in k

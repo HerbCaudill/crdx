@@ -1,71 +1,135 @@
-import { BloomFilter } from './BloomFilter'
 import { SyncMessage, SyncState } from './types'
-import { Action, getHashes, getLink, getPredecessorHashes, headsAreEqual, SignatureChain } from '/chain'
-import { arrayToMap } from '/util'
+import {
+  Action,
+  getEncryptedLinks,
+  getHashes,
+  getLinkMap,
+  getPredecessorHashes,
+  headsAreEqual,
+  HashGraph,
+} from '/graph'
+import { Hash } from '/util'
 
 /**
- * Generates a new sync message for a peer based on our current chain and our sync state with them.
+ * Generates a new sync message for a peer based on our current graph and our sync state with them.
  *
  * @returns A tuple `[state, message]` containing our updated sync state with this peer, and the
  * message to send them. If the message returned is `undefined`, we are already synced up, they know
  * we're synced up, and we don't have any further information to send.  */
 export const generateMessage = <A extends Action, C>(
-  /** Our current chain */
-  chain: SignatureChain<A, C>,
+  /** Our current graph */
+  graph: HashGraph<A, C>,
   /** Our sync state with this peer */
-  state: SyncState
+  prevState: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
-  let { theirHead, lastCommonHead, ourNeed, theirNeed } = state
-  const { root, head } = chain
-  const ourHead = head
-  const ourHashes = getHashes(chain)
-  const message = { root, head } as SyncMessage<A, C>
+  const message: SyncMessage<A, C> = {
+    root: graph.root,
+    head: graph.head,
+  }
 
+  const { their, our, lastCommonHead } = prevState
+  const state = { ...prevState }
+
+  const ourHead = graph.head
+  const theirHead = their.head
+
+  // CASE 0: There's a problem
+
+  // CASE 0A: Their last message caused an error; let them know
+  if (our.reportedError) {
+    message.error = our.reportedError
+    delete our.reportedError
+    return [state, message]
+  }
+
+  // CASE 0B: They tell us that we caused an error; stop trying to sync
+  else if (their.reportedError) {
+    return [state, undefined]
+  }
+
+  // CASE 1: We synced up in the last round, and they know we synced up, so we're done
   const syncedLastTime = headsAreEqual(ourHead, lastCommonHead)
+  if (syncedLastTime) {
+    return [state, undefined]
+  }
+
+  // CASE 2: We just synced up, but they might not know that; we'll send one last message just to confirm
   const syncedThisTime = headsAreEqual(ourHead, theirHead)
-  const weAreAhead =
-    theirHead.length > 0 && // if we don't know their head, we can't assume we're ahead
-    theirHead.every(h => h in chain.links)
-
-  // CASE 1: We are synced up
-
-  // CASE 1a: We synced up in the last round, and they know we synced up, so we have nothing more to say
-  if (syncedLastTime) return [state, undefined]
-
-  // CASE 1b: We are now synced up, but they might know know that; we'll send one last message just to confirm
   if (syncedThisTime) {
     // record the fact that we've converged in our sync state
     state.lastCommonHead = ourHead
     return [state, message]
   }
 
-  // CASE 2: We are not synced up
+  // construct a map of everything we think they have
+  const theirHashLookup = [
+    // we know that they have their heads, and any of their predecessors
+    ...theirHead,
+    ...theirHead.flatMap(h => getPredecessorHashes(graph, h)),
+
+    // their previous heads, and any of their predecessors
+    ...lastCommonHead,
+    ...lastCommonHead.flatMap(h => getPredecessorHashes(graph, h)),
+
+    // anything in their link map
+    ...Object.keys(their.linkMap ?? {}),
+
+    // anything we've already sent
+    ...our.links,
+  ].reduce((result, h) => ({ ...result, [h]: true }), {})
+
+  let hashesWeThinkTheyNeed = [] as Hash[]
+
+  const weAreAhead =
+    theirHead.length && // if we don't know their head, we can't assume we're ahead
+    theirHead.every(h => h in graph.links) // we're ahead if we already have all their heads
 
   if (weAreAhead) {
-    // CASE 2a: we are ahead of them, so we don't need anything, AND we know exactly what they need
+    // CASE 3: we are ahead of them, so we don't need anything, AND we know exactly what they need
 
-    // They have their heads and everything preceding them
-    const hashesTheyHave = [...theirHead, ...theirHead.flatMap(h => getPredecessorHashes(chain, h))]
-    // Send them everything else
-    const hashesTheyAreMissing = ourHashes.filter(hash => !hashesTheyHave.includes(hash))
-    theirNeed = theirNeed.concat(hashesTheyAreMissing)
+    // Send them everything we have that they don't have
+    hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))
   } else {
-    // CASE 2b: we are not ahead of them -- we could be behind, or we could have diverged
+    // CASE 4: we're either behind, or have diverged
 
-    // Send them a Bloom filter so they'll know what we have
-    message.encodedFilter = new BloomFilter(ourHashes).save()
-    message.need = ourNeed // We'll also let them know any specific links we've previously identified that we're missing
+    // if they've sent us a link map,
+    if (their.linkMap) {
+      // ask for anything they mention that we don't have
+      const linksWeHave = { ...graph.links, ...their.links }
+      message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave))
+
+      // and figure out what links they might need
+      hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))
+    }
+
+    // If our head has changed since last time we sent them a linkMap,
+    if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
+      // send a new linkMap with everything that's happened since then
+      message.linkMap = getLinkMap({ graph, end: lastCommonHead })
+      state.our.linkMapAtHead = ourHead
+    }
   }
 
   // Send them links they need
-  message.links = theirNeed
-    .map(h => getLink(chain, h)) // look up each link
-    .reduce(arrayToMap('hash'), {}) // put links in a map
+  const hashesTheyAskedFor = their.need
+  const hashesToSend = hashesTheyAskedFor.concat(hashesWeThinkTheyNeed) //
 
-  // Remember what we've sent
-  state.weHaveSent = state.weHaveSent.concat(theirNeed)
+  if (hashesToSend.length) {
+    // look up the encrypted links
+    message.links = getEncryptedLinks(graph, hashesToSend)
+    // add dependency info for links we send
+    const additionalDependencies = getLinkMap({ graph, hashes: hashesToSend })
+    message.linkMap = { ...message.linkMap, ...additionalDependencies }
+  }
+
+  // update our state
+  state.our.head = ourHead
+
+  // record what we've sent them
+  state.our.links = our.links.concat(hashesToSend)
+
   // We've sent them everything they've asked for, so reset their need
-  state.theirNeed = []
+  state.their.need = []
 
   return [state, message]
 }

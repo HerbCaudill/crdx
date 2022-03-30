@@ -1,7 +1,8 @@
 import { makeRandom } from '@herbcaudill/random'
-import { createChain, RootAction } from '/chain'
+import { createGraph, RootAction } from '/graph'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
+import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
 import { createUser } from '/user'
 import { arrayToMap } from '/util'
 
@@ -13,24 +14,24 @@ This store doesn't have a custom resolver; any conflicting actions (e.g. concurr
 the same letter) are ordered arbitrarily and dealt with in the reducer. 
 */
 
-const alice = createUser('alice')
-const bob = createUser('bob')
+const alice = createUser('alice', 'alice')
+const bob = createUser('bob', 'bob')
 
 const setupScrabbleAttacks = () => {
-  const chain = createChain<ScrabbleAttacksAction>({ user: alice, name: 'scrabble' })
+  const graph = createGraph<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', graphKeys })
   const reducer = scrabbleAttacksReducer
 
   // Alice starts a game and adds Bob as a player
-  const aliceStore = createStore({ user: alice, chain, reducer })
-  aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userName: 'bob' } })
+  const aliceStore = createStore({ user: alice, graph, reducer, graphKeys })
+  aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userId: 'bob' } })
 
-  // Bob starts with a copy of Alice's chain
-  const bobStore = createStore({ user: bob, chain: aliceStore.getChain(), reducer })
+  // Bob starts with a copy of Alice's graph
+  const bobStore = createStore({ user: bob, graph: aliceStore.getGraph(), reducer, graphKeys })
 
-  // To sync, each merges their chain with the other's
+  // To sync, each merges their graph with the other's
   const sync = () => {
-    bobStore.merge(aliceStore.getChain())
-    aliceStore.merge(bobStore.getChain())
+    bobStore.merge(aliceStore.getGraph())
+    aliceStore.merge(bobStore.getGraph())
   }
 
   return { aliceStore, bobStore, sync }
@@ -42,8 +43,8 @@ describe('scrabble attacks', () => {
       const { aliceStore } = setupScrabbleAttacks()
       const { players, tiles } = aliceStore.getState()
       expect(players).toEqual([
-        { userName: 'alice', words: [] },
-        { userName: 'bob', words: [] },
+        { userId: 'alice', words: [] },
+        { userId: 'bob', words: [] },
       ])
       expect(Object.keys(tiles)).toHaveLength(100)
     })
@@ -276,10 +277,11 @@ const SEED = 'test 12345'
 const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksAction> = (state, link) => {
   const action = link.body
   const { players, tiles, messages } = state
+
   switch (action.type) {
     case 'ROOT': {
-      const { userName } = link.signed
-      const rootPlayer = { userName, words: [] }
+      const { userId } = link.body
+      const rootPlayer = { userId, words: [] }
       return {
         players: [rootPlayer],
         tiles: initialTiles(SEED),
@@ -288,8 +290,8 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
     }
 
     case 'ADD_PLAYER': {
-      const { userName } = action.payload
-      const newPlayer = { userName, words: [] }
+      const { userId } = action.payload
+      const newPlayer = { userId, words: [] }
       return {
         ...state,
         players: players.concat(newPlayer),
@@ -312,7 +314,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
     }
 
     case 'CLAIM_WORD': {
-      const userName = link.signed.userName
+      const { userId } = action
       const { word } = action.payload
 
       let availableTiles = Object.values(tiles).filter(isAvailable)
@@ -327,7 +329,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
 
         if (matchingTile === undefined) {
           // not available - abort
-          const newMessage = { userName, message: `letter ${letter} not available` }
+          const newMessage = { userId, message: `letter ${letter} not available` }
           return {
             ...state,
             messages: messages.concat(newMessage),
@@ -346,7 +348,7 @@ const scrabbleAttacksReducer: Reducer<ScrabbleAttacksState, ScrabbleAttacksActio
         ...state,
         // add this word to the player's words
         players: players.map(player => {
-          const words = player.userName === userName ? player.words.concat(word) : player.words
+          const words = player.userId === userId ? player.words.concat(word) : player.words
           return {
             ...player,
             words,
@@ -448,7 +450,7 @@ export const alphabet = Object.keys(letterMap) as Letter[]
 
 interface AddPlayer {
   type: 'ADD_PLAYER'
-  payload: { userName: string }
+  payload: { userId: string }
 }
 
 interface FlipTileAction {
@@ -472,12 +474,12 @@ interface ScrabbleAttacksState {
 }
 
 interface Message {
-  userName: string
+  userId: string
   message: string
 }
 
 interface Player {
-  userName: string
+  userId: string
   words: string[]
 }
 

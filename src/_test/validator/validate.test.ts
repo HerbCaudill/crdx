@@ -1,127 +1,202 @@
-﻿import { signatures } from '@herbcaudill/crypto'
-import { buildChain, findByPayload } from '../util/chain'
-import { append, createChain, getRoot } from '/chain'
-import { hashLink } from '/chain/hashLink'
-import { ROOT } from '/constants'
+﻿import { asymmetric } from '@herbcaudill/crypto'
+import { buildGraph } from '/test/util/graph'
+import { append, createGraph, getHead, getLink, getRoot } from '/graph'
+import { hashLink } from '/graph/hashLink'
+import { setup, TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { validate } from '/validator/validate'
 import '/test/util/expect/toBeValid'
-import { setup } from '/test/util/setup'
-import { assertIsValid, validate } from '/validator/validate'
 
-const __ = expect.objectContaining
+import { jest } from '@jest/globals'
+const { setSystemTime } = jest.useFakeTimers()
 
-const { alice } = setup('alice')
+const { alice, eve } = setup('alice', 'eve')
 
-describe('chains', () => {
+describe('graphs', () => {
   describe('validation', () => {
-    test(`Bob validates Alice's new chain`, () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
+    describe('valid graphs', () => {
+      test(`new graph`, () => {
+        const graph = createGraph({ user: alice, name: 'Spies Я Us', graphKeys })
+        expect(validate(graph)).toBeValid()
+      })
 
-      // 👨🏻‍🦲 Bob
-      expect(validate(chain)).toBeValid()
+      test(`new graph with one additional link`, () => {
+        const graph = createGraph({ user: alice, name: 'Spies Я Us', graphKeys })
+        const newLink = { type: 'FOO', payload: { name: 'charlie' } }
+        const newGraph = append({ graph, action: newLink, user: alice, graphKeys })
+        expect(validate(newGraph)).toBeValid()
+      })
     })
 
-    test(`Bob validates Alice's chain with a couple of links`, () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
-      const newLink = { type: 'add-user', payload: { name: 'charlie' } }
-      const newChain = append({ chain, action: newLink, user: alice })
-
-      // 👨🏻‍🦲 Bob
-      expect(validate(newChain)).toBeValid()
-    })
-
-    test('Mallory tampers with the payload; Bob is not fooled', () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
-
-      // 🦹‍♂️ Mallory
-      const payload = getRoot(chain).body.payload
-      payload.name = payload.name.replace('Spies', 'Dorks')
-
-      // 👨🏻‍🦲 Bob is not fooled because the link's hash is no longer correct
-      expect(validate(chain)).not.toBeValid()
-      expect(() => assertIsValid(chain)).toThrow()
-    })
-
-    test('Mallory removes a link from the chain; Bob is not fooled', () => {
-      // 👩🏾 Alice
-      const chain = buildChain(`
-                          ┌─ e ─ g ─┐
-                ┌─ c ─ d ─┤         ├─ o ─┐
-         a ─ b ─┤         └─── f ───┤     ├─ n
-                ├──── h ──── i ─────┘     │ 
-                └───── j ─── k ── l ──────┘           
+    describe('invalid graphs', () => {
+      const setupGraph = () => {
+        const graph = buildGraph(`
+                             ┌─ e ─ g ─┐
+                   ┌─ c ─ d ─┤         ├─ o ─┐
+            a ─ b ─┤         └─── f ───┤     ├─ n
+                   ├──── h ──── i ─────┘     │ 
+                   └───── j ─── k ── l ──────┘           
       `)
-
-      // 🦹‍♂️ Mallory
-      const h = findByPayload(chain, 'h')
-      delete chain.links[h.hash]
-
-      // 👨🏻‍🦲 Bob is not fooled because there are links that depended on that link
-      expect(validate(chain)).not.toBeValid()
-    })
-
-    test('Mallory tampers with the payload and even updates the hash; Bob is still not fooled', () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
-
-      // 🦹‍♂️ Mallory
-      const root = getRoot(chain)
-
-      const payload = root.body.payload
-      payload.name = payload.name.replace('Spies', 'Dorks')
-
-      // Mallory covers her tracks by recalculating the hash
-      const hash = hashLink(root.body)
-      root.hash = hash
-      chain.head = [hash]
-      chain.root = hash
-      chain.links = { [hash]: root }
-
-      // 👨🏻‍🦲 Bob is not fooled because the signature doesn't validate
-      expect(validate(chain)).not.toBeValid()
-    })
-
-    test('Alice, for reasons only she understands, munges the type of the first link; validation fails', () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
-
-      const root = getRoot(chain)
-      // @ts-ignore
-      root.body.type = 'IS_IT_SPELLED_ROOT_OR_ROUTE_OR_REWT'
-
-      // she re-signs the messed-up link because she wants to see the world burn
-      const { secretKey, publicKey } = alice.keys.signature
-      const signature = signatures.sign(root.body, secretKey)
-
-      chain.links[chain.root] = {
-        ...root,
-        signed: {
-          userName: alice.userName,
-          signature,
-          key: publicKey,
-        },
+        expect(validate(graph)).toBeValid()
+        return graph
       }
 
-      // 👨🏻‍🦲 Bob
-      expect(validate(chain)).not.toBeValid()
-    })
+      test('The ROOT link cannot have any predecessors ', () => {
+        const graph = setupGraph()
+        const rootLink = getRoot(graph)
 
-    test('Alice gets high and tries to add another ROOT link', () => {
-      // 👩🏾 Alice
-      const chain = createChain({ user: alice, name: 'Spies Я Us' })
+        rootLink.body.prev = graph.head
+        expect(validate(graph)).not.toBeValid(`ROOT link cannot have any predecessors`)
+      })
 
-      const link = {
-        type: ROOT,
-        payload: { foo: 'pizza' },
-      }
+      test('The ROOT link has to be the link referenced by the graph `root` property', () => {
+        const graph = setupGraph()
+        graph.root = graph.head[0]
+        expect(validate(graph)).not.toBeValid('ROOT link has to be the link referenced by the graph `root` property')
+      })
 
-      // add it to an empty chain
-      const newChain = append({ chain, action: link, user: alice })
+      test('Non-ROOT links must have predecessors', () => {
+        const graph = setupGraph()
+        const nonRootLink = getHead(graph)[0]
+        nonRootLink.body.prev = []
+        expect(validate(graph)).not.toBeValid('Non-ROOT links must have predecessors')
+      })
 
-      // nope
-      expect(validate(newChain)).not.toBeValid()
+      test('The link referenced by the graph `root` property must be a ROOT link', () => {
+        const graph = setupGraph()
+        const rootLink = getRoot(graph)
+        rootLink.body.type = 'FOO'
+        rootLink.body.prev = graph.head
+        expect(validate(graph)).not.toBeValid('The link referenced by the graph `root` property must be a ROOT link')
+      })
+
+      test(`Eve tampers with the root`, () => {
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve tampers with the root
+        const rootLink = getRoot(graph)
+        rootLink.body.userId = eve.userId
+
+        // 🦹‍♀️ She reencrypts the link with her private key
+        graph.encryptedLinks[graph.root] = {
+          encryptedBody: asymmetric.encrypt({
+            secret: rootLink.body,
+            recipientPublicKey: graphKeys.encryption.publicKey,
+            senderSecretKey: eve.keys.encryption.secretKey,
+          }),
+          authorPublicKey: eve.keys.encryption.publicKey,
+        }
+
+        // 👩🏾 Alice is not fooled, because the root hash no longer matches the computed hash of the root link
+        expect(validate(graph)).not.toBeValid('Root hash does not match')
+      })
+
+      test(`Eve tampers with the root and also changes the root hash`, () => {
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve tampers with the root
+        const rootLink = getRoot(graph)
+        rootLink.body.user = eve
+
+        const oldRootHash = graph.root
+
+        // 🦹‍♀️ She reencrypts the link with her private key
+        const encryptedBody = asymmetric.encrypt({
+          secret: rootLink.body,
+          recipientPublicKey: graphKeys.encryption.publicKey,
+          senderSecretKey: eve.keys.encryption.secretKey,
+        })
+
+        // 🦹‍♀️ She removes the old root
+        delete graph.links[oldRootHash]
+        delete graph.encryptedLinks[oldRootHash] // these links would resurface when syncing later anyway, because other people still have them
+
+        // 🦹‍♀️ She generates a new root hash
+        const newRootHash = hashLink(encryptedBody)
+        graph.root = newRootHash // this would also prevent syncing in the future, since two graphs with different roots can't sync
+
+        // 🦹‍♀️  She adds the tampered root
+        graph.encryptedLinks[newRootHash] = {
+          encryptedBody,
+          authorPublicKey: eve.keys.encryption.publicKey,
+        }
+        graph.links[newRootHash] = rootLink
+
+        // 👩🏾 Alice is not fooled, because the next link after the root now has the wrong hash
+        expect(validate(graph)).not.toBeValid(
+          'link referenced by one of the hashes in the `prev` property does not exist.'
+        )
+      })
+
+      test(`Eve tampers with the head`, () => {
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve tampers with the head
+        const headHash = graph.head[0]
+        const headLink = getLink(graph, headHash)
+        headLink.body.userId = eve.userId
+
+        // 🦹‍♀️ She reencrypts the link with her private key
+        graph.encryptedLinks[headHash] = {
+          encryptedBody: asymmetric.encrypt({
+            secret: headLink.body,
+            recipientPublicKey: graphKeys.encryption.publicKey,
+            senderSecretKey: eve.keys.encryption.secretKey,
+          }),
+          authorPublicKey: eve.keys.encryption.publicKey,
+        }
+
+        // 👩🏾 Alice is not fooled, because the head hash no longer matches the computed hash of the head link
+        expect(validate(graph)).not.toBeValid('Head hash does not match')
+      })
+
+      test(`Eve tampers with an arbitrary link`, () => {
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve tampers with a link
+        const linkHash = Object.keys(graph.links)[2]
+        const link = getLink(graph, linkHash)
+
+        link.body.payload = 'foo'
+
+        // 🦹‍♀️ She reencrypts the link with her private key
+        graph.encryptedLinks[linkHash] = {
+          encryptedBody: asymmetric.encrypt({
+            secret: link.body,
+            recipientPublicKey: graphKeys.encryption.publicKey,
+            senderSecretKey: eve.keys.encryption.secretKey,
+          }),
+          authorPublicKey: eve.keys.encryption.publicKey,
+        }
+
+        // 👩🏾 Alice is not fooled, because the link's hash no longer matches the computed hash of the head link
+        expect(validate(graph)).not.toBeValid('hash calculated for this link does not match')
+      })
+
+      test(`timestamp out of order`, () => {
+        const IN_THE_PAST = new Date('2020-01-01').getTime()
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve sets her system clock back when appending a link
+        const now = Date.now()
+        setSystemTime(IN_THE_PAST)
+        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, graphKeys })
+        setSystemTime(now)
+
+        expect(validate(graph2)).not.toBeValid(`timestamp can't be earlier than a previous link`)
+      })
+
+      test(`timestamp in the future`, () => {
+        const IN_THE_FUTURE = new Date(`10000-01-01`).getTime() // NOTE: test will begin to fail 7,978 years from now
+        const graph = setupGraph()
+
+        // 🦹‍♀️ Eve sets her system clock forward when appending a link
+        const now = Date.now()
+        setSystemTime(IN_THE_FUTURE)
+        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, graphKeys })
+        setSystemTime(now)
+
+        expect(validate(graph2)).not.toBeValid(`timestamp is in the future`)
+      })
     })
   })
 })

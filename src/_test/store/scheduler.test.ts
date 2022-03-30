@@ -1,6 +1,7 @@
-import { Action, createChain, Link, Resolver, RootAction } from '/chain'
+import { Action, createGraph, Link, Resolver } from '/graph'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
+import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
 import { createUser } from '/user'
 import { UnixTimestamp } from '/util'
 
@@ -12,8 +13,8 @@ import { UnixTimestamp } from '/util'
  * resolved by giving the room to the person with the most seniority.
  */
 describe('scheduler', () => {
-  const alice = createUser('alice')
-  const bob = createUser('bob')
+  const alice = createUser('alice', 'alice')
+  const bob = createUser('bob', 'bob')
 
   // the person with the longest tenure wins in the case of conflicts
   const seniorityLookup: Record<string, number> = {
@@ -27,7 +28,7 @@ describe('scheduler', () => {
      * The resolver enforces the rule that the most senior person wins in cases of conflict.
      */
     const resolver: Resolver<SchedulerAction, SchedulerState> = _ => {
-      const seniority = (link: SchedulerLink) => seniorityLookup[link.signed.userName]
+      const seniority = (link: SchedulerLink) => seniorityLookup[link.body.userId]
       return {
         sort: (a: SchedulerLink, b: SchedulerLink) => seniority(b) - seniority(a),
       }
@@ -74,15 +75,15 @@ describe('scheduler', () => {
       }
     }
 
-    const chain = createChain<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler' })
+    const graph = createGraph<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler', graphKeys })
 
     // everyone starts out with the same store
-    const aliceStore = createStore({ user: alice, chain, reducer, resolver })
-    const bobStore = createStore({ user: bob, chain, reducer, resolver })
+    const aliceStore = createStore({ user: alice, graph, reducer, resolver, graphKeys })
+    const bobStore = createStore({ user: bob, graph, reducer, resolver, graphKeys })
 
     const sync = () => {
-      aliceStore.merge(bobStore.getChain())
-      bobStore.merge(aliceStore.getChain())
+      aliceStore.merge(bobStore.getGraph())
+      bobStore.merge(aliceStore.getGraph())
     }
 
     return { aliceStore, bobStore, sync }

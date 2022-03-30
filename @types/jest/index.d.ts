@@ -1,6 +1,6 @@
 ﻿declare namespace jest {
   interface Matchers<R> {
-    toBeValid(): CustomMatcherResult
+    toBeValid(expectedMessage?: string): CustomMatcherResult
     toLookLikeKeyset(): CustomMatcherResult
   }
 }

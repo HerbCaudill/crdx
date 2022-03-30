@@ -5,8 +5,9 @@ import { ValidationResult } from './validator/types'
 export const SIGNATURE = 'SIGNATURE'
 export const ENCRYPTION = 'ENCRYPTION'
 export const SYMMETRIC = 'SYMMETRIC'
-export const LINK_TO_PREVIOUS = 'LINK_TO_PREVIOUS'
-export const HashPurpose = { SIGNATURE, ENCRYPTION, SYMMETRIC, LINK_TO_PREVIOUS } as const
+export const LINK_HASH = 'LINK_HASH'
+
+export const HashPurpose = { SIGNATURE, ENCRYPTION, SYMMETRIC, LINK_HASH } as const
 
 export const ROOT = 'ROOT'
 export const MERGE = 'MERGE'
