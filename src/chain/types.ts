@@ -132,9 +132,17 @@ export type Resolver<A extends Action, C> = (chain: HashGraph<A, C>) => {
 }
 
 /**
- * A `LinkMap` contains information about the graph structure of a `HashGraph`, without
- * any of the content. It is a map where each key is the hash of a link, and the value is that
- * link's parents (the `prev` value in the `LinkBody`).
+ * A `LinkMap` contains information about the graph structure of a `HashGraph`, without any of the
+ * content. It is a map where each key is the hash of a link, and the value is that link's parents
+ * (the `prev` value in the `LinkBody`). Something like this (where `a`, `b` etc. represent hashes):
+ *
+ * ```js
+ * {
+ *   d: ['a'],
+ *   e: ['b', 'c'],
+ *   f: ['g', 'h', 'i'],
+ * }
+ *  ```
  *
  * This is used when syncing to determine where two peers have diverged and what additional links
  * they still require to be in sync.
