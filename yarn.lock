@@ -307,15 +307,14 @@
   resolved "https://registry.yarnpkg.com/@herbcaudill/base-x/-/base-x-4.0.6.tgz#681a5921ea55b61a431c49ade9955322b02337cd"
   integrity sha512-9BaPxLhtOGn5Os1gnG223StA8BvOm2vm8Unatj6nLoEV1lL8PVDyhsZV1yJXSSWEc8aHnQAJG5+NbvGMveaqeQ==
 
-"@herbcaudill/crypto@2":
-  version "2.1.6"
-  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-2.1.6.tgz#b6b1b875df7fd2c186c9f03bbb3188bf11ab77a3"
-  integrity sha512-WVdmQrWscf0UZavGswBzVK8BJPRBwSByFM+qIinlVB38PmVDlBkWLpZlIot+8KaDMy86x0sesKwLeMe0WrLCYg==
+"@herbcaudill/crypto@3":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-3.0.2.tgz#1a770d9e57a5e4b10861fbaff110308bdb71f361"
+  integrity sha512-4OjXM8aYiAwnB0Bs3wGLJzGPnWa/4gZPssARgRoU0ZdLmnXa6/O1DyY2XqCJsMP1+imvZ1Mv2RNHke/SKCejyg==
   dependencies:
     "@herbcaudill/base-x" "4"
     "@stablelib/utf8" "1"
     fast-memoize "2"
-    json-stable-stringify "1"
     libsodium-wrappers "0"
     msgpack-lite "0"
 
@@ -2400,24 +2399,12 @@ jsesc@^2.5.1:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-json-stable-stringify@1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/json-stable-stringify/-/json-stable-stringify-1.0.1.tgz#9a759d39c5f2ff503fd5300646ed445f88c4f9af"
-  integrity sha1-mnWdOcXy/1A/1TAGRu1EX4jE+a8=
-  dependencies:
-    jsonify "~0.0.0"
-
 json5@2.x, json5@^2.1.2:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/json5/-/json5-2.2.0.tgz#2dfefe720c6ba525d9ebd909950f0515316c89a3"
   integrity sha512-f+8cldu7X/y7RAJurMEJmdoKXGB/X550w2Nr3tTbezL6RwEE/iMcm+tZnXeoZtKuOq6ft8+CqzEkrIgx1fPoQA==
   dependencies:
     minimist "^1.2.5"
-
-jsonify@~0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.0.tgz#2c74b6ee41d93ca51b7b5aaee8f503631d252a73"
-  integrity sha1-LHS27kHZPKUbe1qu6PUDYx0lKnM=
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
