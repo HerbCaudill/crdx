@@ -29,7 +29,8 @@ export const append = <A extends Action, C>({
   context = {} as C,
   chainKeys,
 }: AppendParams<A, C>): HashGraph<A, C> => {
-  // unencrypted body
+  // create (unencrypted) body
+
   const body = {
     ...action,
     userId: user.userId,
@@ -40,7 +41,7 @@ export const append = <A extends Action, C>({
   // link to previous head(s). If there are no previous heads, this is the root node.
   body.prev = chain.head ?? []
 
-  // encrypted body
+  // create encrypted body
 
   const encryptedBody = asymmetric.encrypt({
     secret: body,
@@ -51,16 +52,19 @@ export const append = <A extends Action, C>({
   // the link's hash is calculated over the encrypted body
   const hash = hashLink(encryptedBody)
 
-  // unencrypted link
+  // add (unencrypted) link
+
   const link: Link<A, C> = { body, hash }
   const links = { ...chain.links, [hash]: link }
 
-  // encrypted link
+  // add encrypted link
+
   const authorPublicKey = user.keys.encryption.publicKey
   const encryptedLink: EncryptedLink = { authorPublicKey, encryptedBody }
   const encryptedLinks = { ...chain.encryptedLinks, [hash]: encryptedLink }
 
   // return new chain
+
   const root = chain.root ?? hash // if the chain didn't already have a root, this is it
   const head = [hash]
   return { root, head, encryptedLinks, links } as HashGraph<A, C>
