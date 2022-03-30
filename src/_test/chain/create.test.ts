@@ -25,7 +25,7 @@ describe('chains', () => {
     const chainJson = serialize(chain)
 
     // deserialize
-    const rehydratedChain = deserialize(chainJson)
+    const rehydratedChain = deserialize(chainJson, chainKeys)
 
     expect(validate(rehydratedChain)).toBeValid()
   })
