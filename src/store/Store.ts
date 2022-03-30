@@ -46,7 +46,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
         createChain({ user, rootPayload, chainKeys })
       : typeof chain === 'string'
       ? // serialized chain provided, deserialize it
-        decryptChain(deserialize(chain), chainKeys)
+        deserialize(chain, chainKeys)
       : // chain provided, use it
         chain
 
@@ -131,9 +131,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   }
 
   /**
-   * Validates the store's integrity, using the built-in validators (which check, among other
-   * things, the crypto hashes and signatures) as well as any validators provided by the
-   * application.
+   * Validates the store's integrity, using the built-in validators (verify hashes, check
+   * timestamps, etc.) as well as any custom validators provided by the application.
    */
   public validate() {
     return validate(this.chain, this.validators)
