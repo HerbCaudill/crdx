@@ -19,8 +19,8 @@
  *   name: 'admin',
  *   generation: 0,
  *   // instead of keypairs, these are just the public keys
- *   signature: 'wL1qGBahPGLxDGeL7AVkAdJK', // = adminKeys.signature.publicKey
- *   encryption: 'AqPY3cMcgqWomtUmJ2ameoc7', // = adminKeys.encryption.publicKey
+ *   signature: '...', // = adminKeys.signature.publicKey
+ *   encryption: '...', // = adminKeys.encryption.publicKey
  * }
  * ```
  *
