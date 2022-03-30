@@ -39,7 +39,7 @@ describe('createStore', () => {
     // 🦹‍♀️ Eve tampers with the serialized chain
     const tamperedChain = aliceStore.getChain()
     const rootLink = getRoot(tamperedChain)
-    rootLink.body.user = redactUser(eve) // she replaces Alice's user info in the root with Eve
+    rootLink.body.userId = eve.userId // she replaces Alice's user info in the root with Eve
     chain.encryptedLinks[tamperedChain.root] = {
       encryptedBody: asymmetric.encrypt({
         secret: rootLink.body,
