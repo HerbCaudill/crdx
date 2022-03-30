@@ -1,153 +1,153 @@
 import { jest } from '@jest/globals'
-import { append, createChain, headsAreEqual } from '/chain'
+import { append, createGraph, headsAreEqual } from '/graph'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
-import { TEST_CHAIN_KEYS as chainKeys, TEST_CHAIN_KEYS } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as graphKeys, TEST_GRAPH_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
 
 const { setSystemTime } = jest.useFakeTimers()
 
-const setup = setupWithNetwork(TEST_CHAIN_KEYS)
+const setup = setupWithNetwork(TEST_GRAPH_KEYS)
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
     it('Alice and Bob are already synced up', () => {
-      // 👩🏾 Alice creates a chain
+      // 👩🏾 Alice creates a graph
       const alice = createUser('alice')
-      const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
-      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice, chainKeys })
+      const graph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
+      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, graphKeys })
       let aliceSyncState = initSyncState()
 
-      // 👨🏻‍🦲 Bob starts with an exact a copy of 👩🏾 Alice's chain
-      let bobChain = { ...aliceChain }
+      // 👨🏻‍🦲 Bob starts with an exact a copy of 👩🏾 Alice's graph
+      let bobGraph = { ...aliceGraph }
       let bobSyncState = initSyncState()
 
       let msg
-        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // Neither one has anything further to say
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       expect(msg).toBeUndefined()
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       expect(msg).toBeUndefined()
     })
 
     it('Alice is ahead of Bob', () => {
-      // 👩🏾 Alice creates a chain
+      // 👩🏾 Alice creates a graph
       const alice = createUser('alice')
-      const chain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
+      const graph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
 
-      // 👨🏻‍🦲 Bob has a copy of the original chain
-      let bobChain = { ...chain }
+      // 👨🏻‍🦲 Bob has a copy of the original graph
+      let bobGraph = { ...graph }
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      let aliceChain = append({ chain, action: { type: 'FOO' }, user: alice, chainKeys })
+      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, graphKeys })
       let aliceSyncState = initSyncState()
 
       let msg
 
-        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
 
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // Neither one has anything further to say
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       expect(msg).toBeUndefined()
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       expect(msg).toBeUndefined()
 
       // Bob knows that he is caught up with Alice
-      expect(headsAreEqual(bobSyncState.their.head, aliceChain.head)).toBe(true)
+      expect(headsAreEqual(bobSyncState.their.head, aliceGraph.head)).toBe(true)
       // Alice knows that Bob is caught up with her
-      expect(headsAreEqual(aliceSyncState.their.head, bobChain.head)).toBe(true)
+      expect(headsAreEqual(aliceSyncState.their.head, bobGraph.head)).toBe(true)
     })
 
     it('Alice and Bob have diverged', () => {
       const alice = createUser('alice')
       const bob = createUser('bob')
 
-      // 👩🏾 Alice creates a chain
-      let aliceChain = createChain<any>({ user: alice, name: 'test chain', chainKeys })
+      // 👩🏾 Alice creates a graph
+      let aliceGraph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
       let aliceSyncState = initSyncState()
 
-      // 👨🏻‍🦲 Bob has a copy of the original chain
-      let bobChain = { ...aliceChain }
+      // 👨🏻‍🦲 Bob has a copy of the original graph
+      let bobGraph = { ...aliceGraph }
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      aliceChain = append({ chain: aliceChain, action: { type: 'FOO' }, user: alice, chainKeys })
+      aliceGraph = append({ graph: aliceGraph, action: { type: 'FOO' }, user: alice, graphKeys })
 
       // concurrently, 👨🏻‍🦲 Bob adds a link
-      bobChain = append({ chain: bobChain, action: { type: 'BAR' }, user: bob, chainKeys })
+      bobGraph = append({ graph: bobGraph, action: { type: 'BAR' }, user: bob, graphKeys })
 
       let msg
-        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's chain
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+        // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
       // 👨🏻‍🦲 Bob sees that Alice is missing one of his links, so he sends it
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
 
-      // 👩🏾 Alice now has Bob's full chain, so she can merge with it
+      // 👩🏾 Alice now has Bob's full graph, so she can merge with it
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested, as well as the new merge link
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceChain, aliceSyncState] = receiveMessage(aliceChain, aliceSyncState, msg, chainKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobChain, bobSyncState] = receiveMessage(bobChain, bobSyncState, msg, chainKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
 
       // Neither one has anything further to say
-      ;[bobSyncState, msg] = generateMessage(bobChain, bobSyncState)
+      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       expect(msg).toBeUndefined()
-      ;[aliceSyncState, msg] = generateMessage(aliceChain, aliceSyncState)
+      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       expect(msg).toBeUndefined()
     })
   })
@@ -167,7 +167,7 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice makes a change; now they are out of sync
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user, chainKeys })
+        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'FOO' }, user: alice.user, graphKeys })
         expectNotToBeSynced(alice, bob)
 
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
@@ -188,11 +188,11 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
         // 👩🏾 Alice makes many changes; now they are out of sync
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({
-            chain: alice.peer.chain,
+          alice.peer.graph = append({
+            graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            chainKeys,
+            graphKeys,
           })
         }
         expectNotToBeSynced(alice, bob)
@@ -213,11 +213,11 @@ describe('sync', () => {
 
         // 👩🏾 Alice makes many changes
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({
-            chain: alice.peer.chain,
+          alice.peer.graph = append({
+            graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            chainKeys,
+            graphKeys,
           })
         }
         alice.peer.sync()
@@ -227,11 +227,11 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice makes one more change
-        alice.peer.chain = append({
-          chain: alice.peer.chain,
+        alice.peer.graph = append({
+          graph: alice.peer.graph,
           action: { type: 'FOO', payload: 999 },
           user: alice.user,
-          chainKeys,
+          graphKeys,
         })
         alice.peer.sync()
 
@@ -254,17 +254,17 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
-        alice.peer.chain = append({
-          chain: alice.peer.chain,
+        alice.peer.graph = append({
+          graph: alice.peer.graph,
           action: { type: 'FOO', payload: 999 },
           user: alice.user,
-          chainKeys,
+          graphKeys,
         })
-        bob.peer.chain = append({
-          chain: bob.peer.chain,
+        bob.peer.graph = append({
+          graph: bob.peer.graph,
           action: { type: 'PIZZA', payload: 42 },
           user: bob.user,
-          chainKeys,
+          graphKeys,
         })
         expectNotToBeSynced(alice, bob)
 
@@ -285,11 +285,11 @@ describe('sync', () => {
         } = setup('alice', 'bob')
         network.connect(alice.peer, bob.peer)
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({
-            chain: alice.peer.chain,
+          alice.peer.graph = append({
+            graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            chainKeys,
+            graphKeys,
           })
         }
         alice.peer.sync()
@@ -300,17 +300,17 @@ describe('sync', () => {
 
         // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
         for (let i = 0; i < N; i++) {
-          alice.peer.chain = append({
-            chain: alice.peer.chain,
+          alice.peer.graph = append({
+            graph: alice.peer.graph,
             action: { type: 'BOO', payload: i },
             user: alice.user,
-            chainKeys,
+            graphKeys,
           })
-          bob.peer.chain = append({
-            chain: bob.peer.chain,
+          bob.peer.graph = append({
+            graph: bob.peer.graph,
             action: { type: 'PIZZA', payload: i },
             user: bob.user,
-            chainKeys,
+            graphKeys,
           })
         }
         expectNotToBeSynced(alice, bob)
@@ -338,17 +338,17 @@ describe('sync', () => {
         for (let j = 0; j < 4; j++) {
           // 👩🏾 Alice and 👨🏻‍🦲 Bob both make changes; now they are out of sync
           for (let i = 0; i < 4; i++) {
-            alice.peer.chain = append({
-              chain: alice.peer.chain,
+            alice.peer.graph = append({
+              graph: alice.peer.graph,
               action: { type: 'BOO', payload: j * 10 + i },
               user: alice.user,
-              chainKeys,
+              graphKeys,
             })
-            bob.peer.chain = append({
-              chain: bob.peer.chain,
+            bob.peer.graph = append({
+              graph: bob.peer.graph,
               action: { type: 'PIZZA', payload: j * 10 + i },
               user: bob.user,
-              chainKeys,
+              graphKeys,
             })
           }
           expectNotToBeSynced(alice, bob)
@@ -371,7 +371,7 @@ describe('sync', () => {
         network.connect(alice.peer, charlie.peer)
         network.connect(bob.peer, charlie.peer)
 
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'FOO' }, user: alice.user, chainKeys })
+        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'FOO' }, user: alice.user, graphKeys })
 
         alice.peer.sync()
         network.deliverAll()
@@ -382,9 +382,9 @@ describe('sync', () => {
         expectToBeSynced(alice, charlie)
 
         // everyone makes changes while offline; now they are out of sync
-        alice.peer.chain = append({ chain: alice.peer.chain, action: { type: 'A' }, user: alice.user, chainKeys })
-        bob.peer.chain = append({ chain: bob.peer.chain, action: { type: 'B' }, user: bob.user, chainKeys })
-        charlie.peer.chain = append({ chain: charlie.peer.chain, action: { type: 'C' }, user: charlie.user, chainKeys })
+        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'A' }, user: alice.user, graphKeys })
+        bob.peer.graph = append({ graph: bob.peer.graph, action: { type: 'B' }, user: bob.user, graphKeys })
+        charlie.peer.graph = append({ graph: charlie.peer.graph, action: { type: 'C' }, user: charlie.user, graphKeys })
         expectNotToBeSynced(alice, bob)
 
         // now they reconnect and sync back up
@@ -419,7 +419,7 @@ describe('sync', () => {
           return [userNames, network]
         }
 
-        function connectDaisyChain(network: Network) {
+        function connectDaisyGraph(network: Network) {
           const peers = Object.values(network.peers)
           peers.slice(0, peers.length - 1).forEach((a, i) => {
             const b = peers[i + 1]
@@ -432,7 +432,7 @@ describe('sync', () => {
           const peers = Object.values(network.peers)
           peers.slice(0, peers.length - 1).forEach((a, i) => {
             const b = peers[i + 1]
-            expect(a.chain.head).toEqual(b.chain.head)
+            expect(a.graph.head).toEqual(b.graph.head)
           })
         }
 
@@ -440,7 +440,7 @@ describe('sync', () => {
           const peers = Object.values(network.peers)
           peers.slice(0, peers.length - 1).forEach((a, i) => {
             const b = peers[i + 1]
-            expect(a.chain.head).not.toEqual(b.chain.head)
+            expect(a.graph.head).not.toEqual(b.graph.head)
           })
         }
 
@@ -449,11 +449,11 @@ describe('sync', () => {
           connectAll(network)
 
           // first user makes a change
-          founder.peer.chain = append({
-            chain: founder.peer.chain,
+          founder.peer.graph = append({
+            graph: founder.peer.graph,
             action: { type: 'FOO' },
             user: founder.user,
-            chainKeys,
+            graphKeys,
           })
 
           founder.peer.sync()
@@ -468,14 +468,14 @@ describe('sync', () => {
         it(`syncs a single change (indirect connections)`, () => {
           const { userRecords, network, founder } = setup(...userNames)
 
-          connectDaisyChain(network)
+          connectDaisyGraph(network)
 
           // first user makes a change
-          founder.peer.chain = append({
-            chain: founder.peer.chain,
+          founder.peer.graph = append({
+            graph: founder.peer.graph,
             action: { type: 'FOO' },
             user: founder.user,
-            chainKeys,
+            graphKeys,
           })
 
           founder.peer.sync()
@@ -493,7 +493,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
           }
 
           founder.peer.sync()
@@ -508,12 +508,12 @@ describe('sync', () => {
         it(`syncs multiple changes (indirect connections)`, () => {
           const { userRecords, network, founder } = setup(...userNames)
 
-          connectDaisyChain(network)
+          connectDaisyGraph(network)
 
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
           }
 
           founder.peer.sync()
@@ -528,12 +528,12 @@ describe('sync', () => {
         it('syncs divergent changes (indirect connections)', function () {
           const { userRecords, network, founder } = setup(...userNames)
 
-          connectDaisyChain(network)
+          connectDaisyGraph(network)
 
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
           }
 
           // while they're disconnected, they have divergent docs
@@ -556,7 +556,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.chain = append({ chain: peer.chain, action: { type: userName.toUpperCase() }, user, chainKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
           }
 
           // while they're disconnected, they have divergent docs
@@ -590,25 +590,25 @@ describe('sync', () => {
       // 🦹‍♀️ Eve sets her system clock back when appending a link
       const now = Date.now()
       setSystemTime(IN_THE_PAST)
-      eve.peer.chain = append({
-        chain: eve.peer.chain,
+      eve.peer.graph = append({
+        graph: eve.peer.graph,
         action: { type: 'FOO', payload: 'pizza' },
         user: eve.user,
-        chainKeys,
+        graphKeys,
       })
       setSystemTime(now)
-      const badHash = eve.peer.chain.head[0]
+      const badHash = eve.peer.graph.head[0]
 
       eve.peer.sync()
 
-      // Since Eve's chain is invalid, the sync fails
+      // Since Eve's graph is invalid, the sync fails
       expect(() => network.deliverAll()).toThrow(`timestamp can't be earlier`)
 
       // They are not synced
       expectNotToBeSynced(alice, eve)
 
       // Alice doesn't have the bad link
-      expect(alice.peer.chain.links).not.toHaveProperty(badHash)
+      expect(alice.peer.graph.links).not.toHaveProperty(badHash)
     })
   })
 
@@ -628,25 +628,25 @@ describe('sync', () => {
       // 🦹‍♀️ Eve sets her system clock back when appending a link
       const now = Date.now()
       setSystemTime(IN_THE_PAST)
-      eve.peer.chain = append({
-        chain: eve.peer.chain,
+      eve.peer.graph = append({
+        graph: eve.peer.graph,
         action: { type: 'FOO', payload: 'pizza' },
         user: eve.user,
-        chainKeys,
+        graphKeys,
       })
       setSystemTime(now)
-      const badHash = eve.peer.chain.head[0]
+      const badHash = eve.peer.graph.head[0]
 
       eve.peer.sync()
 
-      // Since Eve's chain is invalid, the sync fails
+      // Since Eve's graph is invalid, the sync fails
       expect(() => network.deliverAll()).toThrow()
 
       // They are not synced
       expectNotToBeSynced(alice, eve)
 
       // 👩🏾 Alice doesn't have the bad link
-      expect(alice.peer.chain.links).not.toHaveProperty(badHash)
+      expect(alice.peer.graph.links).not.toHaveProperty(badHash)
     }
 
     // 👩🏾 Alice knows how many times Eve failed to sync

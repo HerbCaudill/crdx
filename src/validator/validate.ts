@@ -1,7 +1,7 @@
 ﻿import { ValidationResult, ValidatorSet } from './types'
 import { fail, validators } from './validators'
-import { hashLink } from '/chain/hashLink'
-import { Action, Link, HashGraph } from '/chain/types'
+import { hashLink } from '/graph/hashLink'
+import { Action, Link, HashGraph } from '/graph/types'
 import { VALID } from '/constants'
 
 /**
@@ -10,22 +10,22 @@ import { VALID } from '/constants'
  */
 export const validate = <A extends Action, C>(
   /** The hash graph to validate. */
-  chain: HashGraph<A, C>,
+  graph: HashGraph<A, C>,
 
-  /** Any additional validators (besides the base validators that test the chain's integrity) */
+  /** Any additional validators (besides the base validators that test the graph's integrity) */
   customValidators: ValidatorSet = {}
 ): ValidationResult => {
   // Confirm that the root hash matches the computed hash of the root link
   {
-    const rootHash = chain.root
-    const rootLink = chain.encryptedLinks[rootHash]
+    const rootHash = graph.root
+    const rootLink = graph.encryptedLinks[rootHash]
     const computedHash = hashLink(rootLink.encryptedBody)
     if (computedHash !== rootHash)
       return fail('Root hash does not match the hash of the root link', { rootHash, computedHash, rootLink })
   }
   // Confirm that each head hash matches the computed hash of the head link
-  for (const headHash of chain.head) {
-    const headLink = chain.encryptedLinks[headHash]
+  for (const headHash of graph.head) {
+    const headLink = graph.encryptedLinks[headHash]
     const computedHash = hashLink(headLink.encryptedBody)
     if (computedHash !== headHash)
       return fail('Head hash does not match the hash of the head link', { headHash, computedHash, headLink })
@@ -39,7 +39,7 @@ export const validate = <A extends Action, C>(
       for (const key in mergedValidators) {
         const validator = mergedValidators[key]
         try {
-          const result = validator(currentLink, chain)
+          const result = validator(currentLink, graph)
           if (result.isValid === false) return result
         } catch (e) {
           // any errors thrown cause validation to fail and are returned with the validation result
@@ -51,7 +51,7 @@ export const validate = <A extends Action, C>(
     }
 
   const compositeValidator = composeValidators(validators, customValidators)
-  for (const link of Object.values(chain.links)) {
+  for (const link of Object.values(graph.links)) {
     const result = compositeValidator(link)
     if (!result.isValid) return result
   }

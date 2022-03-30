@@ -1,21 +1,21 @@
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, HashGraph } from '/chain'
-import { decryptChain } from '/chain/decrypt'
+import { Action, merge, HashGraph } from '/graph'
+import { decryptGraph } from '/graph/decrypt'
 import { KeysetWithSecrets } from '/keyset'
 import { assert } from '/util'
 import { validate } from '/validator'
 
 /**
  * Receives a sync message from a peer and updates our sync state accordingly so that
- * `generateMessage` can determine what information they need. Also possibly updates our chain with
+ * `generateMessage` can determine what information they need. Also possibly updates our graph with
  * information from them.
  *
- * @returns A tuple `[chain, state]` containing our updated chain and our updated sync state with
+ * @returns A tuple `[graph, state]` containing our updated graph and our updated sync state with
  * this peer.
  * */
 export const receiveMessage = <A extends Action, C>(
-  /** Our current chain */
-  chain: HashGraph<A, C>,
+  /** Our current graph */
+  graph: HashGraph<A, C>,
 
   /** Our sync state with this peer */
   prevState: SyncState,
@@ -23,12 +23,12 @@ export const receiveMessage = <A extends Action, C>(
   /** The sync message they've just sent */
   message: SyncMessage<A, C>,
 
-  chainKeys: KeysetWithSecrets
+  graphKeys: KeysetWithSecrets
 ): [HashGraph<A, C>, SyncState] => {
   const their = message
 
   // This should never happen, but just as a sanity check
-  assert(chain.root === their.root, `Can't sync chains with different roots`)
+  assert(graph.root === their.root, `Can't sync graphs with different roots`)
 
   const state: SyncState = {
     ...prevState,
@@ -41,22 +41,22 @@ export const receiveMessage = <A extends Action, C>(
     },
   }
 
-  // if we've received links from them, try to reconstruct their chain and merge
+  // if we've received links from them, try to reconstruct their graph and merge
   if (Object.keys(state.their.links).length) {
-    // reconstruct their chain
+    // reconstruct their graph
     const head = their.head
-    const encryptedLinks = { ...chain.encryptedLinks, ...state.their.links }
-    const encryptedChain = { ...chain, head, encryptedLinks }
-    const theirChain = decryptChain(encryptedChain, chainKeys)
+    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.links }
+    const encryptedGraph = { ...graph, head, encryptedLinks }
+    const theirGraph = decryptGraph(encryptedGraph, graphKeys)
 
-    // merge with our chain
-    const mergedChain = merge(chain, theirChain)
+    // merge with our graph
+    const mergedGraph = merge(graph, theirGraph)
 
-    // check the integrity of the merged chain
-    const validation = validate(mergedChain)
+    // check the integrity of the merged graph
+    const validation = validate(mergedGraph)
 
     if (validation.isValid) {
-      chain = mergedChain
+      graph = mergedGraph
     } else {
       // We only get here if we've received bad links from them — maliciously, or not. The
       // application should monitor `failedSyncCount` and decide not to trust them if it's too high.
@@ -71,5 +71,5 @@ export const receiveMessage = <A extends Action, C>(
     state.their.linkMap = {}
   }
 
-  return [chain, state]
+  return [graph, state]
 }

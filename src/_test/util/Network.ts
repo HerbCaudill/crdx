@@ -1,12 +1,12 @@
 // ignore file coverage
 import { setup } from './setup'
-import { createChain, headsAreEqual, HashGraph } from '/chain'
+import { createGraph, headsAreEqual, HashGraph } from '/graph'
 import { KeysetWithSecrets } from '/keyset'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
 import { SyncMessage, SyncState } from '/sync/types'
-import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
 
@@ -22,11 +22,11 @@ const logMessage = (msg: NetworkMessage) => {
 export class Network {
   peers: Record<string, Peer>
   queue: NetworkMessage[]
-  chainKeys: KeysetWithSecrets
-  constructor(chainKeys: KeysetWithSecrets) {
+  graphKeys: KeysetWithSecrets
+  constructor(graphKeys: KeysetWithSecrets) {
     this.peers = {}
     this.queue = []
-    this.chainKeys = chainKeys
+    this.graphKeys = graphKeys
   }
 
   registerPeer(peer: Peer) {
@@ -74,12 +74,12 @@ export class Network {
 export class Peer {
   syncStates: Record<string, SyncState>
   userName: string
-  chain: HashGraph<any, any>
+  graph: HashGraph<any, any>
   network: Network
 
-  constructor(userName: string, chain: HashGraph<any, any>, network: Network) {
+  constructor(userName: string, graph: HashGraph<any, any>, network: Network) {
     this.userName = userName
-    this.chain = chain
+    this.graph = graph
     this.network = network
     this.network.registerPeer(this)
     this.syncStates = {}
@@ -94,7 +94,7 @@ export class Peer {
   sync(userName?: string) {
     if (userName) {
       // sync only with this peer
-      const [syncState, message] = generateMessage(this.chain, this.syncStates[userName])
+      const [syncState, message] = generateMessage(this.graph, this.syncStates[userName])
       this.syncStates[userName] = syncState
       if (message) this.network.sendMessage(this.userName, userName, message)
     } else {
@@ -109,38 +109,38 @@ export class Peer {
       throw new Error(`${message.error.message}\n${JSON.stringify(message.error.details, null, 2)}`)
     }
 
-    const prevHead = this.chain.head
+    const prevHead = this.graph.head
 
-    const [chain, syncState] = receiveMessage(this.chain, this.syncStates[sender], message, chainKeys)
-    this.chain = chain
+    const [graph, syncState] = receiveMessage(this.graph, this.syncStates[sender], message, graphKeys)
+    this.graph = graph
     this.syncStates[sender] = syncState
 
-    // has our chain changed at all as a result of this message?
-    if (headsAreEqual(prevHead, chain.head)) {
+    // has our graph changed at all as a result of this message?
+    if (headsAreEqual(prevHead, graph.head)) {
       // no change, just reply to the sender
       this.sync(sender)
     } else {
-      // our chain has changed, sync with everyone
+      // our graph has changed, sync with everyone
       this.sync()
     }
   }
 }
 
 export const setupWithNetwork =
-  (chainKeys: KeysetWithSecrets) =>
+  (graphKeys: KeysetWithSecrets) =>
   (...userNames: string[]) => {
     const users = setup(...userNames)
     const founderUserName = userNames[0]
     const founderUser = users[founderUserName]
 
-    const chain = createChain({ user: founderUser, chainKeys })
+    const graph = createGraph({ user: founderUser, graphKeys })
 
-    const network = new Network(chainKeys)
+    const network = new Network(graphKeys)
 
     const userRecords = {} as Record<string, TestUserStuff>
     for (const userName in users) {
       const user = users[userName]
-      const peer = new Peer(userName, chain, network)
+      const peer = new Peer(userName, graph, network)
       userRecords[userName] = { user, peer }
     }
 
@@ -149,11 +149,11 @@ export const setupWithNetwork =
   }
 
 export const expectToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
-  expect(a.peer.chain.head).toEqual(b.peer.chain.head)
+  expect(a.peer.graph.head).toEqual(b.peer.graph.head)
 }
 
 export const expectNotToBeSynced = (a: TestUserStuff, b: TestUserStuff) => {
-  expect(a.peer.chain.head).not.toEqual(b.peer.chain.head)
+  expect(a.peer.graph.head).not.toEqual(b.peer.graph.head)
 }
 
 export type NetworkMessage = {

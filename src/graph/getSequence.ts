@@ -3,7 +3,7 @@ import { Action, Link, Resolver, HashGraph } from './types'
 
 /**
  * Takes a `HashGraph` and returns a flat array of links by performing a topographical sort and
- * filter. For example, this chain
+ * filter. For example, this graph
  * ```
  *                      ┌─ e ─ g ─┐
  *            ┌─ c ─ d ─┤         ├─ o(HEAD)
@@ -16,15 +16,15 @@ import { Action, Link, Resolver, HashGraph } from './types'
  * ```
  *
  * The logic for merging concurrent branches is captured in a `resolver` function provided by the
- * caller. A resolver takes the chain as an argument, and returns two functions:
+ * caller. A resolver takes the graph as an argument, and returns two functions:
  * - `sort` is a comparator function that indicates how concurrent branches are to be ordered.
  * - `filter` is a predicate function that indicates which links to include in the resulting
  *   sequence.
  */
-export const getSequence = <A extends Action, C>(chain: HashGraph<A, C>, resolver: Resolver<A, C> = baseResolver) => {
-  const { sort = byHash, filter = noFilter } = resolver(chain)
+export const getSequence = <A extends Action, C>(graph: HashGraph<A, C>, resolver: Resolver<A, C> = baseResolver) => {
+  const { sort = byHash, filter = noFilter } = resolver(graph)
 
-  const sorted = topoSort(chain, { comparator: sort })
+  const sorted = topoSort(graph, { comparator: sort })
 
   // Rather than apply the filter directly, we mark links that would be filtered out as invalid.
   return sorted.map(link => {

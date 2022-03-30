@@ -7,30 +7,30 @@ import {
   getPredecessorHashes,
   headsAreEqual,
   HashGraph,
-} from '/chain'
+} from '/graph'
 import { Hash } from '/util'
 
 /**
- * Generates a new sync message for a peer based on our current chain and our sync state with them.
+ * Generates a new sync message for a peer based on our current graph and our sync state with them.
  *
  * @returns A tuple `[state, message]` containing our updated sync state with this peer, and the
  * message to send them. If the message returned is `undefined`, we are already synced up, they know
  * we're synced up, and we don't have any further information to send.  */
 export const generateMessage = <A extends Action, C>(
-  /** Our current chain */
-  chain: HashGraph<A, C>,
+  /** Our current graph */
+  graph: HashGraph<A, C>,
   /** Our sync state with this peer */
   prevState: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
   const message: SyncMessage<A, C> = {
-    root: chain.root,
-    head: chain.head,
+    root: graph.root,
+    head: graph.head,
   }
 
   const { their, our, lastCommonHead } = prevState
   const state = { ...prevState }
 
-  const ourHead = chain.head
+  const ourHead = graph.head
   const theirHead = their.head
 
   // CASE 0: There's a problem
@@ -65,11 +65,11 @@ export const generateMessage = <A extends Action, C>(
   const theirHashLookup = [
     // we know that they have their heads, and any of their predecessors
     ...theirHead,
-    ...theirHead.flatMap(h => getPredecessorHashes(chain, h)),
+    ...theirHead.flatMap(h => getPredecessorHashes(graph, h)),
 
     // their previous heads, and any of their predecessors
     ...lastCommonHead,
-    ...lastCommonHead.flatMap(h => getPredecessorHashes(chain, h)),
+    ...lastCommonHead.flatMap(h => getPredecessorHashes(graph, h)),
 
     // anything in their link map
     ...Object.keys(their.linkMap ?? {}),
@@ -82,30 +82,30 @@ export const generateMessage = <A extends Action, C>(
 
   const weAreAhead =
     theirHead.length && // if we don't know their head, we can't assume we're ahead
-    theirHead.every(h => h in chain.links) // we're ahead if we already have all their heads
+    theirHead.every(h => h in graph.links) // we're ahead if we already have all their heads
 
   if (weAreAhead) {
     // CASE 3: we are ahead of them, so we don't need anything, AND we know exactly what they need
 
     // Send them everything we have that they don't have
-    hashesWeThinkTheyNeed = getHashes(chain).filter(hash => !(hash in theirHashLookup))
+    hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))
   } else {
     // CASE 4: we're either behind, or have diverged
 
     // if they've sent us a link map,
     if (their.linkMap) {
       // ask for anything they mention that we don't have
-      const linksWeHave = { ...chain.links, ...their.links }
+      const linksWeHave = { ...graph.links, ...their.links }
       message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave))
 
       // and figure out what links they might need
-      hashesWeThinkTheyNeed = getHashes(chain).filter(hash => !(hash in theirHashLookup))
+      hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))
     }
 
     // If our head has changed since last time we sent them a linkMap,
     if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
       // send a new linkMap with everything that's happened since then
-      message.linkMap = getLinkMap({ chain, end: lastCommonHead })
+      message.linkMap = getLinkMap({ graph, end: lastCommonHead })
       state.our.linkMapAtHead = ourHead
     }
   }
@@ -116,9 +116,9 @@ export const generateMessage = <A extends Action, C>(
 
   if (hashesToSend.length) {
     // look up the encrypted links
-    message.links = getEncryptedLinks(chain, hashesToSend)
+    message.links = getEncryptedLinks(graph, hashesToSend)
     // add dependency info for links we send
-    const additionalDependencies = getLinkMap({ chain, hashes: hashesToSend })
+    const additionalDependencies = getLinkMap({ graph, hashes: hashesToSend })
     message.linkMap = { ...message.linkMap, ...additionalDependencies }
   }
 

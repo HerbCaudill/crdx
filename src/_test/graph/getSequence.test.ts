@@ -1,5 +1,5 @@
-import { buildChain, getPayloads, XAction } from '../util/chain'
-import { getConcurrentLinks, getSequence, Resolver } from '/chain'
+import { buildGraph, getPayloads, XAction } from '../util/graph'
+import { getConcurrentLinks, getSequence, Resolver } from '/graph'
 import { Hash } from '/util'
 
 /**
@@ -8,10 +8,10 @@ import { Hash } from '/util'
  * 2. if `h` and `i` are concurrent, both are invalid
  * 3. `j` comes first, otherwise sort alphabetically
  */
-const resolver: Resolver<XAction, any> = chain => {
+const resolver: Resolver<XAction, any> = graph => {
   const invalid: Record<Hash, boolean> = {}
-  for (const link of Object.values(chain.links)) {
-    const concurrentLinks = getConcurrentLinks(chain, link)
+  for (const link of Object.values(graph.links)) {
+    const concurrentLinks = getConcurrentLinks(graph, link)
     for (const concurrentLink of concurrentLinks) {
       // rule 1
       if (link.body.payload === 'f' && concurrentLink.body.payload === 'e') {
@@ -43,44 +43,44 @@ const resolver: Resolver<XAction, any> = chain => {
   }
 }
 
-describe('chains', () => {
+describe('graphs', () => {
   describe('getSequence', () => {
     test('one link', () => {
-      const chain = buildChain('a')
-      const sequence = getSequence(chain)
+      const graph = buildGraph('a')
+      const sequence = getSequence(graph)
       const payloads = getPayloads(sequence)
       expect(payloads).toEqual('a')
     })
 
     test('no branches', () => {
-      const chain = buildChain(`a ─ b ─ c`)
-      const sequence = getSequence(chain)
+      const graph = buildGraph(`a ─ b ─ c`)
+      const sequence = getSequence(graph)
       const payloads = getPayloads(sequence)
 
       expect(payloads).toEqual('abc')
     })
 
-    test('simple chain', () => {
-      const chain = buildChain(` 
+    test('simple graph', () => {
+      const graph = buildGraph(` 
           ┌─ b
        a ─┤
           └─ c
       `)
 
-      const sequence = getSequence(chain, resolver)
+      const sequence = getSequence(graph, resolver)
       const payloads = getPayloads(sequence)
       expect(payloads).toEqual('abc')
     })
 
-    test('complex chain', () => {
-      const chain = buildChain(`
+    test('complex graph', () => {
+      const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
                 ├──── h ──── i ─────┘     │ 
                 └───── j ─── k ── l ──────┘           
       `)
-      const sequence = getSequence(chain, resolver)
+      const sequence = getSequence(graph, resolver)
       const payloads = getPayloads(sequence)
       // without resolver we'd get `abcdegfhiojkln`
       // `e` is removed (rule 1)
@@ -88,15 +88,15 @@ describe('chains', () => {
       expect(payloads).toEqual('abjklcdgfhion')
     })
 
-    test('tricky chain', () => {
-      const chain = buildChain(`
+    test('tricky graph', () => {
+      const graph = buildGraph(`
                           ┌─── h ────┐
                 ┌─ c ─ e ─┤          ├─ k
          a ─ b ─┤         └── i ─ j ─┘
                 └── d ────────┘
       `)
 
-      const sequence = getSequence(chain, resolver)
+      const sequence = getSequence(graph, resolver)
       const payloads = getPayloads(sequence)
       // without resolver we'd get `abcehdijk`
       // `h` and `i` are removed (rule 2)
@@ -104,14 +104,14 @@ describe('chains', () => {
     })
 
     test('multiple heads', () => {
-      const chain = buildChain(`
+      const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o 
          a ─ b ─┤         └─── f ───┘     
                 ├─ h ─ i  
                 └─ j 
       `)
-      const sequence = getSequence(chain, resolver)
+      const sequence = getSequence(graph, resolver)
       const payloads = getPayloads(sequence)
       // without resolver we'd get `abhijcdfego`
       // `e` is removed (rule 1)

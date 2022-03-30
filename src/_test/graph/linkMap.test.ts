@@ -1,10 +1,10 @@
-import { getLink, HashGraph } from '/chain'
-import { getLinkMap } from '/chain/linkMap'
-import { buildChain, findByPayload } from '/test/util/chain'
+import { getLink, HashGraph } from '/graph'
+import { getLinkMap } from '/graph/linkMap'
+import { buildGraph, findByPayload } from '/test/util/graph'
 import { Hash } from '/util'
 
 describe('getLinkMap', () => {
-  const chain = buildChain(`
+  const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
@@ -14,8 +14,8 @@ describe('getLinkMap', () => {
 
   describe('recent hashes', () => {
     it('depth 2', () => {
-      const result = getLinkMap({ chain, depth: 2 })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, depth: 2 })
+      expect(lookupPayloads(graph, result)).toEqual({
         l: 'k',
         n: 'l,o',
         o: 'f,g,i',
@@ -23,8 +23,8 @@ describe('getLinkMap', () => {
     })
 
     it('depth 3', () => {
-      const result = getLinkMap({ chain, depth: 3 })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, depth: 3 })
+      expect(lookupPayloads(graph, result)).toEqual({
         f: 'd',
         g: 'e',
         i: 'h',
@@ -36,10 +36,10 @@ describe('getLinkMap', () => {
     })
 
     it('depth 10', () => {
-      const result = getLinkMap({ chain, depth: 10 })
+      const result = getLinkMap({ graph, depth: 10 })
 
-      // this covers the whole chain because the longest path through it is less than 10 links long
-      expect(lookupPayloads(chain, result)).toEqual({
+      // this covers the whole graph because the longest path through it is less than 10 links long
+      expect(lookupPayloads(graph, result)).toEqual({
         a: '',
         b: 'a',
         c: 'b',
@@ -57,9 +57,9 @@ describe('getLinkMap', () => {
       })
     })
 
-    it('entire chain', () => {
-      const result = getLinkMap({ chain }) // depth is undefined
-      expect(lookupPayloads(chain, result)).toEqual({
+    it('entire graph', () => {
+      const result = getLinkMap({ graph }) // depth is undefined
+      expect(lookupPayloads(graph, result)).toEqual({
         a: '',
         b: 'a',
         c: 'b',
@@ -79,11 +79,11 @@ describe('getLinkMap', () => {
   })
 
   describe('end links', () => {
-    const getHashes = (s: string) => s.split('').map(p => findByPayload(chain, p).hash)
+    const getHashes = (s: string) => s.split('').map(p => findByPayload(graph, p).hash)
 
     it('b', () => {
-      const result = getLinkMap({ chain, end: getHashes('b') })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, end: getHashes('b') })
+      expect(lookupPayloads(graph, result)).toEqual({
         c: 'b',
         d: 'c',
         e: 'd',
@@ -100,8 +100,8 @@ describe('getLinkMap', () => {
     })
 
     it('chj', () => {
-      const result = getLinkMap({ chain, end: getHashes('chj') })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, end: getHashes('chj') })
+      expect(lookupPayloads(graph, result)).toEqual({
         d: 'c',
         e: 'd',
         f: 'd',
@@ -115,8 +115,8 @@ describe('getLinkMap', () => {
     })
 
     it('gfik', () => {
-      const result = getLinkMap({ chain, end: getHashes('gfik') })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, end: getHashes('gfik') })
+      expect(lookupPayloads(graph, result)).toEqual({
         l: 'k',
         n: 'l,o',
         o: 'f,g,i',
@@ -126,15 +126,15 @@ describe('getLinkMap', () => {
 
   describe('get more recent hashes', () => {
     it('depth 2 + 2', () => {
-      const prev = getLinkMap({ chain, depth: 2 })
+      const prev = getLinkMap({ graph, depth: 2 })
 
-      expect(lookupPayloads(chain, prev)).toEqual({
+      expect(lookupPayloads(graph, prev)).toEqual({
         l: 'k',
         n: 'l,o',
         o: 'f,g,i',
       })
-      const result = getLinkMap({ chain, depth: 2, prev })
-      expect(lookupPayloads(chain, result)).toEqual({
+      const result = getLinkMap({ graph, depth: 2, prev })
+      expect(lookupPayloads(graph, result)).toEqual({
         d: 'c',
         e: 'd',
         f: 'd',
@@ -148,9 +148,9 @@ describe('getLinkMap', () => {
   })
 })
 
-const lookupPayloads = (chain: HashGraph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
+const lookupPayloads = (graph: HashGraph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
   const getPayload = (hash: Hash): string => {
-    const linkBody = getLink(chain, hash).body
+    const linkBody = getLink(graph, hash).body
     return linkBody.type === 'ROOT' ? '' : linkBody.payload
   }
   return Object.entries(linkMap).reduce((result, [hash, predecessors]) => {

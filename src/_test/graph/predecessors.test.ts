@@ -1,9 +1,9 @@
-import { getHead, getParents, getPredecessors, isPredecessor } from '/chain'
-import { buildChain, byPayload, findByPayload, getPayloads } from '../util/chain'
+import { getHead, getParents, getPredecessors, isPredecessor } from '/graph'
+import { buildGraph, byPayload, findByPayload, getPayloads } from '../util/graph'
 
-describe('chains', () => {
+describe('graphs', () => {
   describe('predecessors', () => {
-    const chain = buildChain(`
+    const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
@@ -13,8 +13,8 @@ describe('chains', () => {
 
     describe('getParents', () => {
       const testCase = (payload: string) => {
-        const link = findByPayload(chain, payload)
-        const result = getParents(chain, link)
+        const link = findByPayload(graph, payload)
+        const result = getParents(graph, link)
         return result
           .sort(byPayload)
           .map(l => l.body.payload)
@@ -29,7 +29,7 @@ describe('chains', () => {
 
     describe('getPredecessors', () => {
       test('head', () => {
-        const predecessors = getPayloads(getPredecessors(chain, getHead(chain)[0]))
+        const predecessors = getPayloads(getPredecessors(graph, getHead(graph)[0]))
           .split('')
           .sort()
           .join('') // ignore order
@@ -37,24 +37,24 @@ describe('chains', () => {
       })
 
       test('d', () => {
-        const d = findByPayload(chain, 'd')
-        const predecessors = getPayloads(getPredecessors(chain, d))
+        const d = findByPayload(graph, 'd')
+        const predecessors = getPayloads(getPredecessors(graph, d))
         expect(predecessors).toEqual('cba') // note correct order
       })
 
       test('o', () => {
-        const o = findByPayload(chain, 'o')
-        const predecessors = getPayloads(getPredecessors(chain, o)).split('').sort().join('') // ignore order
+        const o = findByPayload(graph, 'o')
+        const predecessors = getPayloads(getPredecessors(graph, o)).split('').sort().join('') // ignore order
         expect(predecessors).toEqual('abcdefghi')
       })
     })
 
     describe('isPredecessor', () => {
       const testCase = (a: string, b: string) => {
-        const aLink = findByPayload(chain, a)
-        const bLink = findByPayload(chain, b)
+        const aLink = findByPayload(graph, a)
+        const bLink = findByPayload(graph, b)
 
-        return isPredecessor(chain, aLink, bLink)
+        return isPredecessor(graph, aLink, bLink)
       }
 
       test('c precedes f', () => expect(testCase('c', 'f')).toBe(true))

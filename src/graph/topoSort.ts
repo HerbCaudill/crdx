@@ -3,12 +3,12 @@ import { Action, Link, LinkComparator, HashGraph } from './types'
 import { Hash } from '/util'
 
 /** Flattens a hash graph into a sequence  */
-export const topoSort = <A extends Action, C>(chain: HashGraph<A, C>, options: TopoSortOptions = {}): Link<A, C>[] => {
+export const topoSort = <A extends Action, C>(graph: HashGraph<A, C>, options: TopoSortOptions = {}): Link<A, C>[] => {
   const { comparator = byHash } = options
 
   // Kahn's algorithm
-  // Start with all the links in the chain, in no particular order
-  var links = Object.values(chain.links)
+  // Start with all the links in the graph, in no particular order
+  var links = Object.values(graph.links)
 
   // Create a lookup table to keep track of how many remaining parents each link has
   const remainingParents: Record<Hash, number> = links.reduce(
@@ -31,12 +31,12 @@ export const topoSort = <A extends Action, C>(chain: HashGraph<A, C>, options: T
     links = links.filter(l => l.hash !== link.hash)
 
     // any links that had it as a parent now have one less parent
-    var children = getChildrenHashes(chain, link.hash)
+    var children = getChildrenHashes(graph, link.hash)
     children.forEach(child => remainingParents[child]--)
 
     // The following change to the algorithm isn't stricly necessary, but it seems cleaner to me.
     // I want any links that are part of an uninterrupted sequence of links (with no branching or
-    // merging) to stay together. For example, in this chain, I want the sequences `cd`, `hi`,
+    // merging) to stay together. For example, in this graph, I want the sequences `cd`, `hi`,
     // `jkl`, and `eg` to stay together. But Kahn's algorithm will add `chj`, then `dik`, and so on.
     //
     //                     ┌─ e ─ g ─┐
@@ -53,7 +53,7 @@ export const topoSort = <A extends Action, C>(chain: HashGraph<A, C>, options: T
     if (remainingParents[childHash] > 0) return
 
     // then recursively add it to the sorted list as well
-    const child = chain.links[childHash]
+    const child = graph.links[childHash]
     take(child)
   }
 

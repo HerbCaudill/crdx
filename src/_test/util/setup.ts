@@ -29,9 +29,9 @@ export const setup = (...userNames: string[]) => {
   return testUserStuff
 }
 
-export const TEST_CHAIN_KEYS: KeysetWithSecrets = {
-  type: 'CHAIN',
-  name: 'CHAIN',
+export const TEST_GRAPH_KEYS: KeysetWithSecrets = {
+  type: 'GRAPH',
+  name: 'GRAPH',
   generation: 0,
   signature: {
     publicKey: 'GQrmBanGPSFBvZ4AHAoduk1jp7tXxa5fuzmWQTfbCbRT',

@@ -4,16 +4,16 @@ import { Action, EncryptedLink, Link, LinkBody, HashGraph, EncryptedHashGraph } 
 import { KeysetWithSecrets } from '/keyset'
 
 /**
- * Decrypts a single link of a chain, given the chain keys at the time the link was authored.
+ * Decrypts a single link of a graph, given the graph keys at the time the link was authored.
  */
 export const decryptLink = <A extends Action, C>(
   encryptedLink: EncryptedLink,
-  chainKeys: KeysetWithSecrets
+  graphKeys: KeysetWithSecrets
 ): Link<A, C> => {
   const { authorPublicKey, encryptedBody } = encryptedLink
   const decryptedLinkBody = asymmetric.decrypt({
     cipher: encryptedBody,
-    recipientSecretKey: chainKeys.encryption.secretKey,
+    recipientSecretKey: graphKeys.encryption.secretKey,
     senderPublicKey: authorPublicKey,
   })
 
@@ -24,27 +24,27 @@ export const decryptLink = <A extends Action, C>(
 }
 
 /**
- * Decrypts a chain using a single keyset.
+ * Decrypts a graph using a single keyset.
  *
- * **Note:** Applications that encode key rotations on the chain (like lf/auth) will need to
- * implement their own version of `decryptChain` that reduces as it goes along, so that it can
+ * **Note:** Applications that encode key rotations on the graph (like lf/auth) will need to
+ * implement their own version of `decryptGraph` that reduces as it goes along, so that it can
  * determine the correct keyset to use for each link.  */
-export const decryptChain = <A extends Action, C>(
-  chain: EncryptedHashGraph | HashGraph<A, C>,
-  chainKeys: KeysetWithSecrets
+export const decryptGraph = <A extends Action, C>(
+  graph: EncryptedHashGraph | HashGraph<A, C>,
+  graphKeys: KeysetWithSecrets
 ): HashGraph<A, C> => {
-  const { encryptedLinks, links = {} } = chain as HashGraph<A, C>
+  const { encryptedLinks, links = {} } = graph as HashGraph<A, C>
   const decryptedLinks = {} as Record<string, Link<A, C>>
 
   for (const hash in encryptedLinks) {
     if (!(hash in links)) {
-      const link = decryptLink<A, C>(encryptedLinks[hash], chainKeys)
+      const link = decryptLink<A, C>(encryptedLinks[hash], graphKeys)
       decryptedLinks[hash] = link
     }
   }
 
   return {
-    ...chain,
+    ...graph,
     links: {
       ...links,
       ...decryptedLinks,

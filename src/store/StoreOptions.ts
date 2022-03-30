@@ -1,5 +1,5 @@
 import { Reducer } from './types'
-import { Action, Resolver, HashGraph } from '/chain'
+import { Action, Resolver, HashGraph } from '/graph'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { ValidatorSet } from '/validator'
@@ -20,19 +20,19 @@ export type StoreOptions<S, A extends Action, C> = {
    *  domain-specific conflict-resolution logic. */
   resolver?: Resolver<A, C>
 
-  /** Optional validators to ensure the chain is in a valid state. These are used in addition to
+  /** Optional validators to ensure the graph is in a valid state. These are used in addition to
    *  built-in validators, for example those that that validate cryptographic hashes and signatures. */
   validators?: ValidatorSet
 
   /** The initial state to provide to the reducer's first action. By default this is an empty object `{}`*/
   initialState?: S
 
-  /** For pre-existing stores: A chain to preload, e.g. from saved state. */
-  chain?: string | HashGraph<A, C>
+  /** For pre-existing stores: A graph to preload, e.g. from saved state. */
+  graph?: string | HashGraph<A, C>
 
   /** For new stores: Additional information to include in the root node  */
   rootPayload?: any
 
-  /** Keyset for encrypting/decrypting the chain. */
-  chainKeys: KeysetWithSecrets
+  /** Keyset for encrypting/decrypting the graph. */
+  graphKeys: KeysetWithSecrets
 }

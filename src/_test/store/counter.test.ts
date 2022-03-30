@@ -1,7 +1,7 @@
-import { createChain, getRoot, RootAction } from '/chain'
+import { createGraph, getRoot, RootAction } from '/graph'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
-import { TEST_CHAIN_KEYS as chainKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
 import { createUser } from '/user'
 
 /*
@@ -13,11 +13,11 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupCounter = () => {
-  const chain = createChain<CounterAction>({ user: alice, name: 'counter', chainKeys })
-  const aliceStore = createStore({ user: alice, chain, reducer: counterReducer, chainKeys })
+  const graph = createGraph<CounterAction>({ user: alice, name: 'counter', graphKeys })
+  const aliceStore = createStore({ user: alice, graph, reducer: counterReducer, graphKeys })
 
-  const saved = aliceStore.getChain()
-  const bobStore = createStore({ user: bob, chain: saved, reducer: counterReducer, chainKeys })
+  const saved = aliceStore.getGraph()
+  const bobStore = createStore({ user: bob, graph: saved, reducer: counterReducer, graphKeys })
 
   return { store: aliceStore, aliceStore, bobStore }
 }
@@ -57,8 +57,8 @@ describe('counter', () => {
       expect(bobStore.getState().value).toEqual(1)
 
       // They sync up
-      aliceStore.merge(bobStore.getChain())
-      bobStore.merge(aliceStore.getChain())
+      aliceStore.merge(bobStore.getGraph())
+      bobStore.merge(aliceStore.getGraph())
 
       // They each have both increments
       expect(aliceStore.getState().value).toEqual(2)

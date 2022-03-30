@@ -1,4 +1,4 @@
-import { Action, EncryptedLink, LinkMap } from '/chain'
+import { Action, EncryptedLink, LinkMap } from '/graph'
 import { Hash } from '/util'
 import { ValidationError } from '/validator'
 
@@ -37,7 +37,7 @@ export interface SyncState {
   /** The head we had in common with this peer the last time we synced. If empty, we haven't synced before. */
   lastCommonHead: Hash[]
 
-  /** We increment this each time a sync fails because we would have ended up with an invalid chain */
+  /** We increment this each time a sync fails because we would have ended up with an invalid graph */
   failedSyncCount: number
 }
 

@@ -1,49 +1,49 @@
 ﻿import { ValidationError, ValidatorSet } from './types'
-import { getRoot } from '/chain/chain'
-import { hashLink } from '/chain/hashLink'
+import { getRoot } from '/graph/graph'
+import { hashLink } from '/graph/hashLink'
 import { ROOT, VALID } from '/constants'
 import { memoize } from '/util'
 
 const _validators: ValidatorSet = {
   /** Does this link's hash check out? */
-  validateHash: (link, chain) => {
+  validateHash: (link, graph) => {
     const { hash } = link
-    const { encryptedBody } = chain.encryptedLinks[hash]
+    const { encryptedBody } = graph.encryptedLinks[hash]
     const computedHash = hashLink(encryptedBody)
     if (hash === computedHash) return VALID
     else return fail(`The hash calculated for this link does not match.`, { link, hash, expected: computedHash })
   },
 
   /** Do the previous link(s) referenced by this link exist?  */
-  validatePrev: (link, chain) => {
+  validatePrev: (link, graph) => {
     for (const hash of link.body.prev)
-      if (!(hash in chain.links))
+      if (!(hash in graph.links))
         return fail(`The link referenced by one of the hashes in the \`prev\` property does not exist.`)
 
     return VALID
   },
 
-  /** If this is a root link, it should not have any predecessors, and should be the chain's root */
-  validateRoot: (link, chain) => {
+  /** If this is a root link, it should not have any predecessors, and should be the graph's root */
+  validateRoot: (link, graph) => {
     const hasNoPrevLink = link.body.prev.length === 0
     const hasRootType = 'type' in link.body && link.body.type === ROOT
-    const isTheChainRoot = getRoot(chain) === link
+    const isTheGraphRoot = getRoot(graph) === link
     // all should be true, or all should be false
-    if (hasNoPrevLink === isTheChainRoot && isTheChainRoot === hasRootType) return VALID
+    if (hasNoPrevLink === isTheGraphRoot && isTheGraphRoot === hasRootType) return VALID
 
     const message = hasRootType
       ? // ROOT
         hasNoPrevLink
-        ? `The ROOT link has to be the link referenced by the chain \`root\` property` // ROOT but isn't chain root
+        ? `The ROOT link has to be the link referenced by the graph \`root\` property` // ROOT but isn't graph root
         : `The ROOT link cannot have any predecessors` // ROOT but has prev link
       : // not ROOT
       hasNoPrevLink
       ? `Non-ROOT links must have predecessors` // not ROOT but has no prev link
-      : 'The link referenced by the chain `root` property must be a ROOT link' // not ROOT but is the chain root
-    return fail(message, { link, chain })
+      : 'The link referenced by the graph `root` property must be a ROOT link' // not ROOT but is the graph root
+    return fail(message, { link, graph })
   },
 
-  validateTimestamps: (link, chain) => {
+  validateTimestamps: (link, graph) => {
     const { timestamp } = link.body
 
     // timestamp can't be in the future
@@ -54,7 +54,7 @@ const _validators: ValidatorSet = {
 
     // timestamp can't be earlier than any previous link's timestamp
     for (const hash of link.body.prev) {
-      const prevLink = chain.links[hash]
+      const prevLink = graph.links[hash]
       if (prevLink.body.timestamp > timestamp)
         return fail(`This link's timestamp can't be earlier than a previous link.`, { link, prevLink })
     }

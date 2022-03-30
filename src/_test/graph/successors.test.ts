@@ -1,9 +1,9 @@
-﻿import { getRoot, getSuccessors, isSuccessor } from '/chain'
-import { buildChain, findByPayload, getPayloads, XLink } from '../util/chain'
+﻿import { getRoot, getSuccessors, isSuccessor } from '/graph'
+import { buildGraph, findByPayload, getPayloads, XLink } from '../util/graph'
 
-describe('chains', () => {
+describe('graphs', () => {
   describe('successors', () => {
-    const chain = buildChain(`
+    const graph = buildGraph(`
                          ┌─ e ─ g ─┐
                ┌─ c ─ d ─┤         ├─ o ─┐
         a ─ b ─┤         └─── f ───┤     ├─ n
@@ -13,35 +13,32 @@ describe('chains', () => {
 
     describe('getSuccessors', () => {
       const getSuccessorPayloads = (link: XLink): string => {
-        const successors = getSuccessors(chain, link)
-        return getPayloads(successors)
-          .split('')
-          .sort()
-          .join('')
+        const successors = getSuccessors(graph, link)
+        return getPayloads(successors).split('').sort().join('')
       }
 
       test('root', () => {
-        const root = getRoot(chain)
+        const root = getRoot(graph)
         expect(getSuccessorPayloads(root)).toEqual('abcdefghijklno')
       })
 
       test('d', () => {
-        const d = findByPayload(chain, 'd')
+        const d = findByPayload(graph, 'd')
         expect(getSuccessorPayloads(d)).toEqual('efgno')
       })
 
       test('o', () => {
-        const o = findByPayload(chain, 'o')
+        const o = findByPayload(graph, 'o')
         expect(getSuccessorPayloads(o)).toEqual('n')
       })
     })
 
     describe('isSuccessor', () => {
       const testCase = (a: string, b: string) => {
-        const aLink = findByPayload(chain, a)
-        const bLink = findByPayload(chain, b)
+        const aLink = findByPayload(graph, a)
+        const bLink = findByPayload(graph, b)
 
-        return isSuccessor(chain, aLink, bLink)
+        return isSuccessor(graph, aLink, bLink)
       }
 
       it('f succeeds c', () => expect(testCase('f', 'c')).toBe(true))

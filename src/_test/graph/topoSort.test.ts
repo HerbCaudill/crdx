@@ -1,45 +1,45 @@
-import { buildChain, getPayloads, byPayload } from '../util/chain'
-import { topoSort } from '/chain'
+import { buildGraph, getPayloads, byPayload } from '../util/graph'
+import { topoSort } from '/graph'
 
-describe('chains', () => {
+describe('graphs', () => {
   describe('topoSort', () => {
     test('one link', () => {
-      const chain = buildChain('a')
-      const sequence = topoSort(chain)
+      const graph = buildGraph('a')
+      const sequence = topoSort(graph)
       const payloads = getPayloads(sequence)
       expect(payloads).toEqual('a')
     })
 
     test('no branches', () => {
-      const chain = buildChain(`a ─ b ─ c`)
-      const sequence = topoSort(chain)
+      const graph = buildGraph(`a ─ b ─ c`)
+      const sequence = topoSort(graph)
       const payloads = getPayloads(sequence)
 
       expect(payloads).toEqual('abc')
     })
 
-    describe('simple chain', () => {
-      const chain = buildChain(` 
+    describe('simple graph', () => {
+      const graph = buildGraph(` 
           ┌─ b
        a ─┤
           └─ c
       `)
 
       test('sorted by payload', () => {
-        const sequence = topoSort(chain, { comparator: byPayload })
+        const sequence = topoSort(graph, { comparator: byPayload })
         const payloads = getPayloads(sequence)
         expect(payloads).toEqual('abc')
       })
 
       test('sorted by hash', () => {
-        const sequence = topoSort(chain)
+        const sequence = topoSort(graph)
         const payloads = getPayloads(sequence)
         expect(['abc', 'acb']).toContain(payloads)
       })
     })
 
-    describe('complex chain', () => {
-      const chain = buildChain(`
+    describe('complex graph', () => {
+      const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o ─┐
          a ─ b ─┤         └─── f ───┤     ├─ n
@@ -47,13 +47,13 @@ describe('chains', () => {
                 └───── j ─── k ── l ──────┘           
       `)
       test('sorted by payload', () => {
-        const sequence = topoSort(chain, { comparator: byPayload })
+        const sequence = topoSort(graph, { comparator: byPayload })
         const payloads = getPayloads(sequence)
         expect(payloads).toEqual('abcdegfhiojkln')
       })
 
       test('sorted by hash', () => {
-        const sequence = topoSort(chain)
+        const sequence = topoSort(graph)
         const payloads = getPayloads(sequence)
 
         // we know how the sequence starts and ends
@@ -76,8 +76,8 @@ describe('chains', () => {
       })
     })
 
-    describe('tricky chain', () => {
-      const chain = buildChain(`
+    describe('tricky graph', () => {
+      const graph = buildGraph(`
                           ┌─── h ────┐
                 ┌─ c ─ e ─┤          ├─ k
          a ─ b ─┤         └── i ─ j ─┘
@@ -85,13 +85,13 @@ describe('chains', () => {
       `)
 
       test('sorted by payload', () => {
-        const sequence = topoSort(chain, { comparator: byPayload })
+        const sequence = topoSort(graph, { comparator: byPayload })
         const payloads = getPayloads(sequence)
         expect(payloads).toEqual('abcedijhk')
       })
 
       test('sorted by hash', () => {
-        const sequence = topoSort(chain)
+        const sequence = topoSort(graph)
         const payloads = getPayloads(sequence)
 
         expect(payloads.startsWith('ab')).toBe(true)
@@ -107,7 +107,7 @@ describe('chains', () => {
     })
 
     describe('multiple heads', () => {
-      const chain = buildChain(`
+      const graph = buildGraph(`
                           ┌─ e ─ g ─┐
                 ┌─ c ─ d ─┤         ├─ o 
          a ─ b ─┤         └─── f ───┘     
@@ -115,7 +115,7 @@ describe('chains', () => {
                 └─ j 
       `)
       test('sorted by payload', () => {
-        const sequence = topoSort(chain, { comparator: byPayload })
+        const sequence = topoSort(graph, { comparator: byPayload })
         const payloads = getPayloads(sequence)
         expect(payloads).toEqual('abcdegfohij')
       })

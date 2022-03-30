@@ -5,18 +5,18 @@
  * and authenticated** by the author, and includes **hashes of all known heads** at the time of
  * authoring.
  *
- * This means that the chain is **append-only**: Existing nodes can’t be modified, reordered, or
+ * This means that the graph is **append-only**: Existing nodes can’t be modified, reordered, or
  * removed without causing the hash and authentication checks to fail.
  *
  * A hash graph is just data and can be stored as JSON. It consists of a hash table of the
- * links themselves, plus a pointer to the **root** (the “founding” link added when the chain was
+ * links themselves, plus a pointer to the **root** (the “founding” link added when the graph was
  * created) and the **head** (the most recent link(s) we know about).
  *
  * The `EncryptedHashGraph` can live in public. Each link is asymmetrically encrypted using the
  * author's secret key and the team public key at time of authoring.
  */
 export interface EncryptedHashGraph {
-  /** Hash of the root link (the "founding" link added when the chain was created) */
+  /** Hash of the root link (the "founding" link added when the graph was created) */
   root: Hash
 
   /** Hash of the head link (the most recent link we know about) */
@@ -96,7 +96,7 @@ export type LinkBody<A extends Action, C> = {
   /** Unix timestamp on device that created this link */
   timestamp: UnixTimestamp
 
-  /** Head(s) of the chain when this link was added */
+  /** Head(s) of the graph when this link was added */
   prev: Hash[]
 } & A & // plus everything from the action interface
   C // plus everything from the context interface
@@ -108,7 +108,7 @@ export type Sequence<A extends Action, C> = Link<A, C>[]
 export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>) => number
 
 /**
- * A `Resolver` encapsulates the logic for merging concurrent branches. It takes the chain as an
+ * A `Resolver` encapsulates the logic for merging concurrent branches. It takes the graph as an
  * argument, and returns two functions:
  * - `sort` is a comparator function that indicates how concurrent branches are to be ordered.
  * - `filter` is a predicate function that indicates which links to include in the resulting
@@ -126,7 +126,7 @@ export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>)
  *   [f]
  * ```
  */
-export type Resolver<A extends Action, C> = (chain: HashGraph<A, C>) => {
+export type Resolver<A extends Action, C> = (graph: HashGraph<A, C>) => {
   sort?: LinkComparator
   filter?: (link: Link<A, C>) => boolean
 }

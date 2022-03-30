@@ -5,7 +5,7 @@ import {
   Action,
   baseResolver,
   append,
-  createChain,
+  createGraph,
   deserialize,
   getHead,
   getSequence,
@@ -13,8 +13,8 @@ import {
   Resolver,
   serialize,
   HashGraph,
-} from '/chain'
-import { decryptChain } from '/chain/decrypt'
+} from '/graph'
+import { decryptGraph } from '/graph/decrypt'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
@@ -31,24 +31,24 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   constructor({
     user,
     context = {} as C,
-    chain,
+    graph,
     rootPayload,
     initialState = {} as S,
     reducer,
     validators,
     resolver = baseResolver,
-    chainKeys,
+    graphKeys,
   }: StoreOptions<S, A, C>) {
     super()
 
-    this.chain = !chain
-      ? // no chain provided, create one
-        createChain({ user, rootPayload, chainKeys })
-      : typeof chain === 'string'
-      ? // serialized chain provided, deserialize it
-        deserialize(chain, chainKeys)
-      : // chain provided, use it
-        chain
+    this.graph = !graph
+      ? // no graph provided, create one
+        createGraph({ user, rootPayload, graphKeys })
+      : typeof graph === 'string'
+      ? // serialized graph provided, deserialize it
+        deserialize(graph, graphKeys)
+      : // graph provided, use it
+        graph
 
     this.context = context
     this.initialState = initialState
@@ -56,7 +56,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.validators = validators
     this.resolver = resolver
     this.user = user
-    this.chainKeys = chainKeys
+    this.graphKeys = graphKeys
 
     // set the initial state
     this.updateState()
@@ -68,17 +68,17 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   }
 
   /** Returns the current hash graph */
-  public getChain(): HashGraph<A, C> {
-    return this.chain
+  public getGraph(): HashGraph<A, C> {
+    return this.graph
   }
 
   /** Returns a the current hash graph in serialized form; this can be used to rehydrate this
    * store from storage. */
   public save() {
-    // remove plaintext  links from chain
-    const { links, ...redactedChain } = this.chain
+    // remove plaintext  links from graph
+    const { links, ...redactedGraph } = this.graph
 
-    return serialize(redactedChain as HashGraph<A, C>)
+    return serialize(redactedGraph as HashGraph<A, C>)
   }
 
   /**
@@ -99,33 +99,33 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     // equip the action with an empty payload if it doesn't have one
     const actionWithPayload = { payload: undefined, ...action } as A
 
-    // append this action as a new link to the chain
-    this.chain = append({
-      chain: this.chain,
+    // append this action as a new link to the graph
+    this.graph = append({
+      graph: this.graph,
       action: actionWithPayload,
       user: this.user,
-      chainKeys: this.chainKeys,
+      graphKeys: this.graphKeys,
     })
 
     // get the newly appended link (at this point we're guaranteed a single head, which is the one we appended)
-    const [head] = getHead(this.chain)
+    const [head] = getHead(this.graph)
 
-    // we don't need to pass the whole chain through the reducer, just the current state + the new head
+    // we don't need to pass the whole graph through the reducer, just the current state + the new head
     this.state = this.reducer(this.state, head)
 
     // notify listeners
-    this.emit('updated', { head: this.chain.head })
+    this.emit('updated', { head: this.graph.head })
 
     return action
   }
 
   /**
-   * Merges another chain (e.g. from a peer) with ours.
-   * @param theirChain
+   * Merges another graph (e.g. from a peer) with ours.
+   * @param theirGraph
    * @returns this `Store` instance
    */
-  public merge(theirChain: HashGraph<A, C>) {
-    this.chain = merge(this.chain, theirChain)
+  public merge(theirGraph: HashGraph<A, C>) {
+    this.graph = merge(this.graph, theirGraph)
     this.updateState()
     return this
   }
@@ -135,7 +135,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * timestamps, etc.) as well as any custom validators provided by the application.
    */
   public validate() {
-    return validate(this.chain, this.validators)
+    return validate(this.graph, this.validators)
   }
 
   // PRIVATE
@@ -154,24 +154,24 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private resolver: Resolver<A, C>
   private validators?: ValidatorSet
 
-  private chainKeys: KeysetWithSecrets
+  private graphKeys: KeysetWithSecrets
 
-  private chain: HashGraph<A, C>
+  private graph: HashGraph<A, C>
   private state: S
 
   private updateState() {
-    const { chain, resolver, reducer } = this
+    const { graph, resolver, reducer } = this
 
-    // Validate the chain's integrity.
+    // Validate the graph's integrity.
     this.validate()
 
     // Use the filter & sequencer to turn the graph into an ordered sequence
-    const sequence = getSequence<A, C>(chain, resolver)
+    const sequence = getSequence<A, C>(graph, resolver)
 
     // Run the sequence through the reducer to calculate the current team state
     this.state = sequence.reduce(reducer, this.initialState)
 
     // notify listeners
-    this.emit('updated', { head: chain.head })
+    this.emit('updated', { head: graph.head })
   }
 }

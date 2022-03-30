@@ -1,11 +1,11 @@
-import { getLink, getParents } from './chain'
+import { getLink, getParents } from './graph'
 import { Action, LinkMap, HashGraph } from './types'
 import { Hash, truncateHashes } from '/util'
 
 export const EMPTY: LinkMap = {}
 
 /**
- * Collects a chain's most recent links (i.e. the heads and their predecessors, up to a given
+ * Collects a graph's most recent links (i.e. the heads and their predecessors, up to a given
  * depth), and maps each link's hash to its parents.
  *
  * ```
@@ -15,7 +15,7 @@ export const EMPTY: LinkMap = {}
  *         ├──── h ──── i ─────┘     │
  *         └───── j ─── k ── l ──────┘
  * ```
- * For example, given this chain and `depth: 2`, this function would return
+ * For example, given this graph and `depth: 2`, this function would return
  * ```
  * {
  *   l: [k],
@@ -28,19 +28,19 @@ export const EMPTY: LinkMap = {}
  *
  */
 export const getLinkMap = <A extends Action, C>({
-  chain,
+  graph,
   depth,
-  start = chain.head,
+  start = graph.head,
   end = [],
   prev,
   hashes,
 }: {
-  /** The chain to collect links from. */
-  chain: HashGraph<A, C>
+  /** The graph to collect links from. */
+  graph: HashGraph<A, C>
 
   /**
-   * How many levels back we want to go in the chain. If omitted, we'll get a map covering the whole
-   * chain (up to `end`). The actual number of links we'll collect depends on how much branching
+   * How many levels back we want to go in the graph. If omitted, we'll get a map covering the whole
+   * graph (up to `end`). The actual number of links we'll collect depends on how much branching
    * there is. If not provided, there is no depth limit.
    */
   depth?: number
@@ -66,7 +66,7 @@ export const getLinkMap = <A extends Action, C>({
     return hashes.reduce(
       (result, hash) => ({
         ...result,
-        [hash]: getParents(chain, hash),
+        [hash]: getParents(graph, hash),
       }),
       EMPTY
     )
@@ -81,14 +81,14 @@ export const getLinkMap = <A extends Action, C>({
   if (depth === 0) return EMPTY
 
   return start.reduce((result, hash) => {
-    const parents = getParents(chain, hash)
+    const parents = getParents(graph, hash)
 
     const parentsToLookup = parents
       .filter(parent => !(parent in result)) // don't look up parents we've already seen
       .filter(parent => !end.includes(parent)) // don't go past the `end` links
 
     const parentLinks = getLinkMap({
-      chain,
+      graph,
       depth: depth ? depth - 1 : undefined,
       start: parentsToLookup,
       end,

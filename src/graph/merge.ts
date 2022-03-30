@@ -3,25 +3,25 @@ import { Action, EncryptedLink, Link, HashGraph } from './types'
 import { Hash } from '/util'
 
 /**
- * Returns a new chain that contains all the information in the two chains provided.
+ * Returns a new graph that contains all the information in the two graphs provided.
  *
- * Note that this no longer checks the chain for validity — that is the responsibility of the
+ * Note that this no longer checks the graph for validity — that is the responsibility of the
  * caller, as it's up to the caller to determine what to do about it.
  */
 export const merge = <A extends Action, C>(
   /**
-   * The first chain to merge. Note that this chain's values win in case there are different links
+   * The first graph to merge. Note that this graph's values win in case there are different links
    * with the same keys, so this should be the more trusted of the two, e.g. the local one rather
    * than the remote.
    * */
   ours: HashGraph<A, C>,
 
-  /** The second chain. This should be the less trusted of the two, e.g. the remote one.  */
+  /** The second graph. This should be the less trusted of the two, e.g. the remote one.  */
   theirs: HashGraph<A, C>
 ): HashGraph<A, C> => {
-  if (ours.root !== theirs.root) throw new Error('Cannot merge two chains with different roots')
+  if (ours.root !== theirs.root) throw new Error('Cannot merge two graphs with different roots')
 
-  // The new chain will contain all the links from either chain
+  // The new graph will contain all the links from either graph
   const mergedLinks: Record<Hash, Link<A, C>> = { ...theirs.links, ...ours.links }
   const mergedEncryptedLinks: Record<Hash, EncryptedLink> = { ...theirs.encryptedLinks, ...ours.encryptedLinks }
 
@@ -30,16 +30,16 @@ export const merge = <A extends Action, C>(
   // If one of the heads is a parent of an existing link, it is no longer a head
   const newHeads = mergedHeads.filter(isNotParentOfAnyOf(mergedLinks))
 
-  const mergedChain: HashGraph<A, C> = {
+  const mergedGraph: HashGraph<A, C> = {
     root: ours.root,
     head: newHeads,
     encryptedLinks: mergedEncryptedLinks,
     links: mergedLinks,
   }
 
-  mergedChain.head = mergedChain.head.sort()
+  mergedGraph.head = mergedGraph.head.sort()
 
-  return mergedChain
+  return mergedGraph
 }
 
 /** Returns true if the given hash is not a parent of any of those links */

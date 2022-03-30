@@ -1,15 +1,15 @@
 ﻿import { asymmetric } from '@herbcaudill/crypto'
-import { EMPTY_CHAIN } from './createChain'
+import { EMPTY_GRAPH } from './createGraph'
 import { hashLink } from './hashLink'
 import { Action, EncryptedLink, HashGraph, Link, LinkBody } from './types'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 
 interface AppendParams<A extends Action, C> {
-  /** The chain to append a link to. */
-  chain: HashGraph<A, C> | typeof EMPTY_CHAIN
+  /** The graph to append a link to. */
+  graph: HashGraph<A, C> | typeof EMPTY_GRAPH
 
-  /** The action (type & payload) being added to the chain. */
+  /** The action (type & payload) being added to the graph. */
   action: A
 
   /** User object for the author of this link. */
@@ -18,16 +18,16 @@ interface AppendParams<A extends Action, C> {
   /** Any additional context provided by the application. */
   context?: C
 
-  /** Keyset used to encrypt & decrypt the chain. */
-  chainKeys: KeysetWithSecrets
+  /** Keyset used to encrypt & decrypt the graph. */
+  graphKeys: KeysetWithSecrets
 }
 
 export const append = <A extends Action, C>({
-  chain,
+  graph,
   action,
   user,
   context = {} as C,
-  chainKeys,
+  graphKeys,
 }: AppendParams<A, C>): HashGraph<A, C> => {
   // create (unencrypted) body
 
@@ -39,13 +39,13 @@ export const append = <A extends Action, C>({
   } as LinkBody<A, C>
 
   // link to previous head(s). If there are no previous heads, this is the root node.
-  body.prev = chain.head ?? []
+  body.prev = graph.head ?? []
 
   // create encrypted body
 
   const encryptedBody = asymmetric.encrypt({
     secret: body,
-    recipientPublicKey: chainKeys.encryption.publicKey,
+    recipientPublicKey: graphKeys.encryption.publicKey,
     senderSecretKey: user.keys.encryption.secretKey,
   })
 
@@ -55,17 +55,17 @@ export const append = <A extends Action, C>({
   // add (unencrypted) link
 
   const link: Link<A, C> = { body, hash }
-  const links = { ...chain.links, [hash]: link }
+  const links = { ...graph.links, [hash]: link }
 
   // add encrypted link
 
   const authorPublicKey = user.keys.encryption.publicKey
   const encryptedLink: EncryptedLink = { authorPublicKey, encryptedBody }
-  const encryptedLinks = { ...chain.encryptedLinks, [hash]: encryptedLink }
+  const encryptedLinks = { ...graph.encryptedLinks, [hash]: encryptedLink }
 
-  // return new chain
+  // return new graph
 
-  const root = chain.root ?? hash // if the chain didn't already have a root, this is it
+  const root = graph.root ?? hash // if the graph didn't already have a root, this is it
   const head = [hash]
   return { root, head, encryptedLinks, links } as HashGraph<A, C>
 }
