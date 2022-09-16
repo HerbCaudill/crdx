@@ -15,11 +15,11 @@ export const decryptLink = <A extends Action, C>(
     cipher: encryptedBody,
     recipientSecretKey: graphKeys.encryption.secretKey,
     senderPublicKey: authorPublicKey,
-  })
+  }) as LinkBody<A, C>
 
   return {
     hash: hashLink(encryptedBody),
-    body: JSON.parse(decryptedLinkBody) as LinkBody<A, C>,
+    body: decryptedLinkBody,
   }
 }
 
