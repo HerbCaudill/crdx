@@ -11,11 +11,14 @@ export const decryptLink = <A extends Action, C>(
   graphKeys: KeysetWithSecrets
 ): Link<A, C> => {
   const { authorPublicKey, encryptedBody } = encryptedLink
-  const decryptedLinkBody = asymmetric.decrypt({
+  var decryptedLinkBody = asymmetric.decrypt({
     cipher: encryptedBody,
     recipientSecretKey: graphKeys.encryption.secretKey,
     senderPublicKey: authorPublicKey,
   }) as LinkBody<A, C>
+
+  // HACK figure out why we'd be getting a string here
+  if (typeof decryptedLinkBody === 'string') console.error({ decryptedLinkBody }) // decryptedLinkBody = JSON.parse(decryptedLinkBody) //
 
   return {
     hash: hashLink(encryptedBody),
