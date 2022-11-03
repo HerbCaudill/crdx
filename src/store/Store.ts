@@ -75,7 +75,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   /** Returns a the current hash graph in serialized form; this can be used to rehydrate this
    * store from storage. */
   public save() {
-    // remove plaintext  links from graph
+    // remove plaintext links from graph
     const { links, ...redactedGraph } = this.graph
 
     return serialize(redactedGraph as HashGraph<A, C>)
