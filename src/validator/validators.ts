@@ -43,6 +43,8 @@ const _validators: ValidatorSet = {
     return fail(message, { link, graph })
   },
 
+  /** Sanity check on timestamps: They can't be in the future, relative to the current time on this
+   * device. And they can't be earlier than any links they depend on. */
   validateTimestamps: (link, graph) => {
     const { timestamp } = link.body
 
