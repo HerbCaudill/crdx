@@ -3,18 +3,17 @@ import { StoreOptions } from './StoreOptions'
 import { Reducer } from './types'
 import {
   Action,
-  baseResolver,
   append,
+  baseResolver,
   createGraph,
   deserialize,
   getHead,
   getSequence,
+  HashGraph,
   merge,
   Resolver,
   serialize,
-  HashGraph,
 } from '/graph'
-import { decryptGraph } from '/graph/decrypt'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { Optional } from '/util'
@@ -93,7 +92,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * serializable so you can record and replay user sessions. An action must have a `type` property
    * which may not be `undefined`. It is a good idea to use string constants for action types.
    *
-   * @returns For convenience, the same action object you dispatched.
+   * @returns For convenience, the same action object that was dispatched.
    */
   public dispatch(action: Optional<A, 'payload'>) {
     // equip the action with an empty payload if it doesn't have one
