@@ -1,6 +1,6 @@
-import { getLink, getParents } from './graph'
-import { Action, LinkMap, HashGraph } from './types'
-import { Hash, truncateHashes } from '/util'
+import { getHashes, getParents } from './graph'
+import { Action, HashGraph, LinkMap } from './types'
+import { Hash } from '/util'
 
 export const EMPTY: LinkMap = {}
 
@@ -27,7 +27,7 @@ export const EMPTY: LinkMap = {}
  * each other figure out the most recent links they have in common.
  *
  */
-export const getLinkMap = <A extends Action, C>({
+export const getParentMap = <A extends Action, C>({
   graph,
   depth,
   start = graph.head,
@@ -41,8 +41,7 @@ export const getLinkMap = <A extends Action, C>({
   /**
    * How many levels back we want to go in the graph. If omitted, we'll get a map covering the whole
    * graph (up to `end`). The actual number of links we'll collect depends on how much branching
-   * there is. If not provided, there is no depth limit.
-   */
+   * there is. If not provided, there is no depth limit. */
   depth?: number
 
   /** The link(s) we want to start with — e.g. the "most recent" links to work back from.  */
@@ -55,8 +54,7 @@ export const getLinkMap = <A extends Action, C>({
 
   /**
    * If we're not able to find a common ancestor with the recent links we were given, we'll ask to
-   * go back further. In that case we provide the last result we got, and pick up from there.
-   */
+   * go back further. In that case we provide the last result we got, and pick up from there.    */
   prev?: LinkMap
 
   hashes?: Hash[]
@@ -87,7 +85,7 @@ export const getLinkMap = <A extends Action, C>({
       .filter(parent => !(parent in result)) // don't look up parents we've already seen
       .filter(parent => !end.includes(parent)) // don't go past the `end` links
 
-    const parentLinks = getLinkMap({
+    const parentLinks = getParentMap({
       graph,
       depth: depth ? depth - 1 : undefined,
       start: parentsToLookup,
@@ -117,4 +115,15 @@ export const isComplete = (linkMap: LinkMap) => {
   const allDependencies = Object.values(linkMap).flat()
   const isMissing = (hash: Hash) => !(hash in linkMap)
   return !allDependencies.some(isMissing)
+}
+
+export const getChildMap = <A extends Action, C>(graph: HashGraph<A, C>): LinkMap => {
+  const childMap = {} as LinkMap
+  getHashes(graph).forEach(hash =>
+    getParents(graph, hash).forEach(parent => {
+      if (!childMap[parent]) childMap[parent] = []
+      childMap[parent].push(hash)
+    })
+  )
+  return childMap
 }
