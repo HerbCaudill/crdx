@@ -1,5 +1,5 @@
 import { getLink, HashGraph } from '/graph'
-import { getParentMap } from '/graph/linkMap'
+import { getParentMap } from '../../graph/getParentMap'
 import { buildGraph, findByPayload } from '/test/util/graph'
 import { Hash } from '/util'
 
