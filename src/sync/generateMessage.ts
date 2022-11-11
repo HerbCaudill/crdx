@@ -3,7 +3,7 @@ import {
   Action,
   getEncryptedLinks,
   getHashes,
-  getLinkMap,
+  getParentMap,
   getPredecessorHashes,
   headsAreEqual,
   HashGraph,
@@ -105,7 +105,7 @@ export const generateMessage = <A extends Action, C>(
     // If our head has changed since last time we sent them a linkMap,
     if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
       // send a new linkMap with everything that's happened since then
-      message.linkMap = getLinkMap({ graph, end: lastCommonHead })
+      message.linkMap = getParentMap({ graph, end: lastCommonHead })
       state.our.linkMapAtHead = ourHead
     }
   }
@@ -118,7 +118,7 @@ export const generateMessage = <A extends Action, C>(
     // look up the encrypted links
     message.links = getEncryptedLinks(graph, hashesToSend)
     // add dependency info for links we send
-    const additionalDependencies = getLinkMap({ graph, hashes: hashesToSend })
+    const additionalDependencies = getParentMap({ graph, hashes: hashesToSend })
     message.linkMap = { ...message.linkMap, ...additionalDependencies }
   }
 
