@@ -3,7 +3,7 @@ import { SyncState } from './types'
 export const initSyncState = (): SyncState => ({
   their: {
     head: [],
-    links: {},
+    encryptedLinks: {},
     need: [],
   },
 

@@ -23,6 +23,7 @@ export const validate = <A extends Action, C>(
     if (computedHash !== rootHash)
       return fail('Root hash does not match the hash of the root link', { rootHash, computedHash, rootLink })
   }
+
   // Confirm that each head hash matches the computed hash of the head link
   for (const headHash of graph.head) {
     const headLink = graph.encryptedLinks[headHash]
@@ -30,6 +31,12 @@ export const validate = <A extends Action, C>(
     if (computedHash !== headHash)
       return fail('Head hash does not match the hash of the head link', { headHash, computedHash, headLink })
   }
+
+  // Confirm that there is an encrypted link for each link in the graph and vice versa
+  const encryptedLinkHashes = Object.keys(graph.encryptedLinks)
+  const linkHashes = Object.keys(graph.links)
+  if (encryptedLinkHashes.length !== linkHashes.length)
+    return fail('Number of encrypted links does not match number of links', { encryptedLinkHashes, linkHashes })
 
   // Returns a single reducer function that runs all validators.
   const composeValidators =

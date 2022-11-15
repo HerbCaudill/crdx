@@ -48,7 +48,10 @@ export type EncryptedLink = {
    * Public key of the author of the link, at the time of authoring. After decryption, it is up to
    * the application to ensure that this is in fact the public key of the author (`link.body.user`).
    */
-  authorPublicKey: Base58
+  senderPublicKey: Base58
+
+  /** TODO */
+  recipientPublicKey: Base58
 
   /**
    * The body of the link, encrypted asymmetrically with authentication (using libsodium's

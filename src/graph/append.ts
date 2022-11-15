@@ -18,8 +18,8 @@ interface AppendParams<A extends Action, C> {
   /** Any additional context provided by the application. */
   context?: C
 
-  /** Keyset used to encrypt & decrypt the graph. */
-  graphKeys: KeysetWithSecrets
+  /** Keyset used to encrypt & decrypt the link. */
+  keys: KeysetWithSecrets
 }
 
 export const append = <A extends Action, C>({
@@ -27,45 +27,62 @@ export const append = <A extends Action, C>({
   action,
   user,
   context = {} as C,
-  graphKeys,
+  keys,
 }: AppendParams<A, C>): HashGraph<A, C> => {
-  // create (unencrypted) body
+  // the "sender" of this encrypted link is the user authoring the link
+  const { publicKey: senderPublicKey, secretKey: senderSecretKey } = user.keys.encryption
 
-  const body = {
+  // the "recipient" of this encrypted link is whoever knows the secret keys - e.g. in localfirst/auth, the current Team keys
+  const { publicKey: recipientPublicKey } = keys.encryption
+
+  // create unencrypted body
+  const body: LinkBody<A, C> = {
     ...action,
+    ...context,
     userId: user.userId,
     timestamp: new Date().getTime(),
-    ...context,
-  } as LinkBody<A, C>
-
-  // link to previous head(s). If there are no previous heads, this is the root node.
-  body.prev = graph.head ?? []
+    prev: graph.head ?? [], // If there are no previous heads, this is the root node
+  }
 
   // create encrypted body
-
   const encryptedBody = asymmetric.encrypt({
     secret: body,
-    recipientPublicKey: graphKeys.encryption.publicKey,
-    senderSecretKey: user.keys.encryption.secretKey,
+    recipientPublicKey,
+    senderSecretKey,
   })
 
   // the link's hash is calculated over the encrypted body
   const hash = hashLink(encryptedBody)
 
-  // add (unencrypted) link
-
-  const link: Link<A, C> = { body, hash }
-  const links = { ...graph.links, [hash]: link }
-
-  // add encrypted link
-
-  const authorPublicKey = user.keys.encryption.publicKey
-  const encryptedLink: EncryptedLink = { authorPublicKey, encryptedBody }
-  const encryptedLinks = { ...graph.encryptedLinks, [hash]: encryptedLink }
+  // create the encrypted and unencrypted links
+  const link: Link<A, C> = {
+    hash,
+    body,
+  }
+  const encryptedLink: EncryptedLink = {
+    senderPublicKey,
+    recipientPublicKey,
+    encryptedBody,
+  }
 
   // return new graph
+  return {
+    // if the graph didn't already have a root, this is it
+    root: graph.root ?? hash,
 
-  const root = graph.root ?? hash // if the graph didn't already have a root, this is it
-  const head = [hash]
-  return { root, head, encryptedLinks, links } as HashGraph<A, C>
+    // we just added the new head, so we're guaranteed to only have one
+    head: [hash],
+
+    // add the new encryptedLink
+    encryptedLinks: {
+      ...graph.encryptedLinks,
+      [hash]: encryptedLink,
+    },
+
+    // add the new unencrypted link
+    links: {
+      ...graph.links,
+      [hash]: link,
+    },
+  }
 }

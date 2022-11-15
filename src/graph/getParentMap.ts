@@ -127,3 +127,14 @@ export const getChildMap = <A extends Action, C>(graph: HashGraph<A, C>): LinkMa
   )
   return childMap
 }
+
+export const invertLinkMap = (linkMap: LinkMap): LinkMap => {
+  const inverted = {} as LinkMap
+  Object.keys(linkMap).forEach(hash => {
+    linkMap[hash].forEach(parent => {
+      if (!inverted[parent]) inverted[parent] = []
+      inverted[parent].push(hash)
+    })
+  })
+  return inverted
+}

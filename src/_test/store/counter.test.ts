@@ -1,7 +1,7 @@
 import { createGraph, getRoot, RootAction } from '/graph'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
-import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { createUser } from '/user'
 
 /*
@@ -13,11 +13,11 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupCounter = () => {
-  const graph = createGraph<CounterAction>({ user: alice, name: 'counter', graphKeys })
-  const aliceStore = createStore({ user: alice, graph, reducer: counterReducer, graphKeys })
+  const graph = createGraph<CounterAction>({ user: alice, name: 'counter', keys })
+  const aliceStore = createStore({ user: alice, graph, reducer: counterReducer, keys })
 
   const saved = aliceStore.getGraph()
-  const bobStore = createStore({ user: bob, graph: saved, reducer: counterReducer, graphKeys })
+  const bobStore = createStore({ user: bob, graph: saved, reducer: counterReducer, keys })
 
   return { store: aliceStore, aliceStore, bobStore }
 }

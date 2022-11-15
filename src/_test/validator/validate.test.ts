@@ -2,7 +2,7 @@
 import { buildGraph } from '/test/util/graph'
 import { append, createGraph, getHead, getLink, getRoot } from '/graph'
 import { hashLink } from '/graph/hashLink'
-import { setup, TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { validate } from '/validator/validate'
 import '/test/util/expect/toBeValid'
 
@@ -15,14 +15,14 @@ describe('graphs', () => {
   describe('validation', () => {
     describe('valid graphs', () => {
       test(`new graph`, () => {
-        const graph = createGraph({ user: alice, name: 'Spies Я Us', graphKeys })
+        const graph = createGraph({ user: alice, name: 'Spies Я Us', keys })
         expect(validate(graph)).toBeValid()
       })
 
       test(`new graph with one additional link`, () => {
-        const graph = createGraph({ user: alice, name: 'Spies Я Us', graphKeys })
+        const graph = createGraph({ user: alice, name: 'Spies Я Us', keys })
         const newLink = { type: 'FOO', payload: { name: 'charlie' } }
-        const newGraph = append({ graph, action: newLink, user: alice, graphKeys })
+        const newGraph = append({ graph, action: newLink, user: alice, keys })
         expect(validate(newGraph)).toBeValid()
       })
     })
@@ -80,10 +80,10 @@ describe('graphs', () => {
         graph.encryptedLinks[graph.root] = {
           encryptedBody: asymmetric.encrypt({
             secret: rootLink.body,
-            recipientPublicKey: graphKeys.encryption.publicKey,
+            recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
-          authorPublicKey: eve.keys.encryption.publicKey,
+          senderPublicKey: eve.keys.encryption.publicKey,
         }
 
         // 👩🏾 Alice is not fooled, because the root hash no longer matches the computed hash of the root link
@@ -102,7 +102,7 @@ describe('graphs', () => {
         // 🦹‍♀️ She reencrypts the link with her private key
         const encryptedBody = asymmetric.encrypt({
           secret: rootLink.body,
-          recipientPublicKey: graphKeys.encryption.publicKey,
+          recipientPublicKey: keys.encryption.publicKey,
           senderSecretKey: eve.keys.encryption.secretKey,
         })
 
@@ -117,7 +117,7 @@ describe('graphs', () => {
         // 🦹‍♀️  She adds the tampered root
         graph.encryptedLinks[newRootHash] = {
           encryptedBody,
-          authorPublicKey: eve.keys.encryption.publicKey,
+          senderPublicKey: eve.keys.encryption.publicKey,
         }
         graph.links[newRootHash] = rootLink
 
@@ -139,10 +139,10 @@ describe('graphs', () => {
         graph.encryptedLinks[headHash] = {
           encryptedBody: asymmetric.encrypt({
             secret: headLink.body,
-            recipientPublicKey: graphKeys.encryption.publicKey,
+            recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
-          authorPublicKey: eve.keys.encryption.publicKey,
+          senderPublicKey: eve.keys.encryption.publicKey,
         }
 
         // 👩🏾 Alice is not fooled, because the head hash no longer matches the computed hash of the head link
@@ -162,10 +162,10 @@ describe('graphs', () => {
         graph.encryptedLinks[linkHash] = {
           encryptedBody: asymmetric.encrypt({
             secret: link.body,
-            recipientPublicKey: graphKeys.encryption.publicKey,
+            recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
-          authorPublicKey: eve.keys.encryption.publicKey,
+          senderPublicKey: eve.keys.encryption.publicKey,
         }
 
         // 👩🏾 Alice is not fooled, because the link's hash no longer matches the computed hash of the head link
@@ -179,7 +179,7 @@ describe('graphs', () => {
         // 🦹‍♀️ Eve sets her system clock back when appending a link
         const now = Date.now()
         setSystemTime(IN_THE_PAST)
-        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, graphKeys })
+        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, keys })
         setSystemTime(now)
 
         expect(validate(graph2)).not.toBeValid(`timestamp can't be earlier than a previous link`)
@@ -192,7 +192,7 @@ describe('graphs', () => {
         // 🦹‍♀️ Eve sets her system clock forward when appending a link
         const now = Date.now()
         setSystemTime(IN_THE_FUTURE)
-        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, graphKeys })
+        const graph2 = append({ graph, action: { type: 'FOO', payload: 'pizza' }, user: eve, keys })
         setSystemTime(now)
 
         expect(validate(graph2)).not.toBeValid(`timestamp is in the future`)

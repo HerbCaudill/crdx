@@ -1,24 +1,23 @@
 import { asymmetric } from '@herbcaudill/crypto'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, Link, LinkBody, HashGraph, EncryptedHashGraph } from './types'
+import { Action, EncryptedLink, Link, LinkBody, HashGraph, EncryptedHashGraph, LinkMap } from './types'
 import { KeysetWithSecrets } from '/keyset'
+import { Hash } from '/util'
 
 /**
  * Decrypts a single link of a graph, given the graph keys at the time the link was authored.
  */
-export const decryptLink = <A extends Action, C>(
-  encryptedLink: EncryptedLink,
-  graphKeys: KeysetWithSecrets
-): Link<A, C> => {
-  const { authorPublicKey, encryptedBody } = encryptedLink
+export const decryptLink = <A extends Action, C>(encryptedLink: EncryptedLink, keys: KeysetWithSecrets): Link<A, C> => {
+  const { senderPublicKey: authorPublicKey, encryptedBody } = encryptedLink
   var decryptedLinkBody = asymmetric.decrypt({
     cipher: encryptedBody,
-    recipientSecretKey: graphKeys.encryption.secretKey,
+    recipientSecretKey: keys.encryption.secretKey,
     senderPublicKey: authorPublicKey,
   }) as LinkBody<A, C>
 
-  // HACK figure out why we'd be getting a string here
-  if (typeof decryptedLinkBody === 'string') console.error({ decryptedLinkBody }) // decryptedLinkBody = JSON.parse(decryptedLinkBody) //
+  // HACK figure out why we'd be getting a JSON string here
+  if (typeof decryptedLinkBody === 'string') decryptedLinkBody = JSON.parse(decryptedLinkBody)
+  // if (typeof decryptedLinkBody === 'string') console.error({ decryptedLinkBody })
 
   return {
     hash: hashLink(encryptedBody),
@@ -32,25 +31,50 @@ export const decryptLink = <A extends Action, C>(
  * **Note:** Applications that encode key rotations on the graph (like lf/auth) will need to
  * implement their own version of `decryptGraph` that reduces as it goes along, so that it can
  * determine the correct keyset to use for each link.  */
-export const decryptGraph = <A extends Action, C>(
-  graph: EncryptedHashGraph | HashGraph<A, C>,
-  graphKeys: KeysetWithSecrets
-): HashGraph<A, C> => {
-  const { encryptedLinks, links = {} } = graph as HashGraph<A, C>
-  const decryptedLinks = {} as Record<string, Link<A, C>>
+export const decryptGraph = <A extends Action, C>({
+  encryptedGraph,
+  keys,
+  childMap,
+}: {
+  encryptedGraph: EncryptedHashGraph | HashGraph<A, C>
+  keys: KeysetWithSecrets
+  childMap: LinkMap
+}): HashGraph<A, C> => {
+  const { encryptedLinks, root } = encryptedGraph
 
-  for (const hash in encryptedLinks) {
-    if (!(hash in links)) {
-      const link = decryptLink<A, C>(encryptedLinks[hash], graphKeys)
-      decryptedLinks[hash] = link
+  /** Recursively decrypts a link and its children. */
+  const decrypt = (
+    hash: Hash,
+    prevKeys: KeysetWithSecrets,
+    prevDecryptedLinks: Record<Hash, Link<A, C>> = {}
+  ): Record<Hash, Link<A, C>> => {
+    // decrypt this link
+    const encryptedLink = encryptedLinks[hash]!
+    const decryptedLink = decryptLink<A, C>(encryptedLink, prevKeys)
+    var decryptedLinks = {
+      [hash]: decryptedLink,
     }
+
+    // // reduce & get new team keys
+    // const newState = reducer(prevState, decryptedLink)
+    // const newKeys = keys(newState, deviceKeys, TEAM_SCOPE)
+
+    // decrypt its children
+    const children = childMap[hash]
+
+    if (children) {
+      children.forEach(hash => {
+        decryptedLinks = { ...decryptedLinks, ...decrypt(hash, keys, decryptedLinks) }
+      })
+    }
+
+    return { ...prevDecryptedLinks, ...decryptedLinks }
   }
 
+  const decryptedLinks = decrypt(root, keys)
+
   return {
-    ...graph,
-    links: {
-      ...links,
-      ...decryptedLinks,
-    },
+    ...encryptedGraph,
+    links: decryptedLinks,
   }
 }

@@ -14,9 +14,9 @@ import {
   Resolver,
   serialize,
 } from '/graph'
-import { KeysetWithSecrets } from '/keyset'
+import { isKeyring, Keyring, Keyset, KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
-import { Optional } from '/util'
+import { assert, Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
 
 /**
@@ -36,18 +36,23 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     reducer,
     validators,
     resolver = baseResolver,
-    graphKeys,
+    keys,
+    keyring: graphKeyring,
   }: StoreOptions<S, A, C>) {
     super()
 
-    this.graph = !graph
-      ? // no graph provided, create one
-        createGraph({ user, rootPayload, graphKeys })
-      : typeof graph === 'string'
-      ? // serialized graph provided, deserialize it
-        deserialize(graph, graphKeys)
-      : // graph provided, use it
-        graph
+    if (graph === undefined) {
+      // no graph provided, so we'll create a new one
+      assert(keys)
+      this.graph = createGraph({ user, rootPayload, keys })
+    } else if (typeof graph === 'string') {
+      // serialized graph was provided, so deserialize it
+      assert(keys)
+      this.graph = deserialize(graph, keys)
+    } else {
+      // graph provided
+      this.graph = graph
+    }
 
     this.context = context
     this.initialState = initialState
@@ -55,7 +60,13 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.validators = validators
     this.resolver = resolver
     this.user = user
-    this.graphKeys = graphKeys
+
+    // either a keyring or a single (root) keyset was provided
+    // if a keyset was provided, wrap it in a keyring
+    this.graphKeyring =
+      graphKeyring !== undefined //
+        ? graphKeyring
+        : { [keys.encryption.publicKey]: keys }
 
     // set the initial state
     this.updateState()
@@ -71,13 +82,12 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     return this.graph
   }
 
-  /** Returns a the current hash graph in serialized form; this can be used to rehydrate this
-   * store from storage. */
+  /**
+   * Returns the current hash graph in serialized form; this can be used to rehydrate this
+   * store from storage.
+   * */
   public save() {
-    // remove plaintext links from graph
-    const { links, ...redactedGraph } = this.graph
-
-    return serialize(redactedGraph as HashGraph<A, C>)
+    return serialize(this.graph)
   }
 
   /**
@@ -88,22 +98,44 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * and the given `action`. Its return value will be considered the **next** state of the tree,
    * and any change listeners will be notified.
    *
-   * @param action A plain object representing what changed. It is a good idea to keep actions
-   * serializable so you can record and replay user sessions. An action must have a `type` property
-   * which may not be `undefined`. It is a good idea to use string constants for action types.
-   *
    * @returns For convenience, the same action object that was dispatched.
    */
-  public dispatch(action: Optional<A, 'payload'>) {
+  public dispatch(
+    /**
+     * A Redux-style plain object representing what changed. An action must have a `type` property
+     * which may not be `undefined`. It is a good idea to use string constants for action types.
+     */
+    action: Optional<A, 'payload'>,
+
+    /**
+     * Keys used to encrypt the action's payload. If not provided, the action will be encrypted
+     * using the same keys as the previous action.
+     */
+    keys?: KeysetWithSecrets
+  ) {
     // equip the action with an empty payload if it doesn't have one
-    const actionWithPayload = { payload: undefined, ...action } as A
+    const actionWithPayload = {
+      payload: undefined,
+      ...action,
+    } as A
+
+    if (keys === undefined) {
+      // no keys provided, so use the last keys we used
+      // TODO: if there are multiple heads, we'll have a bunch of edge cases to sort out. For now just picking the first one.
+      const lastHash = this.graph.head[0]
+      const lastPublicKey = this.graph.encryptedLinks[lastHash].recipientPublicKey
+      keys = this.graphKeyring[lastPublicKey]
+    } else {
+      // record this key in our keyring
+      this.graphKeyring[keys.encryption.publicKey] = keys
+    }
 
     // append this action as a new link to the graph
     this.graph = append({
       graph: this.graph,
       action: actionWithPayload,
       user: this.user,
-      graphKeys: this.graphKeys,
+      keys,
     })
 
     // get the newly appended link (at this point we're guaranteed a single head, which is the one we appended)
@@ -153,7 +185,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private resolver: Resolver<A, C>
   private validators?: ValidatorSet
 
-  private graphKeys: KeysetWithSecrets
+  private graphKeyring: Keyring
 
   private graph: HashGraph<A, C>
   private state: S

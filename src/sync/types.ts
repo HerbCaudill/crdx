@@ -8,7 +8,7 @@ export interface SyncState {
     head: Hash[]
 
     /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
-    links: Record<Hash, EncryptedLink>
+    encryptedLinks: Record<Hash, EncryptedLink>
 
     /** The map of hashes they've sent. */
     linkMap?: LinkMap

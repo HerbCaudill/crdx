@@ -30,7 +30,7 @@ interface CreateGraphParams<C = {}> {
   context?: C
 
   /** Keyset used to encrypt & decrypt the graph. */
-  graphKeys: KeysetWithSecrets
+  keys: KeysetWithSecrets
 }
 
 export const createGraph = <A extends Action, C = {}>({
@@ -39,7 +39,7 @@ export const createGraph = <A extends Action, C = {}>({
   name = id,
   rootPayload = {},
   context = {} as C,
-  graphKeys,
+  keys,
 }: CreateGraphParams<C>) => {
   const rootAction = {
     type: ROOT,
@@ -55,7 +55,7 @@ export const createGraph = <A extends Action, C = {}>({
     action: rootAction,
     user,
     context,
-    graphKeys,
+    keys,
   })
   return graph as HashGraph<A, C>
 }

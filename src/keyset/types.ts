@@ -1,14 +1,14 @@
 ﻿import { Base58, Base58Keypair } from '@herbcaudill/crypto'
 
-export const GRAPH = 'GRAPH'
-export const TEAM = 'TEAM'
-export const ROLE = 'ROLE'
-export const USER = 'USER'
-export const DEVICE = 'DEVICE'
-export const EPHEMERAL = 'EPHEMERAL'
-
 // avoiding enums https://maxheiber.medium.com/alternatives-to-typescript-enums-50e4c16600b1
-export const KeyType = { GRAPH, TEAM, ROLE, USER, DEVICE, EPHEMERAL } as const
+export const KeyType = {
+  GRAPH: 'GRAPH',
+  TEAM: 'TEAM',
+  ROLE: 'ROLE',
+  USER: 'USER',
+  DEVICE: 'DEVICE',
+  EPHEMERAL: 'EPHEMERAL',
+} as const
 export type KeyType = typeof KeyType[keyof typeof KeyType]
 
 /**
@@ -25,23 +25,38 @@ export interface KeyMetadata extends KeyScope {
   generation: number
 }
 
-export interface Keyset extends KeyMetadata {
-  encryption: Base58 // = encryption.publicKey
-  signature: Base58 // = signature.publicKey
-}
-
+/**
+ * A Keyset contains one secret key for symmetric encryption, as well as two keypairs, for
+ * asymmetric encryption and signatures, respectively
+ * */
 export interface KeysetWithSecrets extends KeyMetadata {
   secretKey: Base58 // for symmetric encryption
   encryption: Base58Keypair // for asymmetric encryption
   signature: Base58Keypair
 }
 
-// type guard: Keyset vs KeysetWithSecrets
+/** A Keyset contains the public encryption and signature keys from a KeysetWithSecrets */
+export interface Keyset extends KeyMetadata {
+  encryption: Base58 // = encryption.publicKey
+  signature: Base58 // = signature.publicKey
+}
+
+/** Type guard: Keyset vs KeysetWithSecrets  */
 export const hasSecrets = (keys: Keyset | KeysetWithSecrets): keys is KeysetWithSecrets =>
   keys.encryption.hasOwnProperty('secretKey') && keys.signature.hasOwnProperty('secretKey') && 'secretKey' in keys
 
-// type guard: KeysetWithSecrets vs. KeyScope
-export const isKeyset = (k: KeysetWithSecrets | KeyScope): k is KeysetWithSecrets =>
-  'secretKey' in k && //
+/** Type guard: KeysetWithSecrets vs anything else */
+export const isKeyset = (k: Object): k is KeysetWithSecrets =>
+  k !== undefined && //
+  'secretKey' in k &&
   'encryption' in k &&
   'signature' in k
+
+/**
+ * A Keyring is a dictionary of keysets (including secrets), indexed by the public part of the
+ * assymetric encryption key
+ * */
+export type Keyring = Record<string, KeysetWithSecrets>
+
+/** Type guard: Keyring vs KeysetWithSecrets  */
+export const isKeyring = (k: Keyring | KeysetWithSecrets): k is Keyring => !isKeyset(k)

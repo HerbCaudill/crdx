@@ -1,14 +1,27 @@
+import { base58 } from '@herbcaudill/crypto'
 import { decryptGraph } from './decrypt'
-import { Action, EncryptedHashGraph, HashGraph } from './types'
+import { getChildMap } from './getParentMap'
+import { Action, EncryptedHashGraph, HashGraph, LinkMap } from './types'
 import { KeysetWithSecrets } from '/keyset'
+import msgpack from 'msgpack-lite'
 
 export const serialize = <A extends Action, C>(graph: HashGraph<A, C>) => {
-  const { root, head, encryptedLinks } = graph
-  const encryptedGraph = { root, head, encryptedLinks } as EncryptedHashGraph
-  return JSON.stringify(encryptedGraph)
+  // only persist the encrypted links
+  const { links, ...encryptedGraph } = graph
+
+  // to decrypt the graph, we'll need to know its dependency structure
+  const childMap = getChildMap(graph)
+
+  return base58.encode(msgpack.encode({ childMap, encryptedGraph }))
 }
 
-export const deserialize = <A extends Action, C>(serialized: string, graphKeys: KeysetWithSecrets): HashGraph<A, C> => {
-  const encryptedGraph = JSON.parse(serialized) as EncryptedHashGraph
-  return decryptGraph(encryptedGraph, graphKeys)
+export const deserialize = <A extends Action, C>(serialized: string, keys: KeysetWithSecrets): HashGraph<A, C> => {
+  const deserialized = msgpack.decode(base58.decode(serialized))
+
+  const { encryptedGraph, childMap } = deserialized as {
+    encryptedGraph: EncryptedHashGraph
+    childMap: LinkMap
+  }
+
+  return decryptGraph({ encryptedGraph, keys, childMap })
 }

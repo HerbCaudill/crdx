@@ -2,7 +2,7 @@ import { makeRandom } from '@herbcaudill/random'
 import { createGraph, RootAction } from '/graph'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
-import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { createUser } from '/user'
 import { arrayToMap } from '/util'
 
@@ -18,15 +18,15 @@ const alice = createUser('alice', 'alice')
 const bob = createUser('bob', 'bob')
 
 const setupScrabbleAttacks = () => {
-  const graph = createGraph<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', graphKeys })
+  const graph = createGraph<ScrabbleAttacksAction>({ user: alice, name: 'scrabble', keys })
   const reducer = scrabbleAttacksReducer
 
   // Alice starts a game and adds Bob as a player
-  const aliceStore = createStore({ user: alice, graph, reducer, graphKeys })
+  const aliceStore = createStore({ user: alice, graph, reducer, keys })
   aliceStore.dispatch({ type: 'ADD_PLAYER', payload: { userId: 'bob' } })
 
   // Bob starts with a copy of Alice's graph
-  const bobStore = createStore({ user: bob, graph: aliceStore.getGraph(), reducer, graphKeys })
+  const bobStore = createStore({ user: bob, graph: aliceStore.getGraph(), reducer, keys })
 
   // To sync, each merges their graph with the other's
   const sync = () => {

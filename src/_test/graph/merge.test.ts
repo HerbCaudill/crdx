@@ -1,7 +1,7 @@
 import clone from 'lodash/clone'
 import { append, createGraph, merge } from '/graph'
 import '/test/util/expect/toBeValid'
-import { setup, TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 
 const { alice, bob } = setup('alice', 'bob')
 const defaultUser = alice
@@ -12,7 +12,7 @@ describe('graphs', () => {
   describe('merge', () => {
     test('no changes', () => {
       // 👩🏾 Alice creates a graph and shares it with Bob
-      const aliceGraph = createGraph({ user: defaultUser, name: 'a', graphKeys })
+      const aliceGraph = createGraph({ user: defaultUser, name: 'a', keys })
       const bobGraph = clone(aliceGraph)
 
       // 👩🏾👨🏻‍🦲 after a while they sync back up
@@ -27,7 +27,7 @@ describe('graphs', () => {
 
     test('edits on one side', () => {
       // 👩🏾 Alice creates a graph and shares it with Bob
-      const graph = createGraph({ user: defaultUser, name: 'a', graphKeys })
+      const graph = createGraph({ user: defaultUser, name: 'a', keys })
       const bobGraph = clone(graph)
 
       // 👩🏾 Alice makes edits
@@ -35,7 +35,7 @@ describe('graphs', () => {
         graph,
         action: { type: 'FOO', payload: 'doin stuff' },
         user: alice,
-        graphKeys,
+        keys,
       })
 
       // 👨🏻‍🦲 Bob doesn't make any changes
@@ -56,7 +56,7 @@ describe('graphs', () => {
 
     test('concurrent edits', () => {
       // 👩🏾 Alice creates a graph and shares it with Bob
-      const aliceGraph = createGraph({ user: alice, name: 'a', graphKeys })
+      const aliceGraph = createGraph({ user: alice, name: 'a', keys })
       const bobGraph = { ...aliceGraph }
 
       // 👩🏾 Alice makes changes while disconnected
@@ -64,17 +64,17 @@ describe('graphs', () => {
         graph: aliceGraph,
         action: { type: 'FOO', payload: 'alice 1' },
         user: alice,
-        graphKeys,
+        keys,
       })
       const aliceBranch2 = append({
         graph: aliceBranch1,
         action: { type: 'FOO', payload: 'alice 2' },
         user: alice,
-        graphKeys,
+        keys,
       })
 
       // 👨🏻‍🦲 Bob makes changes while disconnected
-      const bobBranch = append({ graph: bobGraph, action: { type: 'FOO', payload: 'bob' }, user: bob, graphKeys })
+      const bobBranch = append({ graph: bobGraph, action: { type: 'FOO', payload: 'bob' }, user: bob, keys })
 
       // 👩🏾👨🏻‍🦲 They sync back up
       const aliceMerged = merge(aliceBranch2, bobBranch)
@@ -92,8 +92,8 @@ describe('graphs', () => {
     })
 
     test(`can't merge graphs with different roots`, () => {
-      const aliceGraph = createGraph({ user: alice, name: 'a', graphKeys })
-      const bobGraph = createGraph({ user: bob, name: 'b', graphKeys })
+      const aliceGraph = createGraph({ user: alice, name: 'a', keys })
+      const bobGraph = createGraph({ user: bob, name: 'b', keys })
 
       // nope
       const tryToMerge = () => merge(aliceGraph, bobGraph)

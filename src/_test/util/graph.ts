@@ -3,7 +3,7 @@ import { createGraph } from '/graph/createGraph'
 import { merge } from '/graph/merge'
 import { Action, Link, LinkBody, HashGraph } from '/graph/types'
 import { KeysetWithSecrets } from '/keyset'
-import { setup, TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 
 const { alice } = setup('alice')
 
@@ -25,19 +25,19 @@ export const byPayload = (a: Link<XAction, any>, b: Link<XAction, any>) => {
 }
 
 export const buildGraph = (type: string) => {
-  let root = createGraph<XAction>({ user: alice, name: 'root', graphKeys })
+  let root = createGraph<XAction>({ user: alice, name: 'root', keys })
   switch (trim(type)) {
     // one link
     case 'a': {
-      let a = appendLink(root, 'a', graphKeys)
+      let a = appendLink(root, 'a', keys)
       return a
     }
 
     // no branches
     case trim(`a ─ b ─ c`): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
       return c
     }
 
@@ -47,9 +47,9 @@ export const buildGraph = (type: string) => {
          a ─┤
             └─ c
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(a, 'c', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(a, 'c', keys)
       return merge(b, c)
     }
 
@@ -60,11 +60,11 @@ export const buildGraph = (type: string) => {
             └─── d ───┘
 
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
-      let d = appendLink(a, 'd', graphKeys)
-      let e = appendLink(merge(c, d), 'e', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
+      let d = appendLink(a, 'd', keys)
+      let e = appendLink(merge(c, d), 'e', keys)
       return e
     }
 
@@ -75,15 +75,15 @@ export const buildGraph = (type: string) => {
             └─── d ───┘     └─── h ───┘
 
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
-      let d = appendLink(a, 'd', graphKeys)
-      let e = appendLink(merge(c, d), 'e', graphKeys)
-      let f = appendLink(e, 'f', graphKeys)
-      let g = appendLink(f, 'g', graphKeys)
-      let h = appendLink(e, 'h', graphKeys)
-      let i = appendLink(merge(g, h), 'i', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
+      let d = appendLink(a, 'd', keys)
+      let e = appendLink(merge(c, d), 'e', keys)
+      let f = appendLink(e, 'f', keys)
+      let g = appendLink(f, 'g', keys)
+      let h = appendLink(e, 'h', keys)
+      let i = appendLink(merge(g, h), 'i', keys)
       return i
     }
 
@@ -95,25 +95,25 @@ export const buildGraph = (type: string) => {
                 ├──── h ──── i ─────┘     │
                 └───── j ─── k ── l ──────┘
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
-      let d = appendLink(c, 'd', graphKeys)
-      let e = appendLink(d, 'e', graphKeys)
-      let g = appendLink(e, 'g', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
+      let d = appendLink(c, 'd', keys)
+      let e = appendLink(d, 'e', keys)
+      let g = appendLink(e, 'g', keys)
 
-      let f = appendLink(d, 'f', graphKeys)
+      let f = appendLink(d, 'f', keys)
 
-      let h = appendLink(b, 'h', graphKeys)
-      let i = appendLink(h, 'i', graphKeys)
+      let h = appendLink(b, 'h', keys)
+      let i = appendLink(h, 'i', keys)
 
-      let j = appendLink(b, 'j', graphKeys)
-      let k = appendLink(j, 'k', graphKeys)
-      let l = appendLink(k, 'l', graphKeys)
+      let j = appendLink(b, 'j', keys)
+      let k = appendLink(j, 'k', keys)
+      let l = appendLink(k, 'l', keys)
 
-      let o = appendLink(merge(g, merge(f, i)), 'o', graphKeys)
+      let o = appendLink(merge(g, merge(f, i)), 'o', keys)
 
-      let n = appendLink(merge(o, l), 'n', graphKeys)
+      let n = appendLink(merge(o, l), 'n', keys)
       return n
     }
 
@@ -124,18 +124,18 @@ export const buildGraph = (type: string) => {
          a ─ b ─┤         └── i ─ j ─┘
                 └── d ────────┘
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
-      let e = appendLink(c, 'e', graphKeys)
-      let h = appendLink(e, 'h', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
+      let e = appendLink(c, 'e', keys)
+      let h = appendLink(e, 'h', keys)
 
-      let d = appendLink(b, 'd', graphKeys)
+      let d = appendLink(b, 'd', keys)
 
-      let i = appendLink(merge(e, d), 'i', graphKeys)
-      let j = appendLink(i, 'j', graphKeys)
+      let i = appendLink(merge(e, d), 'i', keys)
+      let j = appendLink(i, 'j', keys)
 
-      let k = appendLink(merge(h, j), 'k', graphKeys)
+      let k = appendLink(merge(h, j), 'k', keys)
       return k
     }
 
@@ -147,19 +147,19 @@ export const buildGraph = (type: string) => {
                 ├─ h ─ i  
                 └─ j 
       `): {
-      let a = appendLink(root, 'a', graphKeys)
-      let b = appendLink(a, 'b', graphKeys)
-      let c = appendLink(b, 'c', graphKeys)
-      let d = appendLink(c, 'd', graphKeys)
-      let e = appendLink(d, 'e', graphKeys)
-      let g = appendLink(e, 'g', graphKeys)
-      let f = appendLink(d, 'f', graphKeys)
-      let o = appendLink(merge(g, f), 'o', graphKeys)
+      let a = appendLink(root, 'a', keys)
+      let b = appendLink(a, 'b', keys)
+      let c = appendLink(b, 'c', keys)
+      let d = appendLink(c, 'd', keys)
+      let e = appendLink(d, 'e', keys)
+      let g = appendLink(e, 'g', keys)
+      let f = appendLink(d, 'f', keys)
+      let o = appendLink(merge(g, f), 'o', keys)
 
-      let h = appendLink(b, 'h', graphKeys)
-      let i = appendLink(h, 'i', graphKeys)
+      let h = appendLink(b, 'h', keys)
+      let i = appendLink(h, 'i', keys)
 
-      let j = appendLink(b, 'j', graphKeys)
+      let j = appendLink(b, 'j', keys)
 
       return merge(o, merge(i, j))
     }
@@ -178,12 +178,12 @@ export type XAction =
     }
 export type XLink = Link<XAction, {}>
 
-export const appendLink = (graph: HashGraph<XAction, any>, payload: string, graphKeys: KeysetWithSecrets) =>
+export const appendLink = (graph: HashGraph<XAction, any>, payload: string, keys: KeysetWithSecrets) =>
   append({
     graph,
     action: { type: 'X', payload } as XAction,
     user: alice,
-    graphKeys,
+    keys,
   })
 
 export const trim = (s: string) => s.replace(/\s*/g, '')

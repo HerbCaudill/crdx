@@ -8,7 +8,7 @@ import {
   headsAreEqual,
   HashGraph,
 } from '/graph'
-import { Hash } from '/util'
+import { Hash, truncateHashes } from '/util'
 
 /**
  * Generates a new sync message for a peer based on our current graph and our sync state with them.
@@ -95,7 +95,7 @@ export const generateMessage = <A extends Action, C>(
     // if they've sent us a link map,
     if (their.linkMap) {
       // ask for anything they mention that we don't have
-      const linksWeHave = { ...graph.links, ...their.links }
+      const linksWeHave = { ...graph.encryptedLinks, ...their.encryptedLinks }
       message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave))
 
       // and figure out what links they might need
@@ -106,7 +106,6 @@ export const generateMessage = <A extends Action, C>(
     if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
       // send a new linkMap with everything that's happened since then
       message.linkMap = getParentMap({ graph, end: lastCommonHead })
-      state.our.linkMapAtHead = ourHead
     }
   }
 
@@ -123,7 +122,9 @@ export const generateMessage = <A extends Action, C>(
   }
 
   // update our state
-  state.our.head = ourHead
+
+  // if we've sent them a linkmap for this head, remember that
+  if (message.linkMap) state.our.linkMapAtHead = ourHead
 
   // record what we've sent them
   state.our.links = our.links.concat(hashesToSend)

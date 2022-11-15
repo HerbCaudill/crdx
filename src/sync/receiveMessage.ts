@@ -1,8 +1,9 @@
+import { truncate } from 'lodash'
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, HashGraph } from '/graph'
+import { Action, merge, HashGraph, invertLinkMap, getChildMap } from '/graph'
 import { decryptGraph } from '/graph/decrypt'
 import { KeysetWithSecrets } from '/keyset'
-import { assert } from '/util'
+import { assert, truncateHashes } from '/util'
 import { validate } from '/validator'
 
 /**
@@ -23,10 +24,9 @@ export const receiveMessage = <A extends Action, C>(
   /** The sync message they've just sent */
   message: SyncMessage<A, C>,
 
-  graphKeys: KeysetWithSecrets
+  keys: KeysetWithSecrets
 ): [HashGraph<A, C>, SyncState] => {
   const their = message
-
   // This should never happen, but just as a sanity check
   assert(graph.root === their.root, `Can't sync graphs with different roots`)
 
@@ -35,26 +35,29 @@ export const receiveMessage = <A extends Action, C>(
     their: {
       head: their.head,
       need: their.need || [],
-      links: { ...prevState.their.links, ...their.links },
+      encryptedLinks: { ...prevState.their.encryptedLinks, ...their.links },
       linkMap: { ...prevState.their.linkMap, ...their.linkMap },
       reportedError: their.error,
     },
   }
 
   // if we've received links from them, try to reconstruct their graph and merge
-  if (Object.keys(state.their.links).length) {
+  if (Object.keys(state.their.encryptedLinks).length) {
     // reconstruct their graph
     const head = their.head
-    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.links }
+    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.encryptedLinks }
     const encryptedGraph = { ...graph, head, encryptedLinks }
-    const theirGraph = decryptGraph(encryptedGraph, graphKeys)
+
+    const ourChildMap = getChildMap(graph)
+    const theirChildMap = invertLinkMap(state.their.linkMap ?? {})
+    const childMap = { ...ourChildMap, ...theirChildMap }
+    const theirGraph = decryptGraph({ encryptedGraph, keys, childMap })
 
     // merge with our graph
     const mergedGraph = merge(graph, theirGraph)
 
     // check the integrity of the merged graph
     const validation = validate(mergedGraph)
-
     if (validation.isValid) {
       graph = mergedGraph
     } else {
@@ -67,7 +70,7 @@ export const receiveMessage = <A extends Action, C>(
     }
 
     // either way, we can discard all pending links
-    state.their.links = {}
+    state.their.encryptedLinks = {}
     state.their.linkMap = {}
   }
 

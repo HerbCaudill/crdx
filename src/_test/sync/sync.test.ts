@@ -2,21 +2,21 @@ import { jest } from '@jest/globals'
 import { append, createGraph, headsAreEqual } from '/graph'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
-import { TEST_GRAPH_KEYS as graphKeys, TEST_GRAPH_KEYS } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { createUser } from '/user'
 import { assert } from '/util'
 
 const { setSystemTime } = jest.useFakeTimers()
 
-const setup = setupWithNetwork(TEST_GRAPH_KEYS)
+const setup = setupWithNetwork(keys)
 
 describe('sync', () => {
   describe('manual walkthrough', () => {
     it('Alice and Bob are already synced up', () => {
       // 👩🏾 Alice creates a graph
       const alice = createUser('alice')
-      const graph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
-      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, graphKeys })
+      const graph = createGraph<any>({ user: alice, name: 'test graph', keys })
+      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, keys })
       let aliceSyncState = initSyncState()
 
       // 👨🏻‍🦲 Bob starts with an exact a copy of 👩🏾 Alice's graph
@@ -27,17 +27,17 @@ describe('sync', () => {
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
@@ -49,14 +49,14 @@ describe('sync', () => {
     it('Alice is ahead of Bob', () => {
       // 👩🏾 Alice creates a graph
       const alice = createUser('alice')
-      const graph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
+      const graph = createGraph<any>({ user: alice, name: 'test graph', keys })
 
       // 👨🏻‍🦲 Bob has a copy of the original graph
       let bobGraph = { ...graph }
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, graphKeys })
+      let aliceGraph = append({ graph, action: { type: 'FOO' }, user: alice, keys })
       let aliceSyncState = initSyncState()
 
       let msg
@@ -64,27 +64,27 @@ describe('sync', () => {
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
 
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
@@ -103,7 +103,7 @@ describe('sync', () => {
       const bob = createUser('bob')
 
       // 👩🏾 Alice creates a graph
-      let aliceGraph = createGraph<any>({ user: alice, name: 'test graph', graphKeys })
+      let aliceGraph = createGraph<any>({ user: alice, name: 'test graph', keys })
       let aliceSyncState = initSyncState()
 
       // 👨🏻‍🦲 Bob has a copy of the original graph
@@ -111,38 +111,38 @@ describe('sync', () => {
       let bobSyncState = initSyncState()
 
       // 👩🏾 Alice adds a link
-      aliceGraph = append({ graph: aliceGraph, action: { type: 'FOO' }, user: alice, graphKeys })
+      aliceGraph = append({ graph: aliceGraph, action: { type: 'FOO' }, user: alice, keys })
 
       // concurrently, 👨🏻‍🦲 Bob adds a link
-      bobGraph = append({ graph: bobGraph, action: { type: 'BAR' }, user: bob, graphKeys })
+      bobGraph = append({ graph: bobGraph, action: { type: 'BAR' }, user: bob, keys })
 
       let msg
         // Neither 👩🏾 Alice nor 👨🏻‍🦲 Bob knows anything about the other's graph
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // 👨🏻‍🦲 Bob realizes he is missing a link, so he asks for it
       // 👨🏻‍🦲 Bob sees that Alice is missing one of his links, so he sends it
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
 
       // 👩🏾 Alice now has Bob's full graph, so she can merge with it
       // 👩🏾 Alice provides the link 👨🏻‍🦲 Bob requested, as well as the new merge link
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, graphKeys)
+      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
 
       // 👩🏾 Alice is caught up, so she lets Bob know
       ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
       assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, graphKeys)
+      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
@@ -167,7 +167,12 @@ describe('sync', () => {
         expectToBeSynced(alice, bob)
 
         // 👩🏾 Alice makes a change; now they are out of sync
-        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'FOO' }, user: alice.user, graphKeys })
+        alice.peer.graph = append({
+          graph: alice.peer.graph,
+          action: { type: 'FOO' },
+          user: alice.user,
+          keys,
+        })
         expectNotToBeSynced(alice, bob)
 
         // 👩🏾 Alice exchanges sync messages with 👨🏻‍🦲 Bob
@@ -192,7 +197,7 @@ describe('sync', () => {
             graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            graphKeys,
+            keys,
           })
         }
         expectNotToBeSynced(alice, bob)
@@ -217,7 +222,7 @@ describe('sync', () => {
             graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            graphKeys,
+            keys,
           })
         }
         alice.peer.sync()
@@ -231,7 +236,7 @@ describe('sync', () => {
           graph: alice.peer.graph,
           action: { type: 'FOO', payload: 999 },
           user: alice.user,
-          graphKeys,
+          keys,
         })
         alice.peer.sync()
 
@@ -258,13 +263,13 @@ describe('sync', () => {
           graph: alice.peer.graph,
           action: { type: 'FOO', payload: 999 },
           user: alice.user,
-          graphKeys,
+          keys,
         })
         bob.peer.graph = append({
           graph: bob.peer.graph,
           action: { type: 'PIZZA', payload: 42 },
           user: bob.user,
-          graphKeys,
+          keys,
         })
         expectNotToBeSynced(alice, bob)
 
@@ -289,7 +294,7 @@ describe('sync', () => {
             graph: alice.peer.graph,
             action: { type: 'FOO', payload: i },
             user: alice.user,
-            graphKeys,
+            keys,
           })
         }
         alice.peer.sync()
@@ -304,13 +309,13 @@ describe('sync', () => {
             graph: alice.peer.graph,
             action: { type: 'BOO', payload: i },
             user: alice.user,
-            graphKeys,
+            keys,
           })
           bob.peer.graph = append({
             graph: bob.peer.graph,
             action: { type: 'PIZZA', payload: i },
             user: bob.user,
-            graphKeys,
+            keys,
           })
         }
         expectNotToBeSynced(alice, bob)
@@ -342,13 +347,13 @@ describe('sync', () => {
               graph: alice.peer.graph,
               action: { type: 'BOO', payload: j * 10 + i },
               user: alice.user,
-              graphKeys,
+              keys,
             })
             bob.peer.graph = append({
               graph: bob.peer.graph,
               action: { type: 'PIZZA', payload: j * 10 + i },
               user: bob.user,
-              graphKeys,
+              keys,
             })
           }
           expectNotToBeSynced(alice, bob)
@@ -371,7 +376,12 @@ describe('sync', () => {
         network.connect(alice.peer, charlie.peer)
         network.connect(bob.peer, charlie.peer)
 
-        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'FOO' }, user: alice.user, graphKeys })
+        alice.peer.graph = append({
+          graph: alice.peer.graph,
+          action: { type: 'FOO' },
+          user: alice.user,
+          keys,
+        })
 
         alice.peer.sync()
         network.deliverAll()
@@ -382,9 +392,14 @@ describe('sync', () => {
         expectToBeSynced(alice, charlie)
 
         // everyone makes changes while offline; now they are out of sync
-        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'A' }, user: alice.user, graphKeys })
-        bob.peer.graph = append({ graph: bob.peer.graph, action: { type: 'B' }, user: bob.user, graphKeys })
-        charlie.peer.graph = append({ graph: charlie.peer.graph, action: { type: 'C' }, user: charlie.user, graphKeys })
+        alice.peer.graph = append({ graph: alice.peer.graph, action: { type: 'A' }, user: alice.user, keys })
+        bob.peer.graph = append({ graph: bob.peer.graph, action: { type: 'B' }, user: bob.user, keys })
+        charlie.peer.graph = append({
+          graph: charlie.peer.graph,
+          action: { type: 'C' },
+          user: charlie.user,
+          keys,
+        })
         expectNotToBeSynced(alice, bob)
 
         // now they reconnect and sync back up
@@ -453,7 +468,7 @@ describe('sync', () => {
             graph: founder.peer.graph,
             action: { type: 'FOO' },
             user: founder.user,
-            graphKeys,
+            keys,
           })
 
           founder.peer.sync()
@@ -475,7 +490,7 @@ describe('sync', () => {
             graph: founder.peer.graph,
             action: { type: 'FOO' },
             user: founder.user,
-            graphKeys,
+            keys,
           })
 
           founder.peer.sync()
@@ -493,7 +508,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, keys })
           }
 
           founder.peer.sync()
@@ -513,7 +528,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, keys })
           }
 
           founder.peer.sync()
@@ -533,7 +548,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, keys })
           }
 
           // while they're disconnected, they have divergent docs
@@ -556,7 +571,7 @@ describe('sync', () => {
           // each user makes a change
           for (const userName in userRecords) {
             const { user, peer } = userRecords[userName]
-            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, graphKeys })
+            peer.graph = append({ graph: peer.graph, action: { type: userName.toUpperCase() }, user, keys })
           }
 
           // while they're disconnected, they have divergent docs
@@ -594,7 +609,7 @@ describe('sync', () => {
         graph: eve.peer.graph,
         action: { type: 'FOO', payload: 'pizza' },
         user: eve.user,
-        graphKeys,
+        keys,
       })
       setSystemTime(now)
       const badHash = eve.peer.graph.head[0]
@@ -632,7 +647,7 @@ describe('sync', () => {
         graph: eve.peer.graph,
         action: { type: 'FOO', payload: 'pizza' },
         user: eve.user,
-        graphKeys,
+        keys,
       })
       setSystemTime(now)
       const badHash = eve.peer.graph.head[0]

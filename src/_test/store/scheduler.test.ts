@@ -1,7 +1,7 @@
 import { Action, createGraph, Link, Resolver } from '/graph'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
-import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { createUser } from '/user'
 import { UnixTimestamp } from '/util'
 
@@ -75,11 +75,11 @@ describe('scheduler', () => {
       }
     }
 
-    const graph = createGraph<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler', graphKeys })
+    const graph = createGraph<SchedulerAction, SchedulerState>({ user: alice, name: 'scheduler', keys })
 
     // everyone starts out with the same store
-    const aliceStore = createStore({ user: alice, graph, reducer, resolver, graphKeys })
-    const bobStore = createStore({ user: bob, graph, reducer, resolver, graphKeys })
+    const aliceStore = createStore({ user: alice, graph, reducer, resolver, keys })
+    const bobStore = createStore({ user: bob, graph, reducer, resolver, keys })
 
     const sync = () => {
       aliceStore.merge(bobStore.getGraph())

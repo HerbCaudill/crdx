@@ -6,7 +6,7 @@ import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
 import { SyncMessage, SyncState } from '/sync/types'
-import { TEST_GRAPH_KEYS as graphKeys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
 
@@ -22,11 +22,11 @@ const logMessage = (msg: NetworkMessage) => {
 export class Network {
   peers: Record<string, Peer>
   queue: NetworkMessage[]
-  graphKeys: KeysetWithSecrets
-  constructor(graphKeys: KeysetWithSecrets) {
+  keys: KeysetWithSecrets
+  constructor(keys: KeysetWithSecrets) {
     this.peers = {}
     this.queue = []
-    this.graphKeys = graphKeys
+    this.keys = keys
   }
 
   registerPeer(peer: Peer) {
@@ -111,7 +111,7 @@ export class Peer {
 
     const prevHead = this.graph.head
 
-    const [graph, syncState] = receiveMessage(this.graph, this.syncStates[sender], message, graphKeys)
+    const [graph, syncState] = receiveMessage(this.graph, this.syncStates[sender], message, keys)
     this.graph = graph
     this.syncStates[sender] = syncState
 
@@ -127,15 +127,15 @@ export class Peer {
 }
 
 export const setupWithNetwork =
-  (graphKeys: KeysetWithSecrets) =>
+  (keys: KeysetWithSecrets) =>
   (...userNames: string[]) => {
     const users = setup(...userNames)
     const founderUserName = userNames[0]
     const founderUser = users[founderUserName]
 
-    const graph = createGraph({ user: founderUser, graphKeys })
+    const graph = createGraph({ user: founderUser, keys })
 
-    const network = new Network(graphKeys)
+    const network = new Network(keys)
 
     const userRecords = {} as Record<string, TestUserStuff>
     for (const userName in users) {
