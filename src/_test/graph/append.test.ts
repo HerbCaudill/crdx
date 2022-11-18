@@ -1,5 +1,4 @@
 import { append, createGraph, getHead, getRoot } from '/graph'
-import { GRAPH, createKeyset } from '/keyset'
 import '/test/util/expect/toBeValid'
 import { setup } from '/test/util/setup'
 import { validate } from '/validator'
