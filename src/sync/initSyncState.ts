@@ -5,6 +5,7 @@ export const initSyncState = (): SyncState => ({
     head: [],
     encryptedLinks: {},
     need: [],
+    parentMap: {},
   },
 
   our: {
