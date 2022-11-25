@@ -23,7 +23,9 @@ export const receiveMessage = <A extends Action, C>(
   /** The sync message they've just sent */
   message: SyncMessage<A, C>,
 
-  keys: KeysetWithSecrets | Keyring
+  keys: KeysetWithSecrets | Keyring,
+
+  decrypt = decryptGraph
 ): [Graph<A, C>, SyncState] => {
   // if a keyset was provided, wrap it in a keyring
   const keyring = createKeyring(keys)
@@ -65,7 +67,7 @@ export const receiveMessage = <A extends Action, C>(
     // 2. Support some sort of hook into decryptGraph that allows updating keys
     // 3. Don't decrypt here, leave that to the app
 
-    const theirGraph = decryptGraph({ encryptedGraph, keys: keyring })
+    const theirGraph = decrypt({ encryptedGraph, keys: keyring })
 
     // merge with our graph
     const mergedGraph = merge(graph, theirGraph)
