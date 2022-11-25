@@ -14,7 +14,8 @@ import {
   Resolver,
   serialize,
 } from '/graph'
-import { isKeyring, Keyring, Keyset, KeysetWithSecrets } from '/keyset'
+import { isKeyring, isKeyset, Keyring, Keyset, KeysetWithSecrets } from '/keyset'
+import { createKeyring } from '/keyset/createKeyring'
 import { UserWithSecrets } from '/user'
 import { assert, Optional } from '/util'
 import { validate, ValidatorSet } from '/validator'
@@ -37,13 +38,12 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     validators,
     resolver = baseResolver,
     keys,
-    keyring: graphKeyring,
   }: StoreOptions<S, A, C>) {
     super()
 
     if (graph === undefined) {
       // no graph provided, so we'll create a new one
-      assert(keys)
+      assert(isKeyset(keys), 'If no graph is provided, only pass a single keyset, not a keyring.')
       this.graph = createGraph({ user, rootPayload, keys })
     } else if (typeof graph === 'string') {
       // serialized graph was provided, so deserialize it
@@ -61,12 +61,8 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
     this.resolver = resolver
     this.user = user
 
-    // either a keyring or a single (root) keyset was provided
-    // if a keyset was provided, wrap it in a keyring
-    this.graphKeyring =
-      graphKeyring !== undefined //
-        ? graphKeyring
-        : { [keys.encryption.publicKey]: keys }
+    // if a single keyset was provided, wrap it in a keyring
+    this.keyring = createKeyring(keys)
 
     // set the initial state
     this.updateState()
@@ -136,6 +132,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
       action: actionWithPayload,
       user: this.user,
       keys,
+      context: this.context,
     })
 
     // get the newly appended link (at this point we're guaranteed a single head, which is the one we appended)
