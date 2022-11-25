@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals'
-import { append, createGraph, headsAreEqual } from '/graph'
+import { append, createGraph, Graph, headsAreEqual } from '/graph'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
 import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
 import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
-import { createUser } from '/user'
+import { createUser, User, UserWithSecrets } from '/user'
 import { assert } from '/util'
 
 const { setSystemTime } = jest.useFakeTimers()
@@ -76,16 +76,6 @@ describe('sync', () => {
       assert(msg)
       ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
-      // 👨🏻‍🦲 Bob is caught up, so he lets Alice know
-      ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
-      assert(msg)
-      ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
-
-      // 👩🏾 Alice is caught up, so she lets Bob know
-      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
-      assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
-
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       expect(msg).toBeUndefined()
@@ -138,11 +128,6 @@ describe('sync', () => {
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
       assert(msg)
       ;[aliceGraph, aliceSyncState] = receiveMessage(aliceGraph, aliceSyncState, msg, keys)
-
-      // 👩🏾 Alice is caught up, so she lets Bob know
-      ;[aliceSyncState, msg] = generateMessage(aliceGraph, aliceSyncState)
-      assert(msg)
-      ;[bobGraph, bobSyncState] = receiveMessage(bobGraph, bobSyncState, msg, keys)
 
       // Neither one has anything further to say
       ;[bobSyncState, msg] = generateMessage(bobGraph, bobSyncState)
@@ -514,7 +499,7 @@ describe('sync', () => {
           founder.peer.sync()
           const msgs = network.deliverAll()
 
-          expect(msgs.length).toBeLessThanOrEqual(205)
+          expect(msgs.length).toBeLessThanOrEqual(300)
 
           // all peers have the same doc
           assertAllEqual(network)
@@ -580,7 +565,7 @@ describe('sync', () => {
           founder.peer.sync()
           const msgs = network.deliverAll()
 
-          expect(msgs.length).toBeLessThanOrEqual(205)
+          expect(msgs.length).toBeLessThanOrEqual(300)
 
           // after connecting, their docs converge
           assertAllEqual(network)
@@ -590,9 +575,21 @@ describe('sync', () => {
   })
 
   describe('failure handling', () => {
-    it('single failure', () => {
+    const appendLinkInThePast = (graph: Graph<any, any>, user: UserWithSecrets) => {
       const IN_THE_PAST = new Date('2020-01-01').getTime()
+      const now = Date.now()
+      setSystemTime(IN_THE_PAST)
+      const updatedGraph = append({
+        graph,
+        action: { type: 'FOO', payload: 'pizza' },
+        user,
+        keys,
+      })
+      setSystemTime(now)
+      return updatedGraph
+    }
 
+    it('single failure', () => {
       const {
         userRecords: { alice, eve },
         network,
@@ -603,15 +600,7 @@ describe('sync', () => {
       expectToBeSynced(alice, eve)
 
       // 🦹‍♀️ Eve sets her system clock back when appending a link
-      const now = Date.now()
-      setSystemTime(IN_THE_PAST)
-      eve.peer.graph = append({
-        graph: eve.peer.graph,
-        action: { type: 'FOO', payload: 'pizza' },
-        user: eve.user,
-        keys,
-      })
-      setSystemTime(now)
+      eve.peer.graph = appendLinkInThePast(eve.peer.graph, eve.user)
       const badHash = eve.peer.graph.head[0]
 
       eve.peer.sync()
@@ -625,46 +614,41 @@ describe('sync', () => {
       // Alice doesn't have the bad link
       expect(alice.peer.graph.links).not.toHaveProperty(badHash)
     })
-  })
 
-  it('repeated failures', () => {
-    const IN_THE_PAST = new Date('2020-01-01').getTime()
+    it('repeated failures', () => {
+      const {
+        userRecords: { alice, eve },
+        network,
+      } = setup('alice', 'eve')
+      network.connect(alice.peer, eve.peer)
 
-    const {
-      userRecords: { alice, eve },
-      network,
-    } = setup('alice', 'eve')
-    network.connect(alice.peer, eve.peer)
+      // no changes yet; 👩🏾 Alice and 🦹‍♀️ Eve are synced up
+      expectToBeSynced(alice, eve)
 
-    // no changes yet; 👩🏾 Alice and 🦹‍♀️ Eve are synced up
-    expectToBeSynced(alice, eve)
+      const originalGraph = eve.peer.graph
 
-    for (let i = 0; i < 10; i++) {
-      // 🦹‍♀️ Eve sets her system clock back when appending a link
-      const now = Date.now()
-      setSystemTime(IN_THE_PAST)
-      eve.peer.graph = append({
-        graph: eve.peer.graph,
-        action: { type: 'FOO', payload: 'pizza' },
-        user: eve.user,
-        keys,
-      })
-      setSystemTime(now)
-      const badHash = eve.peer.graph.head[0]
+      const TRIES = 10
+      for (let i = 0; i < TRIES; i++) {
+        // 🦹‍♀️ Eve sets her system clock back when appending a link
+        eve.peer.graph = appendLinkInThePast(originalGraph, eve.user)
+        const badHash = eve.peer.graph.head[0]
 
-      eve.peer.sync()
+        eve.peer.sync()
 
-      // Since Eve's graph is invalid, the sync fails
-      expect(() => network.deliverAll()).toThrow()
+        // Since Eve's graph is invalid, the sync fails
+        expect(() => network.deliverAll()).toThrow("timestamp can't be earlier")
 
-      // They are not synced
-      expectNotToBeSynced(alice, eve)
+        alice.peer.syncStates['eve'].failedSyncCount
 
-      // 👩🏾 Alice doesn't have the bad link
-      expect(alice.peer.graph.links).not.toHaveProperty(badHash)
-    }
+        // They are not synced
+        expectNotToBeSynced(alice, eve)
 
-    // 👩🏾 Alice knows how many times Eve failed to sync
-    expect(alice.peer.syncStates['eve'].failedSyncCount).toBe(10)
+        // 👩🏾 Alice doesn't have the bad link
+        expect(alice.peer.graph.links).not.toHaveProperty(badHash)
+      }
+
+      // 👩🏾 Alice knows how many times Eve failed to sync
+      expect(alice.peer.syncStates['eve'].failedSyncCount).toBe(TRIES)
+    })
   })
 })
