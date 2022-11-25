@@ -1,9 +1,8 @@
-import { truncate } from 'lodash'
 import { SyncMessage, SyncState } from './types'
-import { Action, merge, HashGraph, invertLinkMap, getChildMap } from '/graph'
+import { Action, getChildMap, Graph, invertLinkMap, merge } from '/graph'
 import { decryptGraph } from '/graph/decrypt'
-import { KeysetWithSecrets } from '/keyset'
-import { assert, truncateHashes } from '/util'
+import { createKeyring, isKeyring, Keyring, KeysetWithSecrets } from '/keyset'
+import { assert } from '/util'
 import { validate } from '/validator'
 
 /**
@@ -16,7 +15,7 @@ import { validate } from '/validator'
  * */
 export const receiveMessage = <A extends Action, C>(
   /** Our current graph */
-  graph: HashGraph<A, C>,
+  graph: Graph<A, C>,
 
   /** Our sync state with this peer */
   prevState: SyncState,
@@ -24,8 +23,11 @@ export const receiveMessage = <A extends Action, C>(
   /** The sync message they've just sent */
   message: SyncMessage<A, C>,
 
-  keys: KeysetWithSecrets
-): [HashGraph<A, C>, SyncState] => {
+  keys: KeysetWithSecrets | Keyring
+): [Graph<A, C>, SyncState] => {
+  // if a keyset was provided, wrap it in a keyring
+  const keyring = createKeyring(keys)
+
   const their = message
   // This should never happen, but just as a sanity check
   assert(graph.root === their.root, `Can't sync graphs with different roots`)
@@ -36,7 +38,7 @@ export const receiveMessage = <A extends Action, C>(
       head: their.head,
       need: their.need || [],
       encryptedLinks: { ...prevState.their.encryptedLinks, ...their.links },
-      linkMap: { ...prevState.their.linkMap, ...their.linkMap },
+      parentMap: { ...prevState.their.parentMap, ...their.parentMap },
       reportedError: their.error,
     },
   }
@@ -45,13 +47,25 @@ export const receiveMessage = <A extends Action, C>(
   if (Object.keys(state.their.encryptedLinks).length) {
     // reconstruct their graph
     const head = their.head
-    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.encryptedLinks }
-    const encryptedGraph = { ...graph, head, encryptedLinks }
 
     const ourChildMap = getChildMap(graph)
-    const theirChildMap = invertLinkMap(state.their.linkMap ?? {})
+    const theirChildMap = invertLinkMap(state.their.parentMap!)
     const childMap = { ...ourChildMap, ...theirChildMap }
-    const theirGraph = decryptGraph({ encryptedGraph, keys, childMap })
+
+    const encryptedLinks = { ...graph.encryptedLinks, ...state.their.encryptedLinks }
+    const encryptedGraph = {
+      ...graph,
+      head,
+      encryptedLinks,
+      childMap,
+    }
+
+    // NEXT: lf/auth is having trouble here because of key rotation. I can think of 3 solutions:
+    // 1. Pass a decrypt function into receiveMessage
+    // 2. Support some sort of hook into decryptGraph that allows updating keys
+    // 3. Don't decrypt here, leave that to the app
+
+    const theirGraph = decryptGraph({ encryptedGraph, keys: keyring })
 
     // merge with our graph
     const mergedGraph = merge(graph, theirGraph)
@@ -71,7 +85,7 @@ export const receiveMessage = <A extends Action, C>(
 
     // either way, we can discard all pending links
     state.their.encryptedLinks = {}
-    state.their.linkMap = {}
+    state.their.parentMap = {}
   }
 
   return [graph, state]
