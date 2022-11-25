@@ -1,5 +1,5 @@
 import { Reducer } from './types'
-import { Action, HashGraph, Resolver } from '/graph'
+import { Action, Graph, Resolver } from '/graph'
 import { Keyring, KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 import { ValidatorSet } from '/validator'
@@ -28,19 +28,10 @@ export type StoreOptions<S, A extends Action, C> = {
   initialState?: S
 
   /** For pre-existing stores: A graph to preload, e.g. from saved state. */
-  graph?: string | HashGraph<A, C>
+  graph?: string | Graph<A, C>
 
   /** For new stores: Additional information to include in the root node  */
   rootPayload?: any
-} & (
-  | {
-      /** Single keyset for encrypting/decrypting the graph. */
-      keys: KeysetWithSecrets
-      keyring?: undefined
-    }
-  | {
-      keys?: undefined
-      /** Multiple keysets for encrypting/decrypting, indexed by public assymetric encryption key */
-      keyring: Keyring
-    }
-)
+
+  keys: KeysetWithSecrets | Keyring
+}
