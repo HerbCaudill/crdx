@@ -78,7 +78,6 @@ export const receiveMessage = <A extends Action, C>(
       // We only get here if we've received bad links from them — maliciously, or not. The
       // application should monitor `failedSyncCount` and decide not to trust them if it's too high.
       state.failedSyncCount += 1
-
       // Record the error so we can surface it in generateMessage
       state.our.reportedError = validation.error
     }
