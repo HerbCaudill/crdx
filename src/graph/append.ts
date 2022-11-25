@@ -1,13 +1,13 @@
 ﻿import { asymmetric } from '@herbcaudill/crypto'
 import { EMPTY_GRAPH } from './createGraph'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, HashGraph, Link, LinkBody } from './types'
+import { Action, EncryptedLink, Graph, Link, LinkBody } from './types'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
 
 interface AppendParams<A extends Action, C> {
   /** The graph to append a link to. */
-  graph: HashGraph<A, C> | typeof EMPTY_GRAPH
+  graph: Graph<A, C> | typeof EMPTY_GRAPH
 
   /** The action (type & payload) being added to the graph. */
   action: A
@@ -28,7 +28,7 @@ export const append = <A extends Action, C>({
   user,
   context = {} as C,
   keys,
-}: AppendParams<A, C>): HashGraph<A, C> => {
+}: AppendParams<A, C>): Graph<A, C> => {
   // the "sender" of this encrypted link is the user authoring the link
   const { publicKey: senderPublicKey, secretKey: senderSecretKey } = user.keys.encryption
 

@@ -1,6 +1,6 @@
-import { Action, HashGraph } from '/graph/types'
+import { Action, Graph } from '/graph/types'
 
-export function getMissingLinks<A extends Action, C>(graph: HashGraph<A, C>) {
+export function getMissingLinks<A extends Action, C>(graph: Graph<A, C>) {
   // collect all the `prev` hashes from all of the links in the graph
   const parentHashes = Object.values(graph.links) //
     .flatMap(link => link.body.prev) as string[]

@@ -1,16 +1,16 @@
-import { getConcurrentBubbles, getConcurrentLinks, HashGraph } from '/graph'
+import { getConcurrentBubbles, getConcurrentLinks, Graph } from '/graph'
 import { buildGraph, byPayload, findByPayload, getPayloads } from '../util/graph'
 
 describe('graphs', () => {
   describe('getConcurrentLinks', () => {
-    const testConcurrentLinks = (graph: HashGraph<any, any>, payload: string, expected: string) => {
+    const testConcurrentLinks = (graph: Graph<any, any>, payload: string, expected: string) => {
       const link = findByPayload(graph, payload)
       const result = getConcurrentLinks(graph, link)
       const payloads = getPayloads(result).split('').sort().join('')
       test(`${payload}: ${expected.length ? expected : '-'}`, () => expect(payloads).toEqual(expected))
     }
 
-    const testBubbles = (graph: HashGraph<any, any>, expected: string) => {
+    const testBubbles = (graph: Graph<any, any>, expected: string) => {
       const bubbles = getConcurrentBubbles(graph)
         .map(b => getPayloads(b.map(h => graph.links[h]).sort(byPayload)))
         .join(',')

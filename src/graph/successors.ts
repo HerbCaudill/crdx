@@ -1,25 +1,25 @@
 ﻿import uniq from 'lodash/uniq'
 import { getChildrenHashes } from './children'
-import { Action, Link, HashGraph } from './types'
+import { Action, Link, Graph } from './types'
 import { memoize } from '/util'
 
-export const getSuccessorHashes = memoize((graph: HashGraph<any, any>, hash: string): string[] => {
+export const getSuccessorHashes = memoize((graph: Graph<any, any>, hash: string): string[] => {
   const children = getChildrenHashes(graph, hash)
   const successors = children.flatMap(parent => getSuccessorHashes(graph, parent))
   return uniq(children.concat(successors))
 })
 
 /** Returns the set of successors of `link` (not including `link`) */
-export const getSuccessors = <A extends Action, C>(graph: HashGraph<A, C>, link: Link<A, C>): Link<A, C>[] =>
+export const getSuccessors = <A extends Action, C>(graph: Graph<A, C>, link: Link<A, C>): Link<A, C>[] =>
   getSuccessorHashes(graph, link.hash)
     .map(h => graph.links[h])
     .filter(link => link !== undefined)
 
-export const isSuccessorHash = (graph: HashGraph<any, any>, a: string, b: string) =>
+export const isSuccessorHash = (graph: Graph<any, any>, a: string, b: string) =>
   getSuccessorHashes(graph, b).includes(a)
 
 /** Returns true if `a` is a successor of `b` */
-export const isSuccessor = <A extends Action, C>(graph: HashGraph<A, C>, a: Link<A, C>, b: Link<A, C>): boolean => {
+export const isSuccessor = <A extends Action, C>(graph: Graph<A, C>, a: Link<A, C>, b: Link<A, C>): boolean => {
   return (
     a !== undefined &&
     b !== undefined &&

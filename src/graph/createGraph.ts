@@ -1,6 +1,6 @@
 ﻿import cuid from 'cuid'
 import { append } from './append'
-import { Action, HashGraph } from './types'
+import { Action, Graph } from './types'
 import { ROOT } from '/constants'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
@@ -57,5 +57,5 @@ export const createGraph = <A extends Action, C = {}>({
     context,
     keys,
   })
-  return graph as HashGraph<A, C>
+  return graph as Graph<A, C>
 }

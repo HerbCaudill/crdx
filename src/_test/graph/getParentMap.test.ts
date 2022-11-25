@@ -1,4 +1,4 @@
-import { getLink, HashGraph } from '/graph'
+import { getLink, Graph } from '/graph'
 import { getParentMap } from '../../graph/getParentMap'
 import { buildGraph, findByPayload } from '/test/util/graph'
 import { Hash } from '/util'
@@ -148,7 +148,7 @@ describe('getParentMap', () => {
   })
 })
 
-const lookupPayloads = (graph: HashGraph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
+const lookupPayloads = (graph: Graph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
   const getPayload = (hash: Hash): string => {
     const linkBody = getLink(graph, hash).body
     return linkBody.type === 'ROOT' ? '' : linkBody.payload

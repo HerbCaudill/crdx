@@ -1,6 +1,6 @@
 // ignore file coverage
 import { setup } from './setup'
-import { createGraph, headsAreEqual, HashGraph } from '/graph'
+import { createGraph, headsAreEqual, Graph } from '/graph'
 import { KeysetWithSecrets } from '/keyset'
 import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
@@ -74,10 +74,10 @@ export class Network {
 export class Peer {
   syncStates: Record<string, SyncState>
   userName: string
-  graph: HashGraph<any, any>
+  graph: Graph<any, any>
   network: Network
 
-  constructor(userName: string, graph: HashGraph<any, any>, network: Network) {
+  constructor(userName: string, graph: Graph<any, any>, network: Network) {
     this.userName = userName
     this.graph = graph
     this.network = network

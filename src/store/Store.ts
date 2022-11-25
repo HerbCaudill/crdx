@@ -9,7 +9,7 @@ import {
   deserialize,
   getHead,
   getSequence,
-  HashGraph,
+  Graph,
   merge,
   Resolver,
   serialize,
@@ -78,7 +78,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   }
 
   /** Returns the current hash graph */
-  public getGraph(): HashGraph<A, C> {
+  public getGraph(): Graph<A, C> {
     return this.graph
   }
 
@@ -124,10 +124,10 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
       // TODO: if there are multiple heads, we'll have a bunch of edge cases to sort out. For now just picking the first one.
       const lastHash = this.graph.head[0]
       const lastPublicKey = this.graph.encryptedLinks[lastHash].recipientPublicKey
-      keys = this.graphKeyring[lastPublicKey]
+      keys = this.keyring[lastPublicKey]
     } else {
       // record this key in our keyring
-      this.graphKeyring[keys.encryption.publicKey] = keys
+      this.keyring[keys.encryption.publicKey] = keys
     }
 
     // append this action as a new link to the graph
@@ -155,7 +155,7 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
    * @param theirGraph
    * @returns this `Store` instance
    */
-  public merge(theirGraph: HashGraph<A, C>) {
+  public merge(theirGraph: Graph<A, C>) {
     this.graph = merge(this.graph, theirGraph)
     this.updateState()
     return this
@@ -185,9 +185,9 @@ export class Store<S, A extends Action, C = {}> extends EventEmitter {
   private resolver: Resolver<A, C>
   private validators?: ValidatorSet
 
-  private graphKeyring: Keyring
+  private keyring: Keyring
 
-  private graph: HashGraph<A, C>
+  private graph: Graph<A, C>
   private state: S
 
   private updateState() {

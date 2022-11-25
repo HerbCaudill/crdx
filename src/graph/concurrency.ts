@@ -2,15 +2,15 @@ import memoize from 'lodash/memoize'
 import { getHashes, getLink } from '/graph/graph'
 import { isPredecessorHash } from '/graph/predecessors'
 import { isSuccessorHash } from '/graph/successors'
-import { Action, Link, HashGraph } from '/graph/types'
+import { Action, Link, Graph } from '/graph/types'
 import { Hash } from '/util'
 
 /** Returns all links that are concurrent with the given link. */
-export const getConcurrentLinks = <A extends Action, C>(graph: HashGraph<A, C>, link: Link<A, C>): Link<A, C>[] => {
+export const getConcurrentLinks = <A extends Action, C>(graph: Graph<A, C>, link: Link<A, C>): Link<A, C>[] => {
   return getConcurrentHashes(graph, link.hash).map(hash => getLink(graph, hash))
 }
 
-export const getConcurrentHashes = (graph: HashGraph<any, any>, hash: Hash): Hash[] => {
+export const getConcurrentHashes = (graph: Graph<any, any>, hash: Hash): Hash[] => {
   const concurrencyLookup = calculateConcurrency(graph)
   return concurrencyLookup[hash]
 }
@@ -25,7 +25,7 @@ export const getConcurrentHashes = (graph: HashGraph<any, any>, hash: Hash): Has
  * }
  * ```
  */
-export const calculateConcurrency = memoize(<A extends Action, C>(graph: HashGraph<A, C>) => {
+export const calculateConcurrency = memoize(<A extends Action, C>(graph: Graph<A, C>) => {
   const concurrencyLookup = {} as Record<Hash, Hash[]>
 
   // for each link, find all links that are concurrent with it
@@ -37,12 +37,12 @@ export const calculateConcurrency = memoize(<A extends Action, C>(graph: HashGra
   return concurrencyLookup
 })
 
-export const isConcurrent = <A extends Action, C>(graph: HashGraph<A, C>, a: Hash, b: Hash) =>
+export const isConcurrent = <A extends Action, C>(graph: Graph<A, C>, a: Hash, b: Hash) =>
   a !== b && // a link isn't concurrent with itself
   !isPredecessorHash(graph, a, b) && // a link isn't concurrent with any of its predecessors
   !isSuccessorHash(graph, a, b) // a link isn't concurrent with any of its successors
 
-export const getConcurrentBubbles = <A extends Action, C>(graph: HashGraph<A, C>): Hash[][] => {
+export const getConcurrentBubbles = <A extends Action, C>(graph: Graph<A, C>): Hash[][] => {
   const seen: Record<Hash, boolean> = {}
 
   // returns an array containing the given hash and all hashes directly or indirectly concurrent with it

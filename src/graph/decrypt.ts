@@ -1,8 +1,7 @@
 import { asymmetric } from '@herbcaudill/crypto'
 import { hashLink } from './hashLink'
-import { Action, EncryptedLink, Link, LinkBody, HashGraph, EncryptedHashGraph, LinkMap } from './types'
-import { KeysetWithSecrets } from '/keyset'
-import { Hash } from '/util'
+import { Action, EncryptedGraph, EncryptedLink, Graph, Link, LinkBody, LinkMap } from './types'
+import { Keyring, KeysetWithSecrets } from '/keyset'
 
 /**
  * Decrypts a single link of a graph, given the graph keys at the time the link was authored.
@@ -36,11 +35,10 @@ export const decryptGraph = <A extends Action, C>({
   keys,
   childMap,
 }: {
-  encryptedGraph: EncryptedHashGraph | HashGraph<A, C>
-  keys: KeysetWithSecrets
-  childMap: LinkMap
-}): HashGraph<A, C> => {
-  const { encryptedLinks, root } = encryptedGraph
+  encryptedGraph: Graph<A, C> | EncryptedGraph
+  keys: KeysetWithSecrets | KeysetWithSecrets[] | Keyring
+}): Graph<A, C> => {
+  const { encryptedLinks, root, childMap = {} } = encryptedGraph
 
   /** Recursively decrypts a link and its children. */
   const decrypt = (

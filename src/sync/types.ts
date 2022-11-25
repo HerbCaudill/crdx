@@ -10,8 +10,8 @@ export interface SyncState {
     /** Links they've sent that we haven't added yet (e.g. because we're missing dependencies). */
     encryptedLinks: Record<Hash, EncryptedLink>
 
-    /** The map of hashes they've sent. */
-    linkMap?: LinkMap
+    /** The map of hashes they've sent to those links' parents. */
+    parentMap: LinkMap
 
     /** Hashes of links they asked for in the last message. */
     need: Hash[]
@@ -28,7 +28,7 @@ export interface SyncState {
     reportedError?: ValidationError
 
     /** Our head when we sent the last linkMap, so we don't keep sending it */
-    linkMapAtHead?: Hash[]
+    parentMapAtHead?: Hash[]
 
     /** List of links we've sent them, so we don't send them multiple times */
     links: Hash[]
@@ -52,7 +52,7 @@ export interface SyncMessage<A extends Action, C> {
   links?: Record<Hash, EncryptedLink>
 
   /** Our most recent hashes and their dependencies. */
-  linkMap?: LinkMap
+  parentMap?: LinkMap
 
   /** Any hashes we know we need. */
   need?: Hash[]

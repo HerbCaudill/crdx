@@ -1,8 +1,8 @@
 ﻿import { byHash, topoSort } from './topoSort'
-import { Action, Link, Resolver, HashGraph } from './types'
+import { Action, Link, Resolver, Graph } from './types'
 
 /**
- * Takes a `HashGraph` and returns a flat array of links by performing a topographical sort and
+ * Takes a `Graph` and returns a flat array of links by performing a topographical sort and
  * filter. For example, this graph
  * ```
  *                      ┌─ e ─ g ─┐
@@ -21,7 +21,7 @@ import { Action, Link, Resolver, HashGraph } from './types'
  * - `filter` is a predicate function that indicates which links to include in the resulting
  *   sequence.
  */
-export const getSequence = <A extends Action, C>(graph: HashGraph<A, C>, resolver: Resolver<A, C> = baseResolver) => {
+export const getSequence = <A extends Action, C>(graph: Graph<A, C>, resolver: Resolver<A, C> = baseResolver) => {
   const { sort = byHash, filter = noFilter } = resolver(graph)
 
   const sorted = topoSort(graph, { comparator: sort })

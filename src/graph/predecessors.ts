@@ -1,26 +1,26 @@
-﻿import { Action, Link, HashGraph } from './types'
+﻿import { Action, Link, Graph } from './types'
 import { Hash, memoize } from '/util'
 import uniq from 'lodash/uniq'
 import { getLink } from './graph'
 
-export const getPredecessorHashes = memoize((graph: HashGraph<any, any>, hash: Hash): Hash[] => {
+export const getPredecessorHashes = memoize((graph: Graph<any, any>, hash: Hash): Hash[] => {
   const parents: Hash[] = getLink(graph, hash)?.body.prev || []
   const predecessors = parents.flatMap(parent => getPredecessorHashes(graph, parent))
   return uniq(parents.concat(predecessors))
 })
 
 /** Returns the set of predecessors of `link` (not including `link`) */
-export const getPredecessors = <A extends Action, C>(graph: HashGraph<A, C>, link: Link<A, C>): Link<A, C>[] =>
+export const getPredecessors = <A extends Action, C>(graph: Graph<A, C>, link: Link<A, C>): Link<A, C>[] =>
   getPredecessorHashes(graph, link.hash)
     .map(h => graph.links[h])
     .filter(link => link !== undefined)
 
 /** Returns true if `a` is a predecessor of `b` */
-export const isPredecessorHash = (graph: HashGraph<any, any>, a: string, b: string) =>
+export const isPredecessorHash = (graph: Graph<any, any>, a: string, b: string) =>
   getPredecessorHashes(graph, b).includes(a)
 
 /** Returns true if `a` is a predecessor of `b` */
-export const isPredecessor = (graph: HashGraph<any, any>, a: Link<any, any>, b: Link<any, any>) => {
+export const isPredecessor = (graph: Graph<any, any>, a: Link<any, any>, b: Link<any, any>) => {
   return (
     a !== undefined &&
     b !== undefined &&

@@ -1,4 +1,4 @@
-import { append, createGraph, decryptGraph, decryptLink, EncryptedHashGraph, getChildMap, HashGraph } from '/graph'
+import { append, createGraph, decryptGraph, decryptLink, redactGraph } from '/graph'
 import { TEST_GRAPH_KEYS } from '/test/util/setup'
 import { createUser } from '/user'
 

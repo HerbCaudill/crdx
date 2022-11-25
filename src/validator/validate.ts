@@ -1,7 +1,7 @@
 ﻿import { ValidationResult, ValidatorSet } from './types'
 import { fail, validators } from './validators'
 import { hashLink } from '/graph/hashLink'
-import { Action, Link, HashGraph } from '/graph/types'
+import { Action, Link, Graph } from '/graph/types'
 import { VALID } from '/constants'
 
 /**
@@ -10,7 +10,7 @@ import { VALID } from '/constants'
  */
 export const validate = <A extends Action, C>(
   /** The hash graph to validate. */
-  graph: HashGraph<A, C>,
+  graph: Graph<A, C>,
 
   /** Any additional validators (besides the base validators that test the graph's integrity) */
   customValidators: ValidatorSet = {}

@@ -18,9 +18,9 @@ export const syncMessageSummary = (m: SyncMessage<any, any>) => {
   if (m === undefined) {
     return 'DONE'
   } else {
-    const { head, linkMap, links, need, error } = m
+    const { head, parentMap, links, need, error } = m
     const body = { head: head.join() } as any
-    if (linkMap) body.linkMap = Object.keys(linkMap).join()
+    if (parentMap) body.linkMap = Object.keys(parentMap).join()
     if (links) body.links = Object.keys(links).join()
     if (need) body.need = need.join()
     if (error) body.error = error.message

@@ -1,7 +1,7 @@
 ﻿import { append } from '/graph/append'
 import { createGraph } from '/graph/createGraph'
 import { merge } from '/graph/merge'
-import { Action, Link, LinkBody, HashGraph } from '/graph/types'
+import { Action, Link, LinkBody, Graph } from '/graph/types'
 import { KeysetWithSecrets } from '/keyset'
 import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
 
@@ -14,7 +14,7 @@ export const getPayloads = (sequence: Link<XAction, any>[]) =>
     .map(link => (link.body as LinkBody<XAction, any>).payload) // pull out payloads
     .join('') // return as single string
 
-export const findByPayload = (graph: HashGraph<XAction, any>, payload: XAction['payload']) => {
+export const findByPayload = (graph: Graph<XAction, any>, payload: XAction['payload']) => {
   const links = Object.values(graph.links)
   return links.find(n => n.body.payload === payload) as Link<XAction, any>
 }
@@ -178,7 +178,7 @@ export type XAction =
     }
 export type XLink = Link<XAction, {}>
 
-export const appendLink = (graph: HashGraph<XAction, any>, payload: string, keys: KeysetWithSecrets) =>
+export const appendLink = (graph: Graph<XAction, any>, payload: string, keys: KeysetWithSecrets) =>
   append({
     graph,
     action: { type: 'X', payload } as XAction,

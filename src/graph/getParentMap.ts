@@ -1,5 +1,5 @@
 import { getHashes, getParents } from './graph'
-import { Action, HashGraph, LinkMap } from './types'
+import { Action, Graph, LinkMap } from './types'
 import { Hash } from '/util'
 
 export const EMPTY: LinkMap = {}
@@ -36,7 +36,7 @@ export const getParentMap = <A extends Action, C>({
   hashes,
 }: {
   /** The graph to collect links from. */
-  graph: HashGraph<A, C>
+  graph: Graph<A, C>
 
   /**
    * How many levels back we want to go in the graph. If omitted, we'll get a map covering the whole
@@ -117,7 +117,7 @@ export const isComplete = (linkMap: LinkMap) => {
   return !allDependencies.some(isMissing)
 }
 
-export const getChildMap = <A extends Action, C>(graph: HashGraph<A, C>): LinkMap => {
+export const getChildMap = <A extends Action, C>(graph: Graph<A, C>): LinkMap => {
   const childMap = {} as LinkMap
   getHashes(graph).forEach(hash =>
     getParents(graph, hash).forEach(parent => {

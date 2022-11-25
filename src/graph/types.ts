@@ -1,4 +1,4 @@
-﻿import { Base58, Hash, UnixTimestamp } from '/util/types'
+﻿import { Base58, Hash, Optional, UnixTimestamp } from '/util/types'
 
 /**
  * A hash graph is an acyclic directed graph of links. Each link is **asymmetrically encrypted
@@ -12,10 +12,10 @@
  * links themselves, plus a pointer to the **root** (the “founding” link added when the graph was
  * created) and the **head** (the most recent link(s) we know about).
  *
- * The `EncryptedHashGraph` can live in public. Each link is asymmetrically encrypted using the
+ * The `EncryptedGraph` can live in public. Each link is asymmetrically encrypted using the
  * author's secret key and the team public key at time of authoring.
  */
-export interface EncryptedHashGraph {
+export interface EncryptedGraph {
   /** Hash of the root link (the "founding" link added when the graph was created) */
   root: Hash
 
@@ -24,13 +24,15 @@ export interface EncryptedHashGraph {
 
   /** Hash table of all the links we know about */
   encryptedLinks: Record<Hash, EncryptedLink>
+
+  childMap: LinkMap
 }
 
 /**
- * The `HashGraph` interface adds the decrypted links, and is for local manipulation by the
+ * The `Graph` interface adds the decrypted links, and is for local manipulation by the
  * application.
  *
- * The `HashGraph` interface takes two parameters:
+ * The `Graph` interface takes two parameters:
  *
  * - `A` is the Action type — typically a union of various `type` labels (e.g. 'ADD_CONTACT') along
  *   with the interface of the payload associated with each one.
@@ -38,7 +40,7 @@ export interface EncryptedHashGraph {
  *   information about the context in which a link is added (e.g. a device ID, or the version of the
  *   application)
  */
-export interface HashGraph<A extends Action, C> extends EncryptedHashGraph {
+export interface Graph<A extends Action, C> extends Optional<EncryptedGraph, 'childMap'> {
   /** Decrypted links */
   links: Record<Hash, Link<A, C>>
 }
@@ -129,13 +131,13 @@ export type LinkComparator = <A extends Action, C>(a: Link<A, C>, b: Link<A, C>)
  *   [f]
  * ```
  */
-export type Resolver<A extends Action, C> = (graph: HashGraph<A, C>) => {
+export type Resolver<A extends Action, C> = (graph: Graph<A, C>) => {
   sort?: LinkComparator
   filter?: (link: Link<A, C>) => boolean
 }
 
 /**
- * A `LinkMap` contains information about the graph structure of a `HashGraph`, without any of the
+ * A `LinkMap` contains information about the graph structure of a `Graph`, without any of the
  * content. It is a map where each key is the hash of a link, and the value is that link's parents
  * (the `prev` value in the `LinkBody`). Something like this (where `a`, `b` etc. represent hashes):
  *

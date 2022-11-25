@@ -1,14 +1,6 @@
 import { SyncMessage, SyncState } from './types'
-import {
-  Action,
-  getEncryptedLinks,
-  getHashes,
-  getParentMap,
-  getPredecessorHashes,
-  headsAreEqual,
-  HashGraph,
-} from '/graph'
-import { Hash, truncateHashes } from '/util'
+import { Action, getEncryptedLinks, getHashes, getParentMap, getPredecessorHashes, Graph, headsAreEqual } from '/graph'
+import { Hash } from '/util'
 
 /**
  * Generates a new sync message for a peer based on our current graph and our sync state with them.
@@ -18,7 +10,7 @@ import { Hash, truncateHashes } from '/util'
  * we're synced up, and we don't have any further information to send.  */
 export const generateMessage = <A extends Action, C>(
   /** Our current graph */
-  graph: HashGraph<A, C>,
+  graph: Graph<A, C>,
   /** Our sync state with this peer */
   prevState: SyncState
 ): [SyncState, SyncMessage<A, C> | undefined] => {
@@ -72,7 +64,7 @@ export const generateMessage = <A extends Action, C>(
     ...lastCommonHead.flatMap(h => getPredecessorHashes(graph, h)),
 
     // anything in their link map
-    ...Object.keys(their.linkMap ?? {}),
+    ...Object.keys(their.parentMap ?? {}),
 
     // anything we've already sent
     ...our.links,
@@ -93,7 +85,7 @@ export const generateMessage = <A extends Action, C>(
     // CASE 4: we're either behind, or have diverged
 
     // if they've sent us a link map,
-    if (their.linkMap) {
+    if (their.parentMap) {
       // ask for anything they mention that we don't have
       const linksWeHave = { ...graph.encryptedLinks, ...their.encryptedLinks }
       message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave))
@@ -103,9 +95,9 @@ export const generateMessage = <A extends Action, C>(
     }
 
     // If our head has changed since last time we sent them a linkMap,
-    if (!headsAreEqual(ourHead, our.linkMapAtHead)) {
-      // send a new linkMap with everything that's happened since then
-      message.linkMap = getParentMap({ graph, end: lastCommonHead })
+    if (!headsAreEqual(ourHead, our.parentMapAtHead)) {
+      // send a new parentMap with everything that's happened since then
+      message.parentMap = getParentMap({ graph, end: lastCommonHead })
     }
   }
 
@@ -118,13 +110,13 @@ export const generateMessage = <A extends Action, C>(
     message.links = getEncryptedLinks(graph, hashesToSend)
     // add dependency info for links we send
     const additionalDependencies = getParentMap({ graph, hashes: hashesToSend })
-    message.linkMap = { ...message.linkMap, ...additionalDependencies }
+    message.parentMap = { ...message.parentMap, ...additionalDependencies }
   }
 
   // update our state
 
   // if we've sent them a linkmap for this head, remember that
-  if (message.linkMap) state.our.linkMapAtHead = ourHead
+  if (message.parentMap) state.our.parentMapAtHead = ourHead
 
   // record what we've sent them
   state.our.links = our.links.concat(hashesToSend)
