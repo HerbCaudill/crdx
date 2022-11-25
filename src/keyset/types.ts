@@ -59,4 +59,5 @@ export const isKeyset = (k: Object): k is KeysetWithSecrets =>
 export type Keyring = Record<string, KeysetWithSecrets>
 
 /** Type guard: Keyring vs KeysetWithSecrets  */
-export const isKeyring = (k: Keyring | KeysetWithSecrets): k is Keyring => !isKeyset(k)
+export const isKeyring = (k: Keyring | KeysetWithSecrets | KeysetWithSecrets[]): k is Keyring =>
+  !Array.isArray(k) && !isKeyset(k)
