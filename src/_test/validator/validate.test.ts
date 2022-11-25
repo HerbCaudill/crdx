@@ -83,6 +83,7 @@ describe('graphs', () => {
             recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
+          recipientPublicKey: keys.encryption.publicKey,
           senderPublicKey: eve.keys.encryption.publicKey,
         }
 
@@ -118,6 +119,7 @@ describe('graphs', () => {
         graph.encryptedLinks[newRootHash] = {
           encryptedBody,
           senderPublicKey: eve.keys.encryption.publicKey,
+          recipientPublicKey: keys.encryption.publicKey,
         }
         graph.links[newRootHash] = rootLink
 
@@ -142,6 +144,7 @@ describe('graphs', () => {
             recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
+          recipientPublicKey: keys.encryption.publicKey,
           senderPublicKey: eve.keys.encryption.publicKey,
         }
 
@@ -165,6 +168,7 @@ describe('graphs', () => {
             recipientPublicKey: keys.encryption.publicKey,
             senderSecretKey: eve.keys.encryption.secretKey,
           }),
+          recipientPublicKey: keys.encryption.publicKey,
           senderPublicKey: eve.keys.encryption.publicKey,
         }
 
