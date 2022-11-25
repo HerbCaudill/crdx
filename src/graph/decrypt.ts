@@ -12,7 +12,7 @@ export const decryptLink = <A extends Action, C>(
   encryptedLink: EncryptedLink,
   keys: Keyring | KeysetWithSecrets | KeysetWithSecrets[]
 ): Link<A, C> => {
-  const { senderPublicKey: authorPublicKey, recipientPublicKey, encryptedBody } = encryptedLink
+  const { senderPublicKey, recipientPublicKey, encryptedBody } = encryptedLink
 
   const keyring = createKeyring(keys)
   const keyset = keyring[recipientPublicKey]
@@ -21,10 +21,10 @@ export const decryptLink = <A extends Action, C>(
   var decryptedLinkBody = asymmetric.decrypt({
     cipher: encryptedBody,
     recipientSecretKey: keyset.encryption.secretKey,
-    senderPublicKey: authorPublicKey,
+    senderPublicKey,
   }) as LinkBody<A, C>
 
-  // HACK figure out why we'd be getting a JSON string here
+  // HACK figure out why localfirst/auth is getting a JSON string here
   if (typeof decryptedLinkBody === 'string') decryptedLinkBody = JSON.parse(decryptedLinkBody)
   // if (typeof decryptedLinkBody === 'string') console.error({ decryptedLinkBody })
 
