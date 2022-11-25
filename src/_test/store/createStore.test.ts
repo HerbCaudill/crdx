@@ -46,6 +46,7 @@ describe('createStore', () => {
         recipientPublicKey: keys.encryption.publicKey,
         senderSecretKey: eve.keys.encryption.secretKey,
       }),
+      recipientPublicKey: keys.encryption.publicKey,
       senderPublicKey: eve.keys.encryption.publicKey,
     }
 
