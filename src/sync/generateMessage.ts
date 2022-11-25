@@ -64,7 +64,7 @@ export const generateMessage = <A extends Action, C>(
     ...lastCommonHead.flatMap(h => getPredecessorHashes(graph, h)),
 
     // anything in their link map
-    ...Object.keys(their.parentMap ?? {}),
+    ...Object.keys(their.parentMap!),
 
     // anything we've already sent
     ...our.links,
@@ -94,10 +94,12 @@ export const generateMessage = <A extends Action, C>(
       hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))
     }
 
-    // If our head has changed since last time we sent them a linkMap,
+    // If our head has changed since last time we sent them a parentMap,
     if (!headsAreEqual(ourHead, our.parentMapAtHead)) {
       // send a new parentMap with everything that's happened since then
       message.parentMap = getParentMap({ graph, end: lastCommonHead })
+      // remember that we send this linkmap so we don't send it again
+      state.our.parentMapAtHead = ourHead
     }
   }
 
@@ -114,9 +116,6 @@ export const generateMessage = <A extends Action, C>(
   }
 
   // update our state
-
-  // if we've sent them a linkmap for this head, remember that
-  if (message.parentMap) state.our.parentMapAtHead = ourHead
 
   // record what we've sent them
   state.our.links = our.links.concat(hashesToSend)
