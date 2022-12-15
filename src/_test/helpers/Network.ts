@@ -6,7 +6,7 @@ import { generateMessage } from '/sync/generateMessage'
 import { initSyncState } from '/sync/initSyncState'
 import { receiveMessage } from '/sync/receiveMessage'
 import { SyncMessage, SyncState } from '/sync/types'
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { UserWithSecrets } from '/user'
 import { assert, debug } from '/util'
 

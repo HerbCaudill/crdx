@@ -1,5 +1,5 @@
 import { getConcurrentBubbles, getConcurrentLinks, Graph } from '/graph'
-import { buildGraph, byPayload, findByPayload, getPayloads } from '../util/graph'
+import { buildGraph, byPayload, findByPayload, getPayloads } from '../helpers/graph'
 
 describe('graphs', () => {
   describe('getConcurrentLinks', () => {

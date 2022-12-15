@@ -1,6 +1,6 @@
 import { getLink, Graph } from '/graph'
 import { getParentMap } from '../../graph/getParentMap'
-import { buildGraph, findByPayload } from '/test/util/graph'
+import { buildGraph, findByPayload } from '/test/helpers/graph'
 import { Hash } from '/util'
 
 describe('getParentMap', () => {

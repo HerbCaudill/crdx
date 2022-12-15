@@ -1,5 +1,5 @@
 import { getHead, getParents, getPredecessors, isPredecessor } from '/graph'
-import { buildGraph, byPayload, findByPayload, getPayloads } from '../util/graph'
+import { buildGraph, byPayload, findByPayload, getPayloads } from '../helpers/graph'
 
 describe('graphs', () => {
   describe('predecessors', () => {

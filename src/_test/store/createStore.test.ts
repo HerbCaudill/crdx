@@ -1,8 +1,8 @@
-import '/test/util/expect/toBeValid'
+import '/test/helpers/expect/toBeValid'
 import { CounterAction, counterReducer, CounterState, IncrementAction } from './counter.test'
 import { createGraph, getRoot, serialize } from '/graph'
 import { createStore } from '/store'
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { createUser, redactUser } from '/user'
 import { asymmetric } from '@herbcaudill/crypto'
 

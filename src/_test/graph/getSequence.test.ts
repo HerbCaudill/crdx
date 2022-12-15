@@ -1,50 +1,50 @@
-import { buildGraph, getPayloads, XAction } from '../util/graph'
+import { buildGraph, getPayloads, XAction } from '../helpers/graph'
 import { getConcurrentLinks, getSequence, Resolver } from '/graph'
 import { Hash } from '/util'
 
-/**
- * Custom logic:
- * 1. if `e` and `f` are concurrent, `e` is invalid
- * 2. if `h` and `i` are concurrent, both are invalid
- * 3. `j` comes first, otherwise sort alphabetically
- */
-const resolver: Resolver<XAction, any> = graph => {
-  const invalid: Record<Hash, boolean> = {}
-  for (const link of Object.values(graph.links)) {
-    const concurrentLinks = getConcurrentLinks(graph, link)
-    for (const concurrentLink of concurrentLinks) {
-      // rule 1
-      if (link.body.payload === 'f' && concurrentLink.body.payload === 'e') {
-        invalid[concurrentLink.hash] = true
-      }
-      // rule 2
-      if (link.body.payload === 'h' && concurrentLink.body.payload === 'i') {
-        invalid[link.hash] = true
-        invalid[concurrentLink.hash] = true
-      }
-    }
-  }
-  return {
-    sort: (_a, _b) => {
-      const a = _a.body.payload
-      const b = _b.body.payload
-
-      // rule 3
-      if (a === 'j') return -1
-      if (b === 'j') return 1
-
-      if (a < b) return -1
-      if (a > b) return 1
-      return 0
-    },
-    filter: link => {
-      return !invalid[link.hash]
-    },
-  }
-}
-
 describe('graphs', () => {
   describe('getSequence', () => {
+    /**
+     * Custom logic:
+     * 1. if `e` and `f` are concurrent, `e` is invalid
+     * 2. if `h` and `i` are concurrent, both are invalid
+     * 3. `j` comes first, otherwise sort alphabetically
+     */
+    const resolver: Resolver<XAction, any> = graph => {
+      const invalid: Record<Hash, boolean> = {}
+      for (const link of Object.values(graph.links)) {
+        const concurrentLinks = getConcurrentLinks(graph, link)
+        for (const concurrentLink of concurrentLinks) {
+          // rule 1
+          if (link.body.payload === 'f' && concurrentLink.body.payload === 'e') {
+            invalid[concurrentLink.hash] = true
+          }
+          // rule 2
+          if (link.body.payload === 'h' && concurrentLink.body.payload === 'i') {
+            invalid[link.hash] = true
+            invalid[concurrentLink.hash] = true
+          }
+        }
+      }
+      return {
+        sort: (_a, _b) => {
+          const a = _a.body.payload
+          const b = _b.body.payload
+
+          // rule 3
+          if (a === 'j') return -1
+          if (b === 'j') return 1
+
+          if (a < b) return -1
+          if (a > b) return 1
+          return 0
+        },
+        filter: link => {
+          return !invalid[link.hash]
+        },
+      }
+    }
+
     test('one link', () => {
       const graph = buildGraph('a')
       const sequence = getSequence(graph)

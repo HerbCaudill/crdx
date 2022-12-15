@@ -14,7 +14,7 @@ import {
   Resolver,
   serialize,
 } from '/graph'
-import { isKeyring, isKeyset, Keyring, Keyset, KeysetWithSecrets } from '/keyset'
+import { isKeyset, Keyring, KeysetWithSecrets } from '/keyset'
 import { createKeyring } from '/keyset/createKeyring'
 import { UserWithSecrets } from '/user'
 import { assert, Optional } from '/util'

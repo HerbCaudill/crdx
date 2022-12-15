@@ -1,8 +1,8 @@
 import { createGraph, deserialize, getHead, getRoot, serialize } from '/graph'
-import { setup } from '/test/util/setup'
-import '/test/util/expect/toBeValid'
+import { setup } from '/test/helpers/setup'
+import '/test/helpers/expect/toBeValid'
 import { validate } from '/validator'
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 
 const { alice } = setup('alice')
 const defaultUser = alice

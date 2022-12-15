@@ -1,5 +1,5 @@
 ﻿import { getRoot, getSuccessors, isSuccessor } from '/graph'
-import { buildGraph, findByPayload, getPayloads, XLink } from '../util/graph'
+import { buildGraph, findByPayload, getPayloads, XLink } from '../helpers/graph'
 
 describe('graphs', () => {
   describe('successors', () => {

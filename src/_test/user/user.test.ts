@@ -1,6 +1,6 @@
 import { signatures, symmetric, asymmetric } from '@herbcaudill/crypto'
 import { createUser } from '/user/createUser'
-import '/test/util/expect/toLookLikeKeyset'
+import '/test/helpers/expect/toLookLikeKeyset'
 
 describe('user', () => {
   it('creates a new user', () => {

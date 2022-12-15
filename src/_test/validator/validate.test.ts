@@ -1,10 +1,10 @@
 ﻿import { asymmetric } from '@herbcaudill/crypto'
-import { buildGraph } from '/test/util/graph'
+import { buildGraph } from '/test/helpers/graph'
 import { append, createGraph, getHead, getLink, getRoot } from '/graph'
 import { hashLink } from '/graph/hashLink'
-import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { validate } from '/validator/validate'
-import '/test/util/expect/toBeValid'
+import '/test/helpers/expect/toBeValid'
 
 import { jest } from '@jest/globals'
 const { setSystemTime } = jest.useFakeTimers()

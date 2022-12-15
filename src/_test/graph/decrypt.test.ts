@@ -1,6 +1,6 @@
 import { append, createGraph, decryptGraph, decryptLink, redactGraph } from '/graph'
 import { createKeyset } from '/keyset'
-import { TEST_GRAPH_KEYS } from '/test/util/setup'
+import { TEST_GRAPH_KEYS } from '/test/helpers/setup'
 import { createUser } from '/user'
 
 const keys = TEST_GRAPH_KEYS

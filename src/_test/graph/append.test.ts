@@ -1,12 +1,12 @@
 import { append, createGraph, getHead, getRoot } from '/graph'
-import '/test/util/expect/toBeValid'
-import { setup } from '/test/util/setup'
+import '/test/helpers/expect/toBeValid'
+import { setup } from '/test/helpers/setup'
 import { validate } from '/validator'
 
 const { alice } = setup('alice')
 const defaultUser = alice
 
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 
 const __ = expect.objectContaining
 

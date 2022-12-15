@@ -1,7 +1,7 @@
 import clone from 'lodash/clone'
 import { append, createGraph, merge } from '/graph'
-import '/test/util/expect/toBeValid'
-import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import '/test/helpers/expect/toBeValid'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 
 const { alice, bob } = setup('alice', 'bob')
 const defaultUser = alice

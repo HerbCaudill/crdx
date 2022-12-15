@@ -1,4 +1,4 @@
-import { buildGraph, getPayloads, byPayload } from '../util/graph'
+import { buildGraph, getPayloads, byPayload } from '../helpers/graph'
 import { topoSort } from '/graph'
 
 describe('graphs', () => {

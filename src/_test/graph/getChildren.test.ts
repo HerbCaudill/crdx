@@ -1,4 +1,4 @@
-import { buildGraph, findByPayload } from '../util/graph'
+import { buildGraph, findByPayload } from '../helpers/graph'
 import { getRoot, getChildren } from '/graph'
 
 describe('getChildren', () => {

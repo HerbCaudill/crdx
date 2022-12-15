@@ -3,7 +3,7 @@ import { createGraph } from '/graph/createGraph'
 import { merge } from '/graph/merge'
 import { Action, Link, LinkBody, Graph } from '/graph/types'
 import { KeysetWithSecrets } from '/keyset'
-import { setup, TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { setup, TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 
 const { alice } = setup('alice')
 

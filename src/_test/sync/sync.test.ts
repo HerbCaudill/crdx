@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals'
 import { append, createGraph, Graph, headsAreEqual } from '/graph'
 import { generateMessage, initSyncState, receiveMessage } from '/sync'
-import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/util/Network'
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { expectNotToBeSynced, expectToBeSynced, Network, setupWithNetwork, TestUserStuff } from '/test/helpers/Network'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { createUser, User, UserWithSecrets } from '/user'
 import { assert } from '/util'
 

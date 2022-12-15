@@ -2,7 +2,7 @@ import { makeRandom } from '@herbcaudill/random'
 import { createGraph, RootAction } from '/graph'
 import { createStore, Store } from '/store'
 import { Reducer } from '/store/types'
-import { TEST_GRAPH_KEYS as keys } from '/test/util/setup'
+import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { createUser } from '/user'
 import { arrayToMap } from '/util'
 
