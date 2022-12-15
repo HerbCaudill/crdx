@@ -1,6 +1,6 @@
 import { SyncMessage, SyncState } from './types'
 import { Action, getChildMap, Graph, invertLinkMap, merge } from '/graph'
-import { decryptGraph } from '/graph/decrypt'
+import { DecryptFn, decryptGraph } from '/graph/decrypt'
 import { createKeyring, isKeyring, Keyring, KeysetWithSecrets } from '/keyset'
 import { assert } from '/util'
 import { validate } from '/validator'
@@ -25,7 +25,7 @@ export const receiveMessage = <A extends Action, C>(
 
   keys: KeysetWithSecrets | Keyring,
 
-  decrypt = decryptGraph
+  decrypt: DecryptFn = decryptGraph
 ): [Graph<A, C>, SyncState] => {
   // if a keyset was provided, wrap it in a keyring
   const keyring = createKeyring(keys)
@@ -61,11 +61,6 @@ export const receiveMessage = <A extends Action, C>(
       encryptedLinks,
       childMap,
     }
-
-    // NEXT: lf/auth is having trouble here because of key rotation. I can think of 3 solutions:
-    // 1. Pass a decrypt function into receiveMessage
-    // 2. Support some sort of hook into decryptGraph that allows updating keys
-    // 3. Don't decrypt here, leave that to the app
 
     const theirGraph = decrypt({ encryptedGraph, keys: keyring })
 

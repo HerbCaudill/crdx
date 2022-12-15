@@ -1,6 +1,6 @@
 import { asymmetric } from '@herbcaudill/crypto'
 import { hashLink } from './hashLink'
-import { Action, EncryptedGraph, EncryptedLink, Graph, Link, LinkBody, LinkMap } from './types'
+import { Action, EncryptedLink, Graph, Link, LinkBody, MaybePartlyDecryptedGraph } from './types'
 import { Keyring, KeysetWithSecrets } from '/keyset'
 import { createKeyring } from '/keyset/createKeyring'
 import { assert, Hash } from '/util'
@@ -37,16 +37,16 @@ export const decryptLink = <A extends Action, C>(
 /**
  * Decrypts a graph using a one or more keys.
  */
-export const decryptGraph = <A extends Action, C>({
+export const decryptGraph: DecryptFn = <A extends Action, C>({
   encryptedGraph,
   keys,
 }: {
-  encryptedGraph: Graph<A, C> | EncryptedGraph
+  encryptedGraph: MaybePartlyDecryptedGraph<A, C>
   keys: KeysetWithSecrets | KeysetWithSecrets[] | Keyring
 }): Graph<A, C> => {
   const { encryptedLinks, root, childMap = {} } = encryptedGraph
 
-  const links = 'links' in encryptedGraph ? encryptedGraph.links : {}
+  const links = encryptedGraph.links! ?? {}
 
   /** Recursively decrypts a link and its children. */
   const decrypt = (hash: Hash, prevLinks: Record<Hash, Link<A, C>> = {}): Record<Hash, Link<A, C>> => {
@@ -75,3 +75,10 @@ export const decryptGraph = <A extends Action, C>({
     links: decryptedLinks,
   }
 }
+
+export type DecryptFnParams<A extends Action, C> = {
+  encryptedGraph: MaybePartlyDecryptedGraph<A, C>
+  keys: KeysetWithSecrets | KeysetWithSecrets[] | Keyring
+}
+
+export type DecryptFn = <A extends Action, C>({ encryptedGraph, keys }: DecryptFnParams<A, C>) => Graph<A, C>

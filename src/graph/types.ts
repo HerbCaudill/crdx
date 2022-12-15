@@ -45,6 +45,8 @@ export interface Graph<A extends Action, C> extends Optional<EncryptedGraph, 'ch
   links: Record<Hash, Link<A, C>>
 }
 
+export interface MaybePartlyDecryptedGraph<A extends Action, C> extends Optional<Graph<A, C>, 'links'> {}
+
 export type EncryptedLink = {
   /**
    * Public key of the author of the link, at the time of authoring. After decryption, it is up to
