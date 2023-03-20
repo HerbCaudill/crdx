@@ -1,4 +1,4 @@
-import { createGraph, getRoot, RootAction } from '/graph'
+import { RootAction } from '/graph'
 import { createStore } from '/store'
 import { Reducer } from '/store/types'
 import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
@@ -13,8 +13,7 @@ const alice = createUser('alice')
 const bob = createUser('bob')
 
 const setupCounter = () => {
-  const graph = createGraph<CounterAction>({ user: alice, name: 'counter', keys })
-  const aliceStore = createStore({ user: alice, graph, reducer: counterReducer, keys })
+  const aliceStore = createStore({ user: alice, reducer: counterReducer, keys })
 
   const saved = aliceStore.getGraph()
   const bobStore = createStore({ user: bob, graph: saved, reducer: counterReducer, keys })
