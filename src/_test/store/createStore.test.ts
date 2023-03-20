@@ -1,10 +1,10 @@
-import '/test/helpers/expect/toBeValid'
+import { asymmetric } from '@herbcaudill/crypto'
 import { CounterAction, counterReducer, CounterState, IncrementAction } from './counter.test'
 import { createGraph, getRoot, serialize } from '/graph'
 import { createStore } from '/store'
+import '/test/helpers/expect/toBeValid'
 import { TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
-import { createUser, redactUser } from '/user'
-import { asymmetric } from '@herbcaudill/crypto'
+import { createUser } from '/user'
 
 const alice = createUser('alice')
 const bob = createUser('bob')
@@ -20,7 +20,11 @@ describe('createStore', () => {
   test('serialized graph provided', () => {
     const graph = createGraph<CounterAction>({ user: alice, name: 'counter', keys })
     const aliceStore = createStore({ user: alice, graph, reducer: counterReducer, keys })
+    aliceStore.dispatch({ type: 'INCREMENT' })
+    aliceStore.dispatch({ type: 'INCREMENT' })
+
     const serializedGraph = aliceStore.save()
+
     const bobStore = createStore<CounterState, IncrementAction, {}>({
       user: bob,
       graph: serializedGraph,
@@ -28,7 +32,7 @@ describe('createStore', () => {
       keys,
     })
     const bobState = bobStore.getState() as CounterState
-    expect(bobState.value).toEqual(0)
+    expect(bobState.value).toEqual(2)
   })
 
   test('Eve tampers with the serialized graph', () => {
