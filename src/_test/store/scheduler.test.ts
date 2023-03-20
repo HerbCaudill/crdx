@@ -49,7 +49,8 @@ describe('scheduler', () => {
         case 'MAKE_RESERVATION': {
           const newReservation = action.payload
 
-          // look for any conflicting reservations
+          // look for any conflicting reservations (note that the order of the reservations has already been
+          // determined by the resolver, so earlier reservations in the list take precedence over later ones)
           const conflictingReservation = Object.values(reservations).find(r => overlaps(r, newReservation))
 
           if (conflictingReservation)
