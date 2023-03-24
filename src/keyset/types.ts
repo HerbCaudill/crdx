@@ -7,6 +7,7 @@ export const KeyType = {
   ROLE: 'ROLE',
   USER: 'USER',
   DEVICE: 'DEVICE',
+  SERVER: 'SERVER',
   EPHEMERAL: 'EPHEMERAL',
 } as const
 export type KeyType = typeof KeyType[keyof typeof KeyType]
