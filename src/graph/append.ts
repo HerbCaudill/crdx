@@ -1,6 +1,6 @@
 ﻿import { asymmetric } from '@herbcaudill/crypto'
 import { EMPTY_GRAPH } from './createGraph'
-import { hashLink } from './hashLink'
+import { hashEncryptedLink } from './hashLink'
 import { Action, EncryptedLink, Graph, Link, LinkBody } from './types'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
@@ -52,7 +52,7 @@ export const append = <A extends Action, C>({
   })
 
   // the link's hash is calculated over the encrypted body
-  const hash = hashLink(encryptedBody)
+  const hash = hashEncryptedLink(encryptedBody)
 
   // create the encrypted and unencrypted links
   const link: Link<A, C> = {

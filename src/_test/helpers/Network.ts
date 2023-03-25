@@ -12,12 +12,6 @@ import { assert, debug } from '/util'
 
 const log = debug('crdx:network')
 
-const logMessage = (msg: NetworkMessage) => {
-  const { to, from, body } = msg
-  const { head, links } = body
-  log(`${from}->${to} ${head} (${links?.count || 0} links)`)
-}
-
 /** Simulates a peer-to-peer network. */
 export class Network {
   peers: Record<string, Peer>

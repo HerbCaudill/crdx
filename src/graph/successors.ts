@@ -1,9 +1,9 @@
 ﻿import uniq from 'lodash/uniq'
 import { getChildrenHashes } from './children'
 import { Action, Link, Graph } from './types'
-import { memoize } from '/util'
+import { Hash, memoize } from '/util'
 
-export const getSuccessorHashes = memoize((graph: Graph<any, any>, hash: string): string[] => {
+export const getSuccessorHashes = memoize((graph: Graph<any, any>, hash: Hash): Hash[] => {
   const children = getChildrenHashes(graph, hash)
   const successors = children.flatMap(parent => getSuccessorHashes(graph, parent))
   return uniq(children.concat(successors))
@@ -15,8 +15,7 @@ export const getSuccessors = <A extends Action, C>(graph: Graph<A, C>, link: Lin
     .map(h => graph.links[h])
     .filter(link => link !== undefined)
 
-export const isSuccessorHash = (graph: Graph<any, any>, a: string, b: string) =>
-  getSuccessorHashes(graph, b).includes(a)
+export const isSuccessorHash = (graph: Graph<any, any>, a: Hash, b: Hash) => getSuccessorHashes(graph, b).includes(a)
 
 /** Returns true if `a` is a successor of `b` */
 export const isSuccessor = <A extends Action, C>(graph: Graph<A, C>, a: Link<A, C>, b: Link<A, C>): boolean => {

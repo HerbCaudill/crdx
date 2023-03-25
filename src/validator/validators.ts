@@ -1,6 +1,6 @@
 ﻿import { ValidationError, ValidatorSet } from './types'
 import { getRoot } from '/graph/graph'
-import { hashLink } from '/graph/hashLink'
+import { hashEncryptedLink } from '/graph/hashLink'
 import { ROOT, VALID } from '/constants'
 import { memoize } from '/util'
 
@@ -9,7 +9,7 @@ const _validators: ValidatorSet = {
   validateHash: (link, graph) => {
     const { hash } = link
     const { encryptedBody } = graph.encryptedLinks[hash]
-    const computedHash = hashLink(encryptedBody)
+    const computedHash = hashEncryptedLink(encryptedBody)
     if (hash === computedHash) return VALID
     else return fail(`The hash calculated for this link does not match.`, { link, hash, expected: computedHash })
   },

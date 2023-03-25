@@ -3,6 +3,7 @@ import { UserWithSecrets } from '/user'
 import { assert } from '/util'
 import { arrayToMap } from './arrayToMap'
 import { KeysetWithSecrets } from '/keyset'
+import { Base58 } from '@herbcaudill/crypto'
 
 /**
 Usage: 
@@ -34,12 +35,12 @@ export const TEST_GRAPH_KEYS: KeysetWithSecrets = {
   name: 'GRAPH',
   generation: 0,
   signature: {
-    publicKey: 'GQrmBanGPSFBvZ4AHAoduk1jp7tXxa5fuzmWQTfbCbRT',
-    secretKey: 'P7AgGTmMNedfpDixXF1rJgmVpyqAwCnGJRqyQzbm5wQbUnfoySAWMBzjxcm8USprqRNcW2ZoEEbzwPRX7EFuZkD',
+    publicKey: 'GQrmBanGPSFBvZ4AHAoduk1jp7tXxa5fuzmWQTfbCbRT' as Base58,
+    secretKey: 'P7AgGTmMNedfpDixXF1rJgmVpyqAwCnGJRqyQzbm5wQbUnfoySAWMBzjxcm8USprqRNcW2ZoEEbzwPRX7EFuZkD' as Base58,
   },
   encryption: {
-    publicKey: '7QviM4tWnhSwrrmrZnqEm3vFWrp3nvFwdcQShaFZ7nXj',
-    secretKey: 'HiFFKM6Eg1zkDHYkFcDLpEq7BM3k3FywHpj4zxQzVvHj',
+    publicKey: '7QviM4tWnhSwrrmrZnqEm3vFWrp3nvFwdcQShaFZ7nXj' as Base58,
+    secretKey: 'HiFFKM6Eg1zkDHYkFcDLpEq7BM3k3FywHpj4zxQzVvHj' as Base58,
   },
-  secretKey: 'GUg4dKHG1KWnysf4tsMtbBXvbuknj2q34qvjxYZzc5eP',
+  secretKey: 'GUg4dKHG1KWnysf4tsMtbBXvbuknj2q34qvjxYZzc5eP' as Base58,
 }

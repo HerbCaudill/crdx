@@ -1,11 +1,11 @@
 import { Action, Link, Graph } from './types'
-import { assert, Hash, truncateHashes } from '/util'
+import { assert, Base58, Hash, truncateHashes } from '/util'
 
 export const getRoot = <A extends Action, C>(graph: Graph<A, C>) => graph.links[graph.root]
 
 export const getHead = <A extends Action, C>(graph: Graph<A, C>) => graph.head.map(hash => getLink(graph, hash)!)
 
-export const getHashes = (graph: Graph<any, any>) => Object.keys(graph.links)
+export const getHashes = (graph: Graph<any, any>) => Object.keys(graph.links) as Base58[]
 
 export const getLink = <A extends Action, C>(graph: Graph<A, C>, hash: Hash): Link<A, C> => graph.links[hash]
 

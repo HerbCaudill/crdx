@@ -6,7 +6,7 @@ import { Hash } from '/util'
 /**
  * Returns the hashes of the children of the link with the given hash.
  */
-export const getChildrenHashes = <A extends Action, C>(graph: Graph<A, C>, hash: Hash): string[] => {
+export const getChildrenHashes = <A extends Action, C>(graph: Graph<A, C>, hash: Hash): Hash[] => {
   const childrenLookup = calculateChildren(graph)
   return childrenLookup[hash] || []
 }

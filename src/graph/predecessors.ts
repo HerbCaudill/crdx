@@ -1,5 +1,5 @@
 ﻿import { Action, Link, Graph } from './types'
-import { Hash, memoize } from '/util'
+import { Base58, Hash, memoize } from '/util'
 import uniq from 'lodash/uniq'
 import { getLink } from './graph'
 
@@ -16,7 +16,7 @@ export const getPredecessors = <A extends Action, C>(graph: Graph<A, C>, link: L
     .filter(link => link !== undefined)
 
 /** Returns true if `a` is a predecessor of `b` */
-export const isPredecessorHash = (graph: Graph<any, any>, a: string, b: string) =>
+export const isPredecessorHash = (graph: Graph<any, any>, a: Base58, b: Base58) =>
   getPredecessorHashes(graph, b).includes(a)
 
 /** Returns true if `a` is a predecessor of `b` */

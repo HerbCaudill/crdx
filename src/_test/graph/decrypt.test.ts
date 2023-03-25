@@ -2,6 +2,7 @@ import { append, createGraph, decryptGraph, decryptLink, redactGraph } from '/gr
 import { createKeyset } from '/keyset'
 import { TEST_GRAPH_KEYS } from '/test/helpers/setup'
 import { createUser } from '/user'
+import { Hash } from '/util'
 
 const keys = TEST_GRAPH_KEYS
 
@@ -11,7 +12,8 @@ describe('decrypt', () => {
     let graph = createGraph<any>({ user: alice, name: 'test graph', keys })
     graph = append({ graph, action: { type: 'FOO' }, user: alice, keys })
 
-    for (const hash in graph.encryptedLinks) {
+    for (const _ in graph.encryptedLinks) {
+      const hash = _ as Hash
       const link = graph.encryptedLinks[hash]
       const decryptedLink = decryptLink(link, keys)
       expect(decryptedLink.body).toEqual(graph.links[hash].body)
@@ -27,7 +29,8 @@ describe('decrypt', () => {
     const encryptedGraph = redactGraph(graph)
 
     const decryptedGraph = decryptGraph({ encryptedGraph, keys })
-    for (const hash in graph.links) {
+    for (const _ in graph.links) {
+      const hash = _ as Hash
       const decrypted = decryptedGraph.links[hash]
       const original = graph.links[hash]
       expect(decrypted.body).toEqual(original.body)
@@ -50,7 +53,8 @@ describe('decrypt', () => {
 
     // we pass all the keys we have to decrypt
     const decryptedGraph = decryptGraph({ encryptedGraph, keys: [keys1, keys2] })
-    for (const hash in graph.links) {
+    for (const _ in graph.links) {
+      const hash = _ as Hash
       const decrypted = decryptedGraph.links[hash]
       const original = graph.links[hash]
       expect(decrypted.body).toEqual(original.body)

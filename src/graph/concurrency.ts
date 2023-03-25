@@ -29,11 +29,12 @@ export const calculateConcurrency = memoize(<A extends Action, C>(graph: Graph<A
   const concurrencyLookup = {} as Record<Hash, Hash[]>
 
   // for each link, find all links that are concurrent with it
-  for (const a in graph.links)
-    concurrencyLookup[a] = getHashes(graph)
-      .filter(b => isConcurrent(graph, a, b))
+  for (const _ in graph.links) {
+    const hash = _ as Hash
+    concurrencyLookup[hash] = getHashes(graph)
+      .filter(b => isConcurrent(graph, hash, b))
       .sort()
-
+  }
   return concurrencyLookup
 })
 
@@ -57,7 +58,8 @@ export const getConcurrentBubbles = <A extends Action, C>(graph: Graph<A, C>): H
   }
 
   const bubbles: Hash[][] = []
-  for (const hash in graph.links)
+  for (const _ in graph.links) {
+    const hash = _ as Hash
     if (!seen[hash]) {
       seen[hash] = true
       const bubble = getBubble(hash)
@@ -65,6 +67,7 @@ export const getConcurrentBubbles = <A extends Action, C>(graph: Graph<A, C>): H
         bubbles.push(bubble)
       }
     }
+  }
 
   return bubbles
 }

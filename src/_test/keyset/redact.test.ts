@@ -15,7 +15,7 @@ describe('redact', () => {
   })
 
   it('should redact secrets from a known keyset', () => {
-    const secretKeyset: KeysetWithSecrets = {
+    const secretKeyset = {
       ...EPHEMERAL_SCOPE,
       generation: 0,
       signature: {
@@ -27,7 +27,7 @@ describe('redact', () => {
         secretKey: 'k3a1DlPrnsd3V4fnc34gN60pV8qieqQccwvqJbqFKj1WMZ5h',
       },
       secretKey: 'ewjn7ELEjW8S1qYuKI9MDizUkD7d5FWG6c65cleud7xkFxoy',
-    }
+    } as KeysetWithSecrets
 
     const publicKeyset = redactKeys(secretKeyset)
 

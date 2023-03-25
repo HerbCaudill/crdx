@@ -103,7 +103,8 @@ export const getParentMap = <A extends Action, C>({
 export const getTails = (linkMap: LinkMap): Hash[] => {
   // To find the tails, we collect all the parents listed in the given linkMap, and only include the
   // ones that aren't also included as keys, e.g. [g, f, i] in the above example.
-  const allParents = Object.keys(linkMap).flatMap(hash => linkMap[hash])
+  const keys = Object.keys(linkMap) as Hash[]
+  const allParents = keys.flatMap(hash => linkMap[hash])
   const tails = allParents.filter(hash => !(hash in linkMap))
   return tails
 }
@@ -130,7 +131,8 @@ export const getChildMap = <A extends Action, C>(graph: Graph<A, C>): LinkMap =>
 
 export const invertLinkMap = (linkMap: LinkMap): LinkMap => {
   const inverted = {} as LinkMap
-  Object.keys(linkMap).forEach(hash => {
+  const keys = Object.keys(linkMap) as Hash[]
+  keys.forEach(hash => {
     linkMap[hash].forEach(parent => {
       if (!inverted[parent]) inverted[parent] = []
       inverted[parent].push(hash)

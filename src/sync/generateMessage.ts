@@ -68,7 +68,7 @@ export const generateMessage = <A extends Action, C>(
 
     // anything we've already sent
     ...our.links,
-  ].reduce((result, h) => ({ ...result, [h]: true }), {})
+  ].reduce((result, h) => ({ ...result, [h]: true }), {} as Record<Hash, boolean>)
 
   let hashesWeThinkTheyNeed = [] as Hash[]
 
@@ -88,7 +88,7 @@ export const generateMessage = <A extends Action, C>(
     if (their.parentMap) {
       // ask for anything they mention that we don't have
       const linksWeHave = { ...graph.encryptedLinks, ...their.encryptedLinks }
-      message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave))
+      message.need = Object.keys(theirHashLookup).filter(hash => !(hash in linksWeHave)) as Hash[]
 
       // and figure out what links they might need
       hashesWeThinkTheyNeed = getHashes(graph).filter(hash => !(hash in theirHashLookup))

@@ -1,14 +1,8 @@
 ﻿import { Base58, Base58Keypair } from '@herbcaudill/crypto'
 
-// avoiding enums https://maxheiber.medium.com/alternatives-to-typescript-enums-50e4c16600b1
 export const KeyType = {
   GRAPH: 'GRAPH',
-  TEAM: 'TEAM',
-  ROLE: 'ROLE',
   USER: 'USER',
-  DEVICE: 'DEVICE',
-  SERVER: 'SERVER',
-  EPHEMERAL: 'EPHEMERAL',
 } as const
 export type KeyType = typeof KeyType[keyof typeof KeyType]
 
@@ -18,7 +12,7 @@ export type KeyType = typeof KeyType[keyof typeof KeyType]
  * - a single-use keyset: `{type: EPHEMERAL, name: EPHEMERAL}`
  */
 export interface KeyScope {
-  type: KeyType
+  type: string // not restricted to KeyType because apps will have their own types
   name: string
 }
 

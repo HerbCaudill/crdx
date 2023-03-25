@@ -1,5 +1,5 @@
 import { asymmetric } from '@herbcaudill/crypto'
-import { hashLink } from './hashLink'
+import { hashEncryptedLink } from './hashLink'
 import { Action, EncryptedLink, Graph, Link, LinkBody, MaybePartlyDecryptedGraph } from './types'
 import { Keyring, KeysetWithSecrets } from '/keyset'
 import { createKeyring } from '/keyset/createKeyring'
@@ -29,7 +29,7 @@ export const decryptLink = <A extends Action, C>(
   // if (typeof decryptedLinkBody === 'string') console.error({ decryptedLinkBody })
 
   return {
-    hash: hashLink(encryptedBody),
+    hash: hashEncryptedLink(encryptedBody),
     body: decryptedLinkBody,
   }
 }

@@ -148,12 +148,13 @@ describe('getParentMap', () => {
   })
 })
 
-const lookupPayloads = (graph: Graph<any, any>, linkMap: Record<Hash, Hash[]>): Record<string, string> => {
-  const getPayload = (hash: Hash): string => {
+const lookupPayloads = (graph: Graph<any, any>, linkMap: Record<Hash, Hash[]>): Record<Hash, Hash> => {
+  const getPayload = (hash: Hash): Hash => {
     const linkBody = getLink(graph, hash).body
     return linkBody.type === 'ROOT' ? '' : linkBody.payload
   }
-  return Object.entries(linkMap).reduce((result, [hash, predecessors]) => {
+  const entries = Object.entries(linkMap) as [Hash, Hash[]][]
+  return entries.reduce((result, [hash, predecessors]) => {
     const key = getPayload(hash)
     const payload = predecessors.map(getPayload).sort().join()
     return {

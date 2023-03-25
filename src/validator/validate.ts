@@ -1,6 +1,6 @@
 ﻿import { ValidationResult, ValidatorSet } from './types'
 import { fail, validators } from './validators'
-import { hashLink } from '/graph/hashLink'
+import { hashEncryptedLink } from '/graph/hashLink'
 import { Action, Link, Graph } from '/graph/types'
 import { VALID } from '/constants'
 
@@ -19,7 +19,7 @@ export const validate = <A extends Action, C>(
   {
     const rootHash = graph.root
     const rootLink = graph.encryptedLinks[rootHash]
-    const computedHash = hashLink(rootLink.encryptedBody)
+    const computedHash = hashEncryptedLink(rootLink.encryptedBody)
     if (computedHash !== rootHash)
       return fail('Root hash does not match the hash of the root link', { rootHash, computedHash, rootLink })
   }
@@ -27,7 +27,7 @@ export const validate = <A extends Action, C>(
   // Confirm that each head hash matches the computed hash of the head link
   for (const headHash of graph.head) {
     const headLink = graph.encryptedLinks[headHash]
-    const computedHash = hashLink(headLink.encryptedBody)
+    const computedHash = hashEncryptedLink(headLink.encryptedBody)
     if (computedHash !== headHash)
       return fail('Head hash does not match the hash of the head link', { headHash, computedHash, headLink })
   }

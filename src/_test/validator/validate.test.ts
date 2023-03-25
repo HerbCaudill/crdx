@@ -1,12 +1,13 @@
 ﻿import { asymmetric } from '@herbcaudill/crypto'
 import { buildGraph } from '/test/helpers/graph'
 import { append, createGraph, getHead, getLink, getRoot } from '/graph'
-import { hashLink } from '/graph/hashLink'
+import { hashEncryptedLink } from '/graph/hashLink'
 import { setup, TEST_GRAPH_KEYS as keys } from '/test/helpers/setup'
 import { validate } from '/validator/validate'
 import '/test/helpers/expect/toBeValid'
 
 import { jest } from '@jest/globals'
+import { Hash } from '/util'
 const { setSystemTime } = jest.useFakeTimers()
 
 const { alice, eve } = setup('alice', 'eve')
@@ -112,7 +113,7 @@ describe('graphs', () => {
         delete graph.encryptedLinks[oldRootHash] // these links would resurface when syncing later anyway, because other people still have them
 
         // 🦹‍♀️ She generates a new root hash
-        const newRootHash = hashLink(encryptedBody)
+        const newRootHash = hashEncryptedLink(encryptedBody)
         graph.root = newRootHash // this would also prevent syncing in the future, since two graphs with different roots can't sync
 
         // 🦹‍♀️  She adds the tampered root
@@ -156,7 +157,7 @@ describe('graphs', () => {
         const graph = setupGraph()
 
         // 🦹‍♀️ Eve tampers with a link
-        const linkHash = Object.keys(graph.links)[2]
+        const linkHash = Object.keys(graph.links)[2] as Hash
         const link = getLink(graph, linkHash)
 
         link.body.payload = 'foo'
