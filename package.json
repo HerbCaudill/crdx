@@ -21,7 +21,7 @@
     "test:log": "cross-env DEBUG='crdx*' DEBUG_COLORS=1 yarn test"
   },
   "dependencies": {
-    "@herbcaudill/crypto": "^3.0.4",
+    "@herbcaudill/crypto": "^3.0.6",
     "cuid": "2",
     "debug": "4",
     "events": "3",
