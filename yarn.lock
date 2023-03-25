@@ -307,15 +307,15 @@
   resolved "https://registry.yarnpkg.com/@herbcaudill/base-x/-/base-x-4.0.6.tgz#681a5921ea55b61a431c49ade9955322b02337cd"
   integrity sha512-9BaPxLhtOGn5Os1gnG223StA8BvOm2vm8Unatj6nLoEV1lL8PVDyhsZV1yJXSSWEc8aHnQAJG5+NbvGMveaqeQ==
 
-"@herbcaudill/crypto@^3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-3.0.3.tgz#02419debfaa25b54231c113d0bd00f4b4dabe003"
-  integrity sha512-ixkTuQ26fbORJIQTn3JXHmPQ6/6gShftvQXi7p+7pYYuu/ld0ZH87H2q/Iw2xlLivDSKvTmmeOfA2i07BZhT7g==
+"@herbcaudill/crypto@^3.0.7":
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/@herbcaudill/crypto/-/crypto-3.0.7.tgz#63785e7a5fc8f1f916c236aa177654a29c89571a"
+  integrity sha512-YJxXTcFKmjXA8HdDf6ZvHXWpvCsnrjrVm4mgMx7a0PDmJU58mkDjeN15sEmFBlWCkPFXqViR3d/UTFH9ntHA0w==
   dependencies:
     "@herbcaudill/base-x" "4"
     "@stablelib/utf8" "1"
     fast-memoize "2"
-    libsodium-wrappers "0"
+    libsodium-wrappers "0.7.10"
     msgpack-lite "0"
 
 "@herbcaudill/random@0":
@@ -2418,10 +2418,10 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-libsodium-wrappers@0:
-  version "0.7.9"
-  resolved "https://registry.yarnpkg.com/libsodium-wrappers/-/libsodium-wrappers-0.7.9.tgz#4ffc2b69b8f7c7c7c5594a93a4803f80f6d0f346"
-  integrity sha512-9HaAeBGk1nKTRFRHkt7nzxqCvnkWTjn1pdjKgcUnZxj0FyOP4CnhgFhMdrFfgNsukijBGyBLpP2m2uKT1vuWhQ==
+libsodium-wrappers@0.7.10:
+  version "0.7.10"
+  resolved "https://registry.yarnpkg.com/libsodium-wrappers/-/libsodium-wrappers-0.7.10.tgz#13ced44cacb0fc44d6ac9ce67d725956089ce733"
+  integrity sha512-pO3F1Q9NPLB/MWIhehim42b/Fwb30JNScCNh8TcQ/kIc+qGLQch8ag8wb0keK3EP5kbGakk1H8Wwo7v+36rNQg==
   dependencies:
     libsodium "^0.7.0"
 
