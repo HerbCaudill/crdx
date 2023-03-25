@@ -5,7 +5,7 @@ export const getRoot = <A extends Action, C>(graph: Graph<A, C>) => graph.links[
 
 export const getHead = <A extends Action, C>(graph: Graph<A, C>) => graph.head.map(hash => getLink(graph, hash)!)
 
-export const getHashes = (graph: Graph<any, any>) => Object.keys(graph.links) as Base58[]
+export const getHashes = (graph: Graph<any, any>) => Object.keys(graph.links) as Hash[]
 
 export const getLink = <A extends Action, C>(graph: Graph<A, C>, hash: Hash): Link<A, C> => graph.links[hash]
 

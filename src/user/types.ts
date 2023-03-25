@@ -1,9 +1,8 @@
 ﻿import { Keyset, KeysetWithSecrets } from '/keyset'
-import { UUID } from '/util/types'
 
 export interface User {
   /** Unique ID populated on creation. */
-  userId: UUID
+  userId: string
 
   /** Username (or email). Must be unique but is not used for lookups. Only provided to connect
    * human identities with other systems. */
@@ -15,7 +14,7 @@ export interface User {
 
 /** The local user and their full set of keys, including secrets.   */
 export interface UserWithSecrets {
-  userId: UUID
+  userId: string
   userName: string
 
   /** The user's secret keys. */

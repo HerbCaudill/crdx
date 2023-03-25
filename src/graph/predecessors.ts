@@ -16,7 +16,7 @@ export const getPredecessors = <A extends Action, C>(graph: Graph<A, C>, link: L
     .filter(link => link !== undefined)
 
 /** Returns true if `a` is a predecessor of `b` */
-export const isPredecessorHash = (graph: Graph<any, any>, a: Base58, b: Base58) =>
+export const isPredecessorHash = (graph: Graph<any, any>, a: Hash, b: Hash) =>
   getPredecessorHashes(graph, b).includes(a)
 
 /** Returns true if `a` is a predecessor of `b` */

@@ -4,6 +4,7 @@ import { hashEncryptedLink } from './hashLink'
 import { Action, EncryptedLink, Graph, Link, LinkBody } from './types'
 import { KeysetWithSecrets } from '/keyset'
 import { UserWithSecrets } from '/user'
+import { UnixTimestamp } from '/util'
 
 interface AppendParams<A extends Action, C> {
   /** The graph to append a link to. */
@@ -40,7 +41,7 @@ export const append = <A extends Action, C>({
     ...action,
     ...context,
     userId: user.userId,
-    timestamp: new Date().getTime(),
+    timestamp: new Date().getTime() as UnixTimestamp,
     prev: graph.head ?? [], // If there are no previous heads, this is the root node
   }
 
