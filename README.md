@@ -1,11 +1,10 @@
 > ### Moved
->
-> CRDX is now part of the @localfirst/auth monorepo. You can find it [here](https://github.com/local-first-web/auth/tree/main/packages/crdx).
-> 
->
-> It is available on NPM as `@localfirst/crdx`.
 
-- - -
+CRDX is now part of the @localfirst/auth monorepo. You can find it [here](https://github.com/local-first-web/auth/tree/main/packages/crdx).
+
+It is available on NPM as `@localfirst/crdx`.
+
+---
 
 <img src='./img/crdx-logo.png' width='150' />
 
